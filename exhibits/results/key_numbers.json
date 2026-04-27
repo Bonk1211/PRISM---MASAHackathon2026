@@ -1,0 +1,305 @@
+{
+  "mape_summary": {
+    "log_linear": 9.23,
+    "ARIMA": 2.67,
+    "XGBoost": 2.18
+  },
+  "m1_per_country": [
+    {
+      "country": "Malaysia",
+      "pred_2024": 389.12,
+      "actual_2024": 332.17,
+      "err_pct": 17.15,
+      "abs_err_pct": 17.15
+    },
+    {
+      "country": "Indonesia",
+      "pred_2024": 1217.39,
+      "actual_2024": 1323.78,
+      "err_pct": -8.04,
+      "abs_err_pct": 8.04
+    },
+    {
+      "country": "Thailand",
+      "pred_2024": 479.67,
+      "actual_2024": 422.39,
+      "err_pct": 13.56,
+      "abs_err_pct": 13.56
+    },
+    {
+      "country": "Philippines",
+      "pred_2024": 251.48,
+      "actual_2024": 266.6,
+      "err_pct": -5.67,
+      "abs_err_pct": 5.67
+    },
+    {
+      "country": "Vietnam",
+      "pred_2024": 581.42,
+      "actual_2024": 584.26,
+      "err_pct": -0.49,
+      "abs_err_pct": 0.49
+    },
+    {
+      "country": "Singapore",
+      "pred_2024": 75.09,
+      "actual_2024": 76.09,
+      "err_pct": -1.32,
+      "abs_err_pct": 1.32
+    },
+    {
+      "country": "Cambodia",
+      "pred_2024": 51.66,
+      "actual_2024": 49.83,
+      "err_pct": 3.67,
+      "abs_err_pct": 3.67
+    },
+    {
+      "country": "Myanmar",
+      "pred_2024": 144.56,
+      "actual_2024": 117.79,
+      "err_pct": 22.73,
+      "abs_err_pct": 22.73
+    },
+    {
+      "country": "Lao PDR",
+      "pred_2024": 36.78,
+      "actual_2024": 41.55,
+      "err_pct": -11.47,
+      "abs_err_pct": 11.47
+    },
+    {
+      "country": "Brunei Darussalam",
+      "pred_2024": 12.84,
+      "actual_2024": 11.87,
+      "err_pct": 8.19,
+      "abs_err_pct": 8.19
+    }
+  ],
+  "m2_per_country": [
+    {
+      "country": "Malaysia",
+      "order": "(0, 2, 1)",
+      "pred_2024": 325.42,
+      "actual_2024": 332.17,
+      "err_pct": -2.03,
+      "abs_err_pct": 2.03
+    },
+    {
+      "country": "Indonesia",
+      "order": "(2, 2, 1)",
+      "pred_2024": 1238.89,
+      "actual_2024": 1323.78,
+      "err_pct": -6.41,
+      "abs_err_pct": 6.41
+    },
+    {
+      "country": "Thailand",
+      "order": "(0, 2, 1)",
+      "pred_2024": 414.06,
+      "actual_2024": 422.39,
+      "err_pct": -1.97,
+      "abs_err_pct": 1.97
+    },
+    {
+      "country": "Philippines",
+      "order": "(0, 2, 1)",
+      "pred_2024": 261.47,
+      "actual_2024": 266.6,
+      "err_pct": -1.92,
+      "abs_err_pct": 1.92
+    },
+    {
+      "country": "Vietnam",
+      "order": "(2, 2, 1)",
+      "pred_2024": 585.58,
+      "actual_2024": 584.26,
+      "err_pct": 0.23,
+      "abs_err_pct": 0.23
+    },
+    {
+      "country": "Singapore",
+      "order": "(0, 2, 1)",
+      "pred_2024": 73.56,
+      "actual_2024": 76.09,
+      "err_pct": -3.32,
+      "abs_err_pct": 3.32
+    },
+    {
+      "country": "Cambodia",
+      "order": "(0, 2, 1)",
+      "pred_2024": 50.27,
+      "actual_2024": 49.83,
+      "err_pct": 0.86,
+      "abs_err_pct": 0.86
+    },
+    {
+      "country": "Myanmar",
+      "order": "(0, 2, 1)",
+      "pred_2024": 119.91,
+      "actual_2024": 117.79,
+      "err_pct": 1.8,
+      "abs_err_pct": 1.8
+    },
+    {
+      "country": "Lao PDR",
+      "order": "(0, 2, 2)",
+      "pred_2024": 44.4,
+      "actual_2024": 41.55,
+      "err_pct": 6.85,
+      "abs_err_pct": 6.85
+    },
+    {
+      "country": "Brunei Darussalam",
+      "order": "(1, 1, 0)",
+      "pred_2024": 12.02,
+      "actual_2024": 11.87,
+      "err_pct": 1.27,
+      "abs_err_pct": 1.27
+    }
+  ],
+  "m3_per_country": [
+    {
+      "country": "Brunei Darussalam",
+      "pred_2024": 12.239999771118164,
+      "actual_2024": 11.87,
+      "err_pct": 3.19,
+      "abs_err_pct": 3.19
+    },
+    {
+      "country": "Cambodia",
+      "pred_2024": 50.08000183105469,
+      "actual_2024": 49.83,
+      "err_pct": 0.49,
+      "abs_err_pct": 0.49
+    },
+    {
+      "country": "Indonesia",
+      "pred_2024": 1272.1600341796875,
+      "actual_2024": 1323.78,
+      "err_pct": -3.9,
+      "abs_err_pct": 3.9
+    },
+    {
+      "country": "Lao PDR",
+      "pred_2024": 42.54999923706055,
+      "actual_2024": 41.55,
+      "err_pct": 2.42,
+      "abs_err_pct": 2.42
+    },
+    {
+      "country": "Malaysia",
+      "pred_2024": 327.8999938964844,
+      "actual_2024": 332.17,
+      "err_pct": -1.28,
+      "abs_err_pct": 1.28
+    },
+    {
+      "country": "Myanmar",
+      "pred_2024": 117.8499984741211,
+      "actual_2024": 117.79,
+      "err_pct": 0.05,
+      "abs_err_pct": 0.05
+    },
+    {
+      "country": "Philippines",
+      "pred_2024": 262.3999938964844,
+      "actual_2024": 266.6,
+      "err_pct": -1.57,
+      "abs_err_pct": 1.57
+    },
+    {
+      "country": "Singapore",
+      "pred_2024": 73.2699966430664,
+      "actual_2024": 76.09,
+      "err_pct": -3.71,
+      "abs_err_pct": 3.71
+    },
+    {
+      "country": "Thailand",
+      "pred_2024": 415.6099853515625,
+      "actual_2024": 422.39,
+      "err_pct": -1.6,
+      "abs_err_pct": 1.6
+    },
+    {
+      "country": "Vietnam",
+      "pred_2024": 563.3599853515625,
+      "actual_2024": 584.26,
+      "err_pct": -3.58,
+      "abs_err_pct": 3.58
+    }
+  ],
+  "feature_importance": [
+    {
+      "feature": "log_GHG_lag1",
+      "gain": 0.6129000186920166
+    },
+    {
+      "feature": "log_GHG_lag2",
+      "gain": 0.3472999930381775
+    },
+    {
+      "feature": "log_GDP",
+      "gain": 0.023099999874830246
+    },
+    {
+      "feature": "log_pop",
+      "gain": 0.01489999983459711
+    },
+    {
+      "feature": "CO2_intensity_GDP",
+      "gain": 0.0012000000569969416
+    },
+    {
+      "feature": "urban_pop_pct",
+      "gain": 0.00019999999494757503
+    },
+    {
+      "feature": "forest_area_pct",
+      "gain": 9.999999747378752e-05
+    },
+    {
+      "feature": "GDP_per_capita_2015USD",
+      "gain": 9.999999747378752e-05
+    },
+    {
+      "feature": "industry_pct_GDP",
+      "gain": 9.999999747378752e-05
+    },
+    {
+      "feature": "renewable_energy_pct",
+      "gain": 9.999999747378752e-05
+    }
+  ],
+  "stress_test_2030_aggregate": [
+    {
+      "scenario": "Current Policies",
+      "emissions": 3741.539,
+      "pct_chg": 0.0,
+      "loss_ratio": 0.62,
+      "expected_loss_USDm": 744.0
+    },
+    {
+      "scenario": "Delayed Transition",
+      "emissions": 3424.801,
+      "pct_chg": -0.085,
+      "loss_ratio": 0.583,
+      "expected_loss_USDm": 699.912
+    },
+    {
+      "scenario": "Mitigation (proposed)",
+      "emissions": 3037.514,
+      "pct_chg": -0.188,
+      "loss_ratio": 0.538,
+      "expected_loss_USDm": 646.004
+    },
+    {
+      "scenario": "Net Zero 2050",
+      "emissions": 2771.627,
+      "pct_chg": -0.259,
+      "loss_ratio": 0.507,
+      "expected_loss_USDm": 608.994
+    }
+  ]
+}

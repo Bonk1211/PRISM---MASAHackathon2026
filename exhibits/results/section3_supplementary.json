@@ -1,0 +1,251 @@
+{
+  "pairwise_correlations": [
+    {
+      "indicator": "GDP_constant_2015USD",
+      "pearson_r": 0.772,
+      "p_value": 0.0
+    },
+    {
+      "indicator": "population",
+      "pearson_r": 0.758,
+      "p_value": 0.0
+    },
+    {
+      "indicator": "agri_land_pct",
+      "pearson_r": 0.673,
+      "p_value": 0.0
+    },
+    {
+      "indicator": "forest_area_pct",
+      "pearson_r": -0.493,
+      "p_value": 0.0
+    },
+    {
+      "indicator": "energy_use_pc",
+      "pearson_r": -0.452,
+      "p_value": 0.0
+    },
+    {
+      "indicator": "CO2_intensity_GDP",
+      "pearson_r": 0.413,
+      "p_value": 0.0
+    },
+    {
+      "indicator": "GDP_per_capita_2015USD",
+      "pearson_r": -0.367,
+      "p_value": 0.0
+    },
+    {
+      "indicator": "renewable_elec_pct",
+      "pearson_r": -0.143,
+      "p_value": 0.028
+    },
+    {
+      "indicator": "industry_pct_GDP",
+      "pearson_r": -0.137,
+      "p_value": 0.034
+    },
+    {
+      "indicator": "renewable_energy_pct",
+      "pearson_r": -0.133,
+      "p_value": 0.04
+    },
+    {
+      "indicator": "urban_pop_pct",
+      "pearson_r": -0.069,
+      "p_value": 0.284
+    },
+    {
+      "indicator": "freshwater_withdrawal_pct",
+      "pearson_r": -0.061,
+      "p_value": 0.357
+    },
+    {
+      "indicator": "agriculture_pct_GDP",
+      "pearson_r": -0.024,
+      "p_value": 0.708
+    }
+  ],
+  "partial_correlations_controlling_for_GDP_pop": [
+    {
+      "indicator": "CO2_intensity_GDP",
+      "partial_r": 0.754,
+      "p_value": 0.0
+    },
+    {
+      "indicator": "forest_area_pct",
+      "partial_r": 0.634,
+      "p_value": 0.0
+    },
+    {
+      "indicator": "industry_pct_GDP",
+      "partial_r": 0.539,
+      "p_value": 0.0
+    },
+    {
+      "indicator": "energy_use_pc",
+      "partial_r": 0.517,
+      "p_value": 0.0
+    },
+    {
+      "indicator": "renewable_energy_pct",
+      "partial_r": -0.437,
+      "p_value": 0.0
+    },
+    {
+      "indicator": "GDP_per_capita_2015USD",
+      "partial_r": -0.433,
+      "p_value": 0.0
+    },
+    {
+      "indicator": "freshwater_withdrawal_pct",
+      "partial_r": -0.362,
+      "p_value": 0.0
+    },
+    {
+      "indicator": "renewable_elec_pct",
+      "partial_r": -0.239,
+      "p_value": 0.0
+    },
+    {
+      "indicator": "urban_pop_pct",
+      "partial_r": -0.228,
+      "p_value": 0.0
+    },
+    {
+      "indicator": "agriculture_pct_GDP",
+      "partial_r": 0.161,
+      "p_value": 0.012
+    },
+    {
+      "indicator": "agri_land_pct",
+      "partial_r": 0.063,
+      "p_value": 0.329
+    }
+  ],
+  "stirpat_global_fit": {
+    "log_pop_coefficient": 0.58,
+    "log_GDP_coefficient": 0.539,
+    "r_squared": 0.937
+  },
+  "sea_stirpat_residuals_2019_2023": [
+    {
+      "country": "Brunei Darussalam",
+      "exp_residual_pct": 287.1
+    },
+    {
+      "country": "Lao PDR",
+      "exp_residual_pct": 92.9
+    },
+    {
+      "country": "Malaysia",
+      "exp_residual_pct": 32.2
+    },
+    {
+      "country": "Vietnam",
+      "exp_residual_pct": 24.4
+    },
+    {
+      "country": "Cambodia",
+      "exp_residual_pct": 13.2
+    },
+    {
+      "country": "Thailand",
+      "exp_residual_pct": 5.6
+    },
+    {
+      "country": "Myanmar",
+      "exp_residual_pct": 4.1
+    },
+    {
+      "country": "Singapore",
+      "exp_residual_pct": -11.5
+    },
+    {
+      "country": "Indonesia",
+      "exp_residual_pct": -18.8
+    },
+    {
+      "country": "Philippines",
+      "exp_residual_pct": -49.2
+    }
+  ],
+  "rolling_decoupling_correlation": [
+    {
+      "year_end": 2005,
+      "rolling_r_5y": 0.918
+    },
+    {
+      "year_end": 2006,
+      "rolling_r_5y": 0.901
+    },
+    {
+      "year_end": 2007,
+      "rolling_r_5y": 0.889
+    },
+    {
+      "year_end": 2008,
+      "rolling_r_5y": 0.871
+    },
+    {
+      "year_end": 2009,
+      "rolling_r_5y": 0.863
+    },
+    {
+      "year_end": 2010,
+      "rolling_r_5y": 0.859
+    },
+    {
+      "year_end": 2011,
+      "rolling_r_5y": 0.856
+    },
+    {
+      "year_end": 2012,
+      "rolling_r_5y": 0.861
+    },
+    {
+      "year_end": 2013,
+      "rolling_r_5y": 0.864
+    },
+    {
+      "year_end": 2014,
+      "rolling_r_5y": 0.874
+    },
+    {
+      "year_end": 2015,
+      "rolling_r_5y": 0.88
+    },
+    {
+      "year_end": 2016,
+      "rolling_r_5y": 0.875
+    },
+    {
+      "year_end": 2017,
+      "rolling_r_5y": 0.873
+    },
+    {
+      "year_end": 2018,
+      "rolling_r_5y": 0.867
+    },
+    {
+      "year_end": 2019,
+      "rolling_r_5y": 0.864
+    },
+    {
+      "year_end": 2020,
+      "rolling_r_5y": 0.846
+    },
+    {
+      "year_end": 2021,
+      "rolling_r_5y": 0.829
+    },
+    {
+      "year_end": 2022,
+      "rolling_r_5y": 0.82
+    },
+    {
+      "year_end": 2023,
+      "rolling_r_5y": 0.807
+    }
+  ]
+}

@@ -1,0 +1,46 @@
+{
+  "structural_model_MAPE_2024": 6.73,
+  "structural_feature_importance": [
+    {
+      "feature": "log_pop",
+      "gain": 0.54339998960495
+    },
+    {
+      "feature": "log_GDP",
+      "gain": 0.3068000078201294
+    },
+    {
+      "feature": "industry_pct_GDP",
+      "gain": 0.03620000183582306
+    },
+    {
+      "feature": "CO2_intensity_GDP",
+      "gain": 0.030300000682473183
+    },
+    {
+      "feature": "energy_use_pc",
+      "gain": 0.02329999953508377
+    },
+    {
+      "feature": "forest_area_pct",
+      "gain": 0.020899999886751175
+    },
+    {
+      "feature": "renewable_energy_pct",
+      "gain": 0.013500000350177288
+    },
+    {
+      "feature": "GDP_per_capita_2015USD",
+      "gain": 0.012799999676644802
+    },
+    {
+      "feature": "urban_pop_pct",
+      "gain": 0.00989999994635582
+    },
+    {
+      "feature": "agriculture_pct_GDP",
+      "gain": 0.00279999990016222
+    }
+  ],
+  "note": "Structural-only model: XGBoost trained without lag features. Used to identify long-run drivers. For accurate forecasting, use the autoregressive model in run_analysis.py"
+}

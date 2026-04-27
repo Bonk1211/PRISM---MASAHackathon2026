@@ -1,0 +1,188 @@
+{
+  "sectoral_residuals_pct": {
+    "Malaysia": {
+      "Agriculture": -53.6,
+      "Buildings": -55.0,
+      "Fugitive (Energy)": 153.8,
+      "Industrial Combustion": 78.3,
+      "Industrial Processes": 50.9,
+      "Power Industry": 172.1,
+      "Transport": 62.3,
+      "Waste": 16.3
+    },
+    "Indonesia": {
+      "Agriculture": -39.4,
+      "Buildings": -67.3,
+      "Fugitive (Energy)": 82.9,
+      "Industrial Combustion": 65.0,
+      "Industrial Processes": -20.6,
+      "Power Industry": 76.9,
+      "Transport": 17.2,
+      "Waste": -6.3
+    },
+    "Thailand": {
+      "Agriculture": 17.7,
+      "Buildings": -43.9,
+      "Fugitive (Energy)": -16.1,
+      "Industrial Combustion": 90.1,
+      "Industrial Processes": 155.2,
+      "Power Industry": 62.5,
+      "Transport": 65.7,
+      "Waste": 49.8
+    },
+    "Philippines": {
+      "Agriculture": -37.0,
+      "Buildings": -60.9,
+      "Fugitive (Energy)": -67.3,
+      "Industrial Combustion": -53.8,
+      "Industrial Processes": -36.0,
+      "Power Industry": 66.5,
+      "Transport": -22.3,
+      "Waste": -45.8
+    },
+    "Vietnam": {
+      "Agriculture": 25.8,
+      "Buildings": -43.5,
+      "Fugitive (Energy)": -23.8,
+      "Industrial Combustion": 276.1,
+      "Industrial Processes": 147.1,
+      "Power Industry": 279.8,
+      "Transport": 7.8,
+      "Waste": -9.2
+    },
+    "Singapore": {
+      "Agriculture": -99.4,
+      "Buildings": -87.7,
+      "Fugitive (Energy)": 17.5,
+      "Industrial Combustion": 9.3,
+      "Industrial Processes": 254.6,
+      "Power Industry": -45.6,
+      "Transport": -75.6,
+      "Waste": 24.4
+    },
+    "Cambodia": {
+      "Agriculture": 146.0,
+      "Buildings": -36.6,
+      "Fugitive (Energy)": -69.0,
+      "Industrial Combustion": 28.7,
+      "Industrial Processes": 121.8,
+      "Power Industry": 37.8,
+      "Transport": 69.9,
+      "Waste": -40.2
+    },
+    "Myanmar": {
+      "Agriculture": 110.4,
+      "Buildings": -0.8,
+      "Fugitive (Energy)": -75.5,
+      "Industrial Combustion": 34.2,
+      "Industrial Processes": -19.3,
+      "Power Industry": 13.8,
+      "Transport": 4.2,
+      "Waste": -37.5
+    },
+    "Lao PDR": {
+      "Agriculture": 189.1,
+      "Buildings": -59.8,
+      "Fugitive (Energy)": 14.2,
+      "Industrial Combustion": 16.9,
+      "Industrial Processes": 420.1,
+      "Power Industry": 780.9,
+      "Transport": 17.9,
+      "Waste": -49.8
+    },
+    "Brunei Darussalam": {
+      "Agriculture": -54.5,
+      "Buildings": -50.9,
+      "Fugitive (Energy)": 4204.5,
+      "Industrial Combustion": 75.8,
+      "Industrial Processes": 136.7,
+      "Power Industry": 350.8,
+      "Transport": 24.9,
+      "Waste": -42.3
+    }
+  },
+  "fixed_effects_coefficients": {
+    "pooled_OLS_R2": 0.982,
+    "country_FE_within_R2": 0.955,
+    "two_way_FE_within_R2": 0.955,
+    "coefficient_table": {
+      "log_GDP": {
+        "Pooled_coef": 0.776,
+        "Pooled_se": 0.086,
+        "Pooled_p": 0.0,
+        "CountryFE_coef": 0.597,
+        "CountryFE_se": 0.156,
+        "CountryFE_p": 0.0,
+        "TwoWayFE_coef": 0.608,
+        "TwoWayFE_se": 0.2,
+        "TwoWayFE_p": 0.003
+      },
+      "log_pop": {
+        "Pooled_coef": 0.692,
+        "Pooled_se": 0.089,
+        "Pooled_p": 0.0,
+        "CountryFE_coef": 0.637,
+        "CountryFE_se": 0.427,
+        "CountryFE_p": 0.137,
+        "TwoWayFE_coef": 0.5,
+        "TwoWayFE_se": 0.76,
+        "TwoWayFE_p": 0.511
+      },
+      "renewable_energy_pct": {
+        "Pooled_coef": 0.172,
+        "Pooled_se": 0.071,
+        "Pooled_p": 0.015,
+        "CountryFE_coef": -0.034,
+        "CountryFE_se": 0.132,
+        "CountryFE_p": 0.798,
+        "TwoWayFE_coef": -0.038,
+        "TwoWayFE_se": 0.135,
+        "TwoWayFE_p": 0.776
+      },
+      "urban_pop_pct": {
+        "Pooled_coef": 0.128,
+        "Pooled_se": 0.04,
+        "Pooled_p": 0.001,
+        "CountryFE_coef": 0.248,
+        "CountryFE_se": 0.091,
+        "CountryFE_p": 0.007,
+        "TwoWayFE_coef": 0.241,
+        "TwoWayFE_se": 0.098,
+        "TwoWayFE_p": 0.015
+      },
+      "industry_pct_GDP": {
+        "Pooled_coef": 0.06,
+        "Pooled_se": 0.019,
+        "Pooled_p": 0.002,
+        "CountryFE_coef": -0.051,
+        "CountryFE_se": 0.049,
+        "CountryFE_p": 0.299,
+        "TwoWayFE_coef": -0.068,
+        "TwoWayFE_se": 0.066,
+        "TwoWayFE_p": 0.302
+      },
+      "CO2_intensity_GDP": {
+        "Pooled_coef": 0.244,
+        "Pooled_se": 0.035,
+        "Pooled_p": 0.0,
+        "CountryFE_coef": 0.161,
+        "CountryFE_se": 0.023,
+        "CountryFE_p": 0.0,
+        "TwoWayFE_coef": 0.167,
+        "TwoWayFE_se": 0.022,
+        "TwoWayFE_p": 0.0
+      },
+      "forest_area_pct": {
+        "Pooled_coef": 0.053,
+        "Pooled_se": 0.019,
+        "Pooled_p": 0.005,
+        "CountryFE_coef": 0.146,
+        "CountryFE_se": 0.071,
+        "CountryFE_p": 0.042,
+        "TwoWayFE_coef": 0.124,
+        "TwoWayFE_se": 0.083,
+        "TwoWayFE_p": 0.135
+      }
+    }
+  }
+}
