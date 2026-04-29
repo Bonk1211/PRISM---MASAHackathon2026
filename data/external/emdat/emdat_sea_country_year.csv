@@ -1,0 +1,613 @@
+country,iso3,year,disaster_type,disaster_subtype,events,affected,deaths,damage_usd_nominal,damage_usd_2024
+Cambodia,KHM,2000,Flood,Riverine flood,1,3448053,347,160000000.0,291464718
+Cambodia,KHM,2001,Drought,Drought,1,300000,,,
+Cambodia,KHM,2001,Flood,Riverine flood,1,1669182,56,15000000.0,26573799
+Cambodia,KHM,2002,Drought,Drought,1,650000,,38000000.0,66269237
+Cambodia,KHM,2002,Flood,Riverine flood,1,1470000,29,100000.0,174393
+Cambodia,KHM,2004,Flood,Riverine flood,1,,,,
+Cambodia,KHM,2005,Drought,Drought,1,600000,,,
+Cambodia,KHM,2005,Flood,Riverine flood,1,,16,,
+Cambodia,KHM,2006,Flood,Riverine flood,2,38000,5,,
+Cambodia,KHM,2007,Flood,Riverine flood,1,19000,2,1000000.0,1512903
+Cambodia,KHM,2009,Storm,Tropical cyclone,2,178091,19,,
+Cambodia,KHM,2010,Flood,Riverine flood,1,,8,70000000.0,100700164
+Cambodia,KHM,2011,Flood,Riverine flood,1,1640023,247,521000000.0,726560507
+Cambodia,KHM,2012,Flood,Flash flood,1,71500,14,,
+Cambodia,KHM,2013,Flood,Riverine flood,1,1500000,200,500000000.0,673276182
+Cambodia,KHM,2014,Flood,Flash flood,1,530450,45,2000000.0,2650114
+Cambodia,KHM,2015,Flood,Flood (General),1,22000,,,
+Cambodia,KHM,2015,Storm,Tropical cyclone,1,6300,,,
+Cambodia,KHM,2016,Drought,Drought,1,2500000,,,
+Cambodia,KHM,2018,Flood,Flood (General),1,5817,,,
+Cambodia,KHM,2019,Flood,Flood (General),1,435000,12,,
+Cambodia,KHM,2020,Storm,Tropical cyclone,2,759360,44,100000000.0,121203771
+Cambodia,KHM,2021,Flood,Flood (General),3,13225,,,
+Cambodia,KHM,2021,Storm,Severe weather,1,501,1,,
+Cambodia,KHM,2022,Flood,Flood (General),1,167770,15,,
+Cambodia,KHM,2022,Storm,Storm surge,1,,16,,
+Cambodia,KHM,2023,Storm,Lightning/Thunderstorms,1,14100,,,
+Cambodia,KHM,2024,Extreme temperature,Heat wave,1,,,,
+Cambodia,KHM,2025,Flood,Flash flood,1,67000,,,
+Indonesia,IDN,2000,Earthquake,Ground movement,5,270108,149,73000000.0,132980778
+Indonesia,IDN,2000,Flood,Flash flood,2,89852,164,79000000.0,143910705
+Indonesia,IDN,2000,Flood,Riverine flood,1,386021,100,34000000.0,61936253
+Indonesia,IDN,2000,Mass movement (wet),Landslide (wet),2,539,52,,
+Indonesia,IDN,2000,Mass movement (wet),Mudslide,2,56210,74,54600000.0,99462335
+Indonesia,IDN,2000,Wildfire,Forest fire,1,,,,
+Indonesia,IDN,2001,Earthquake,Ground movement,2,12512,,,
+Indonesia,IDN,2001,Flood,Flash flood,1,80000,130,10000000.0,17715866
+Indonesia,IDN,2001,Flood,Riverine flood,2,5694,272,,
+Indonesia,IDN,2001,Mass movement (wet),Landslide (wet),4,23910,185,10000000.0,17715866
+Indonesia,IDN,2002,Earthquake,Ground movement,3,2763,3,,
+Indonesia,IDN,2002,Earthquake,Tsunami,1,9082,8,,
+Indonesia,IDN,2002,Flood,Riverine flood,7,591570,230,351600000.0,613164836
+Indonesia,IDN,2002,Mass movement (wet),Mudslide,1,5,32,,
+Indonesia,IDN,2002,Volcanic activity,Ash fall,1,5000,,,
+Indonesia,IDN,2002,Wildfire,Forest fire,1,200,,,
+Indonesia,IDN,2003,Drought,Drought,1,15000,,1000000.0,1705217
+Indonesia,IDN,2003,Earthquake,Ground movement,3,3249,1,,
+Indonesia,IDN,2003,Flood,Flash flood,2,16498,242,,
+Indonesia,IDN,2003,Flood,Flood (General),2,3930,10,,
+Indonesia,IDN,2003,Flood,Riverine flood,4,418000,162,,
+Indonesia,IDN,2003,Mass movement (wet),Landslide (wet),4,231328,119,3961000.0,6754366
+Indonesia,IDN,2004,Earthquake,Ground movement,5,140833,108,68000000.0,112931336
+Indonesia,IDN,2004,Earthquake,Tsunami,1,532898,165708,4451600000.0,7393016691
+Indonesia,IDN,2004,Flood,Riverine flood,1,13000,5,60000000.0,99645296
+Indonesia,IDN,2004,Mass movement (wet),Landslide (wet),4,5018,119,3500000.0,5812642
+Indonesia,IDN,2004,Storm,Severe weather,1,2400,4,,
+Indonesia,IDN,2004,Storm,Tropical cyclone,1,1315,,,
+Indonesia,IDN,2004,Volcanic activity,Ash fall,4,43548,2,,
+Indonesia,IDN,2005,Earthquake,Ground movement,2,105997,916,,
+Indonesia,IDN,2005,Flood,Flash flood,3,20790,154,,
+Indonesia,IDN,2005,Mass movement (wet),Landslide (wet),2,10,168,5000000.0,8031293
+Indonesia,IDN,2005,Volcanic activity,Ash fall,1,26000,,,
+Indonesia,IDN,2005,Wildfire,Forest fire,1,,,,
+Indonesia,IDN,2006,Earthquake,Ground movement,3,3179237,5787,3100000000.0,4823789144
+Indonesia,IDN,2006,Earthquake,Tsunami,2,36745,805,55000000.0,85583356
+Indonesia,IDN,2006,Flood,Flash flood,4,683506,563,80200000.0,124796093
+Indonesia,IDN,2006,Flood,Flood (General),1,,41,,
+Indonesia,IDN,2006,Flood,Riverine flood,3,15402,41,27100000.0,42169253
+Indonesia,IDN,2006,Mass movement (wet),Landslide (wet),3,11313,184,37943000.0,59041623
+Indonesia,IDN,2006,Volcanic activity,Ash fall,1,11000,,,
+Indonesia,IDN,2006,Wildfire,Forest fire,1,200,,14000000.0,21784854
+Indonesia,IDN,2007,Earthquake,Ground movement,4,619496,95,700000000.0,1059031907
+Indonesia,IDN,2007,Flood,Flash flood,1,11556,74,,
+Indonesia,IDN,2007,Flood,Flood (General),1,1000,4,,
+Indonesia,IDN,2007,Flood,Riverine flood,6,556991,360,971000000.0,1469028545
+Indonesia,IDN,2007,Mass movement (wet),Landslide (wet),2,3990,43,,
+Indonesia,IDN,2007,Volcanic activity,Ash fall,2,31912,,,
+Indonesia,IDN,2008,Earthquake,Ground movement,2,10702,8,,
+Indonesia,IDN,2008,Flood,Flash flood,2,41514,14,,
+Indonesia,IDN,2008,Flood,Riverine flood,10,434681,98,1733000.0,2524926
+Indonesia,IDN,2008,Mass movement (wet),Landslide (wet),1,,21,,
+Indonesia,IDN,2008,Volcanic activity,Ash fall,1,600,,,
+Indonesia,IDN,2009,Earthquake,Ground movement,5,2850399,1330,2381430000.0,3482048254
+Indonesia,IDN,2009,Flood,Flash flood,4,25204,62,,
+Indonesia,IDN,2009,Flood,Riverine flood,1,1600,64,,
+Indonesia,IDN,2009,Mass movement (wet),Landslide (wet),2,5,29,,
+Indonesia,IDN,2010,Earthquake,Ground movement,1,4600,17,,
+Indonesia,IDN,2010,Earthquake,Tsunami,1,11864,530,,
+Indonesia,IDN,2010,Flood,Flash flood,3,12983,317,78000000.0,112208754
+Indonesia,IDN,2010,Flood,Riverine flood,4,43607,94,,
+Indonesia,IDN,2010,Mass movement (wet),Landslide (wet),1,18,13,,
+Indonesia,IDN,2010,Volcanic activity,Ash fall,2,152200,323,,
+Indonesia,IDN,2011,Earthquake,Ground movement,1,,10,5850000.0,8158117
+Indonesia,IDN,2011,Earthquake,Tsunami,1,95,1,,
+Indonesia,IDN,2011,Flood,Flash flood,1,1060,,,
+Indonesia,IDN,2011,Flood,Riverine flood,5,18804,62,,
+Indonesia,IDN,2011,Mass movement (wet),Landslide (wet),2,4,53,,
+Indonesia,IDN,2011,Volcanic activity,Ash fall,2,8373,3,,
+Indonesia,IDN,2012,Earthquake,Ground movement,2,7990,13,,
+Indonesia,IDN,2012,Flood,Flash flood,3,5965,12,,
+Indonesia,IDN,2012,Flood,Riverine flood,4,27355,29,,
+Indonesia,IDN,2012,Mass movement (wet),Landslide (wet),2,215,32,,
+Indonesia,IDN,2012,Storm,Storm (General),1,10060,16,1000000.0,1366277
+Indonesia,IDN,2012,Storm,Tornado,1,490,5,,
+Indonesia,IDN,2013,Earthquake,Ground movement,3,59188,50,130000000.0,175051807
+Indonesia,IDN,2013,Flood,Riverine flood,10,591276,89,3006000000.0,4047736408
+Indonesia,IDN,2013,Mass movement (wet),Landslide (wet),2,3,34,,
+Indonesia,IDN,2013,Volcanic activity,Ash fall,1,29727,,,
+Indonesia,IDN,2014,Flood,Riverine flood,6,423227,77,928000000.0,1229652829
+Indonesia,IDN,2014,Mass movement (wet),Landslide (wet),2,3900,127,,
+Indonesia,IDN,2014,Volcanic activity,Ash fall,2,115160,39,186000000.0,246460589
+Indonesia,IDN,2015,Drought,Drought,1,,11,,
+Indonesia,IDN,2015,Earthquake,Ground movement,1,12247,,,
+Indonesia,IDN,2015,Flood,Flash flood,1,8259,1,,
+Indonesia,IDN,2015,Flood,Flood (General),1,25750,,,
+Indonesia,IDN,2015,Flood,Riverine flood,4,33300,8,235000000.0,311019445
+Indonesia,IDN,2015,Mass movement (wet),Landslide (wet),2,105,33,,
+Indonesia,IDN,2015,Mass movement (wet),Rockfall (wet),1,55,12,,
+Indonesia,IDN,2015,Wildfire,Forest fire,1,409664,19,1000000000.0,1323487000
+Indonesia,IDN,2016,Earthquake,Ground movement,3,90600,105,100000000.0,130699791
+Indonesia,IDN,2016,Flood,Flood (General),8,348340,79,108000000.0,141155775
+Indonesia,IDN,2016,Flood,Riverine flood,2,43669,10,,
+Indonesia,IDN,2016,Mass movement (wet),Landslide (wet),2,,77,25000000.0,32674948
+Indonesia,IDN,2017,Earthquake,Ground movement,1,8895,4,,
+Indonesia,IDN,2017,Flood,Flash flood,3,27650,21,2000000.0,2559476
+Indonesia,IDN,2017,Flood,Flood (General),2,12400,11,,
+Indonesia,IDN,2017,Flood,Riverine flood,2,299830,12,19000000.0,24315020
+Indonesia,IDN,2017,Mass movement (wet),Landslide (wet),2,50677,40,13000000.0,16636592
+Indonesia,IDN,2017,Storm,Tropical cyclone,1,2035,11,,
+Indonesia,IDN,2017,Volcanic activity,Volcanic activity (General),1,133349,,,
+Indonesia,IDN,2018,Earthquake,Ground movement,4,634369,589,904000000.0,1129299887
+Indonesia,IDN,2018,Earthquake,Tsunami,1,2000000,4140,1450000000.0,1811377031
+Indonesia,IDN,2018,Flood,Flash flood,2,23000,48,,
+Indonesia,IDN,2018,Flood,Flood (General),4,120464,32,,
+Indonesia,IDN,2018,Mass movement (wet),Landslide (wet),2,50014,48,,
+Indonesia,IDN,2018,Volcanic activity,Ash fall,1,50000,,,
+Indonesia,IDN,2018,Volcanic activity,Volcanic activity (General),1,47778,453,250000000.0,312306385
+Indonesia,IDN,2019,Earthquake,Ground movement,5,285551,51,,
+Indonesia,IDN,2019,Flood,Flash flood,3,565650,286,1303000000.0,1598766937
+Indonesia,IDN,2019,Flood,Flood (General),8,363237,40,15000000.0,18404838
+Indonesia,IDN,2019,Mass movement (wet),Landslide (wet),2,7503,89,,
+Indonesia,IDN,2019,Wildfire,Wildfire (General),1,,,,
+Indonesia,IDN,2020,Earthquake,Ground movement,1,1560,,,
+Indonesia,IDN,2020,Flood,Flash flood,8,160601,27,9300000.0,11271951
+Indonesia,IDN,2020,Flood,Flood (General),15,714606,170,20000000.0,24240754
+Indonesia,IDN,2020,Flood,Riverine flood,2,12757,2,,
+Indonesia,IDN,2020,Mass movement (wet),Landslide (wet),1,170,11,,
+Indonesia,IDN,2020,Volcanic activity,Ash fall,1,19736,,,
+Indonesia,IDN,2020,Volcanic activity,Lava flow,1,550,,,
+Indonesia,IDN,2021,Earthquake,Ground movement,5,113651,122,58700000.0,67954242
+Indonesia,IDN,2021,Flood,Flash flood,1,1275,9,,
+Indonesia,IDN,2021,Flood,Flood (General),16,930679,48,50000000.0,57882659
+Indonesia,IDN,2021,Flood,Riverine flood,1,10000,3,,
+Indonesia,IDN,2021,Mass movement (wet),Landslide (wet),2,1661,32,,
+Indonesia,IDN,2021,Storm,Tropical cyclone,1,509625,226,800000000.0,926122545
+Indonesia,IDN,2021,Volcanic activity,Lava flow,1,1329,,,
+Indonesia,IDN,2021,Volcanic activity,Pyroclastic flow,1,10992,71,20000000.0,23153064
+Indonesia,IDN,2022,Earthquake,Ground movement,5,2251243,349,62000000.0,66456145
+Indonesia,IDN,2022,Flood,Flash flood,1,40002,10,,
+Indonesia,IDN,2022,Flood,Flood (General),12,313568,45,74000000.0,79318625
+Indonesia,IDN,2022,Volcanic activity,Ash fall,1,2489,,,
+Indonesia,IDN,2022,Volcanic activity,Pyroclastic flow,1,253,,,
+Indonesia,IDN,2023,Drought,Drought,1,18750000,,,
+Indonesia,IDN,2023,Earthquake,Ground movement,3,7677,6,,
+Indonesia,IDN,2023,Flood,Flood (General),5,149467,6,,
+Indonesia,IDN,2023,Mass movement (wet),Landslide (wet),2,1338,60,,
+Indonesia,IDN,2023,Storm,Severe weather,2,990,1,,
+Indonesia,IDN,2023,Volcanic activity,Ash fall,2,2316,23,,
+Indonesia,IDN,2024,Earthquake,Ground movement,3,150209,2,70000000.0,70000000
+Indonesia,IDN,2024,Flood,Flash flood,2,1615,41,,
+Indonesia,IDN,2024,Flood,Flood (General),6,109343,113,,
+Indonesia,IDN,2024,Mass movement (wet),Landslide (wet),6,519201,124,20000000.0,20000000
+Indonesia,IDN,2024,Volcanic activity,Ash fall,1,11511,10,,
+Indonesia,IDN,2024,Volcanic activity,Lava flow,1,8500,,,
+Indonesia,IDN,2024,Volcanic activity,Volcanic activity (General),1,2011,,,
+Indonesia,IDN,2025,Earthquake,Ground movement,3,908,2,,
+Indonesia,IDN,2025,Flood,Flash flood,1,23,23,,
+Indonesia,IDN,2025,Flood,Flood (General),11,146206,62,,
+Indonesia,IDN,2025,Mass movement (wet),Landslide (wet),2,591,77,,
+Indonesia,IDN,2025,Storm,Tropical cyclone,1,3205037,1109,4000000000.0,
+Indonesia,IDN,2025,Volcanic activity,Ash fall,1,2341,,,
+Indonesia,IDN,2025,Volcanic activity,Pyroclastic flow,1,531,,,
+Indonesia,IDN,2026,Earthquake,Ground movement,1,1134,,,
+Indonesia,IDN,2026,Flood,Flash flood,2,21304,16,,
+Indonesia,IDN,2026,Mass movement (wet),Landslide (wet),1,699,78,20000000.0,
+Indonesia,IDN,2026,Mass movement (wet),Mudslide,1,,4,,
+Indonesia,IDN,2026,Storm,Severe weather,1,619,11,,
+Lao PDR,LAO,2000,Flood,Flood (General),1,450000,15,1000000.0,1821654
+Lao PDR,LAO,2001,Flood,Flood (General),1,453000,,,
+Lao PDR,LAO,2002,Flood,Riverine flood,1,150000,2,,
+Lao PDR,LAO,2008,Flood,Riverine flood,1,204190,6,,
+Lao PDR,LAO,2009,Flood,Riverine flood,1,,10,,
+Lao PDR,LAO,2009,Storm,Tropical cyclone,1,128887,16,100000000.0,146216696
+Lao PDR,LAO,2011,Flood,Flash flood,1,430000,34,,
+Lao PDR,LAO,2011,Flood,Riverine flood,1,37000,14,,
+Lao PDR,LAO,2013,Flood,Riverine flood,2,574253,23,121000000.0,162932836
+Lao PDR,LAO,2014,Flood,Riverine flood,1,750,,,
+Lao PDR,LAO,2015,Flood,Flood (General),2,47940,4,10000000.0,13234870
+Lao PDR,LAO,2016,Flood,Flood (General),1,26328,5,50000.0,65350
+Lao PDR,LAO,2017,Storm,Tropical cyclone,1,,,,
+Lao PDR,LAO,2018,Flood,Flood (General),1,13100,136,,
+Lao PDR,LAO,2018,Storm,Tropical cyclone,2,735145,,225000000.0,281075746
+Lao PDR,LAO,2019,Drought,Drought,1,,,,
+Lao PDR,LAO,2019,Flood,Flood (General),1,507500,19,,
+Lao PDR,LAO,2020,Storm,Tropical cyclone,2,70764,2,,
+Lao PDR,LAO,2021,Earthquake,Ground movement,1,,,120000.0,138918
+Lao PDR,LAO,2021,Storm,Tropical cyclone,1,26000,,,
+Lao PDR,LAO,2022,Flood,Flood (General),1,42552,1,,
+Lao PDR,LAO,2023,Flood,Flood (General),1,110129,7,7719000.0,7946673
+Lao PDR,LAO,2024,Extreme temperature,Heat wave,1,,,,
+Lao PDR,LAO,2024,Flood,Flood (General),1,185843,,2261000.0,2261000
+Lao PDR,LAO,2024,Storm,Tropical cyclone,2,126446,13,305000000.0,305000000
+Lao PDR,LAO,2025,Flood,Flood (General),1,172010,13,13060000.0,
+Lao PDR,LAO,2025,Storm,Tropical cyclone,1,10124,2,,
+Malaysia,MYS,2000,Flood,Flash flood,1,8000,12,1000000.0,1821654
+Malaysia,MYS,2000,Storm,Storm (General),1,500,,,
+Malaysia,MYS,2001,Flood,Flash flood,1,10000,,,
+Malaysia,MYS,2001,Flood,Flood (General),2,5200,,,
+Malaysia,MYS,2001,Flood,Riverine flood,1,18000,11,,
+Malaysia,MYS,2002,Mass movement (wet),Landslide (wet),1,,10,,
+Malaysia,MYS,2002,Storm,Lightning/Thunderstorms,1,155,2,,
+Malaysia,MYS,2003,Flood,Flash flood,1,3000,5,,
+Malaysia,MYS,2003,Flood,Riverine flood,2,15800,3,,
+Malaysia,MYS,2004,Earthquake,Tsunami,1,5063,80,500000000.0,830377470
+Malaysia,MYS,2004,Flood,Riverine flood,3,31038,16,10000000.0,16607549
+Malaysia,MYS,2004,Storm,Storm (General),2,41000,1,,
+Malaysia,MYS,2005,Flood,Flash flood,2,30600,13,,
+Malaysia,MYS,2005,Wildfire,Forest fire,1,,,,
+Malaysia,MYS,2006,Flood,Flash flood,1,100000,6,22000000.0,34233342
+Malaysia,MYS,2006,Flood,Riverine flood,3,6518,,,
+Malaysia,MYS,2007,Flood,Riverine flood,2,166533,46,968000000.0,1464489836
+Malaysia,MYS,2008,Flood,Flash flood,1,6000,,,
+Malaysia,MYS,2008,Flood,Riverine flood,1,2000,,,
+Malaysia,MYS,2009,Flood,Riverine flood,2,10875,,,
+Malaysia,MYS,2011,Flood,Riverine flood,1,20000,2,,
+Malaysia,MYS,2011,Mass movement (wet),Landslide (wet),1,6,16,,
+Malaysia,MYS,2013,Flood,Riverine flood,1,75000,4,2000000.0,2693105
+Malaysia,MYS,2014,Drought,Drought,1,2200000,,,
+Malaysia,MYS,2014,Flood,Riverine flood,1,230000,17,284000000.0,376316167
+Malaysia,MYS,2015,Earthquake,Ground movement,1,10,24,2000.0,2647
+Malaysia,MYS,2015,Flood,Riverine flood,1,3000,1,,
+Malaysia,MYS,2016,Flood,Flood (General),4,31841,,132000000.0,172523725
+Malaysia,MYS,2017,Flood,Flood (General),2,8981,7,,
+Malaysia,MYS,2017,Flood,Riverine flood,1,13000,2,,
+Malaysia,MYS,2017,Storm,Storm (General),1,426,,,
+Malaysia,MYS,2018,Flood,Flash flood,1,4900,,,
+Malaysia,MYS,2018,Flood,Flood (General),1,12000,2,,
+Malaysia,MYS,2019,Flood,Flood (General),4,22477,2,,
+Malaysia,MYS,2020,Flood,Flood (General),4,12610,,6800000.0,8241856
+Malaysia,MYS,2020,Flood,Riverine flood,1,9273,,,
+Malaysia,MYS,2021,Flood,Flash flood,3,125828,63,1460000000.0,1690173645
+Malaysia,MYS,2021,Flood,Flood (General),5,38813,16,,
+Malaysia,MYS,2022,Flood,Flood (General),5,90625,17,240000.0,257250
+Malaysia,MYS,2022,Mass movement (wet),Landslide (wet),1,94,33,,
+Malaysia,MYS,2023,Flood,Flood (General),4,84187,6,,
+Malaysia,MYS,2025,Flood,Flash flood,2,21834,16,,
+Malaysia,MYS,2025,Flood,Flood (General),5,30480,5,,
+Myanmar,MMR,2001,Flood,Riverine flood,1,3750,51,,
+Myanmar,MMR,2002,Flood,Riverine flood,1,50000,21,,
+Myanmar,MMR,2004,Earthquake,Tsunami,1,15700,71,500000000.0,830377470
+Myanmar,MMR,2004,Storm,Tropical cyclone,1,25000,236,688000.0,1142599
+Myanmar,MMR,2005,Mass movement (wet),Landslide (wet),1,16,17,,
+Myanmar,MMR,2006,Flood,Riverine flood,1,10000,25,,
+Myanmar,MMR,2006,Storm,Tropical cyclone,1,60106,34,,
+Myanmar,MMR,2007,Flood,Riverine flood,4,166664,5,,
+Myanmar,MMR,2008,Storm,Tropical cyclone,1,2420000,138366,4000000000.0,5827873272
+Myanmar,MMR,2009,Mass movement (wet),Landslide (wet),1,1351,24,,
+Myanmar,MMR,2010,Extreme temperature,Heat wave,1,1482,260,,
+Myanmar,MMR,2010,Mass movement (wet),Landslide (wet),1,145000,68,,
+Myanmar,MMR,2010,Storm,Tropical cyclone,1,260049,45,57000000.0,81998705
+Myanmar,MMR,2011,Earthquake,Ground movement,1,21277,74,3600000.0,5020380
+Myanmar,MMR,2011,Flood,Flash flood,1,35734,151,1700000.0,2370735
+Myanmar,MMR,2012,Earthquake,Ground movement,1,1486,38,1170000.0,1598544
+Myanmar,MMR,2012,Flood,Riverine flood,1,85000,2,,
+Myanmar,MMR,2013,Flood,Riverine flood,1,73300,7,,
+Myanmar,MMR,2013,Mass movement (wet),Landslide (wet),1,,16,,
+Myanmar,MMR,2014,Flood,Riverine flood,2,40000,,,
+Myanmar,MMR,2015,Flood,Flash flood,1,,16,,
+Myanmar,MMR,2015,Flood,Riverine flood,2,1635703,156,119000000.0,157494953
+Myanmar,MMR,2015,Mass movement (wet),Landslide (wet),2,1200,38,,
+Myanmar,MMR,2015,Storm,Lightning/Thunderstorms,1,,3,,
+Myanmar,MMR,2016,Earthquake,Ground movement,1,1152,4,10000000.0,13069979
+Myanmar,MMR,2016,Flood,Flood (General),2,852227,19,2000000.0,2613996
+Myanmar,MMR,2016,Mass movement (wet),Landslide (wet),1,15,42,,
+Myanmar,MMR,2016,Storm,Lightning/Thunderstorms,2,99956,32,4600000.0,6012190
+Myanmar,MMR,2017,Flood,Riverine flood,1,92000,3,,
+Myanmar,MMR,2017,Storm,Tropical cyclone,1,107520,,,
+Myanmar,MMR,2018,Flood,Flood (General),3,173050,35,,
+Myanmar,MMR,2018,Mass movement (dry),Landslide (dry),1,,17,,
+Myanmar,MMR,2018,Mass movement (wet),Landslide (wet),1,45,15,,
+Myanmar,MMR,2019,Flood,Flood (General),2,8075,115,,
+Myanmar,MMR,2019,Mass movement (wet),Landslide (wet),1,,13,,
+Myanmar,MMR,2020,Flood,Flash flood,1,25000,,,
+Myanmar,MMR,2020,Mass movement (wet),Landslide (wet),1,1554,174,,
+Myanmar,MMR,2021,Flood,Flood (General),1,125000,,,
+Myanmar,MMR,2023,Flood,Flood (General),2,75335,10,,
+Myanmar,MMR,2023,Mass movement (wet),Landslide (wet),1,,39,,
+Myanmar,MMR,2023,Storm,Tornado,1,1280,8,,
+Myanmar,MMR,2023,Storm,Tropical cyclone,1,1200132,148,2240000000.0,2306069048
+Myanmar,MMR,2024,Extreme temperature,Heat wave,1,100,50,,
+Myanmar,MMR,2024,Flood,Flood (General),1,106792,,,
+Myanmar,MMR,2024,Storm,Tropical cyclone,1,1000048,460,222000000.0,222000000
+Myanmar,MMR,2025,Earthquake,Ground movement,1,1355104,3820,11000000000.0,
+Myanmar,MMR,2025,Flood,Flash flood,1,580,6,,
+Myanmar,MMR,2025,Flood,Flood (General),1,35000,,,
+Myanmar,MMR,2025,Storm,Tropical cyclone,2,131430,20,,
+Philippines,PHL,2000,Flood,Coastal flood,2,11758,5,,
+Philippines,PHL,2000,Flood,Flash flood,1,153885,50,4080000.0,7432350
+Philippines,PHL,2000,Mass movement (dry),Landslide (dry),1,,11,,
+Philippines,PHL,2000,Mass movement (wet),Sudden Subsidence (wet),1,2838,287,,
+Philippines,PHL,2000,Storm,Tropical cyclone,6,6187431,394,83464000.0,152042570
+Philippines,PHL,2000,Volcanic activity,Ash fall,1,68426,,2214000.0,4033143
+Philippines,PHL,2001,Flood,Flash flood,2,79300,41,8000000.0,14172693
+Philippines,PHL,2001,Flood,Riverine flood,1,12000,2,,
+Philippines,PHL,2001,Storm,Storm (General),2,332712,4,1700000.0,3011697
+Philippines,PHL,2001,Storm,Tropical cyclone,4,3117725,583,97361000.0,172483446
+Philippines,PHL,2001,Volcanic activity,Ash fall,2,83221,,2580000.0,4570694
+Philippines,PHL,2002,Drought,Drought,1,,,453000.0,789999
+Philippines,PHL,2002,Earthquake,Ground movement,1,73451,15,1714000.0,2989091
+Philippines,PHL,2002,Flood,Coastal flood,2,10559,44,,
+Philippines,PHL,2002,Flood,Riverine flood,2,145008,46,1842000.0,3212314
+Philippines,PHL,2002,Storm,Storm (General),3,268153,113,6870000.0,11980780
+Philippines,PHL,2002,Storm,Tropical cyclone,3,714041,102,6664000.0,11621531
+Philippines,PHL,2003,Flood,Flash flood,1,3500,,,
+Philippines,PHL,2003,Mass movement (wet),Landslide (wet),1,217988,255,7000000.0,11936521
+Philippines,PHL,2003,Storm,Storm (General),2,35445,2,73000.0,124481
+Philippines,PHL,2003,Storm,Tropical cyclone,6,430816,93,35229000.0,60073100
+Philippines,PHL,2004,Flood,Flash flood,1,1500,15,,
+Philippines,PHL,2004,Flood,Riverine flood,2,20194,34,,
+Philippines,PHL,2004,Mass movement (wet),Landslide (wet),1,6,8,,
+Philippines,PHL,2004,Storm,Tornado,1,4504,7,,
+Philippines,PHL,2004,Storm,Tropical cyclone,7,3236774,1854,138867000.0,230624056
+Philippines,PHL,2005,Flood,Flood (General),1,100,1,,
+Philippines,PHL,2005,Flood,Riverine flood,1,192946,4,515000.0,827223
+Philippines,PHL,2005,Storm,Tropical cyclone,2,20011,34,2000000.0,3212517
+Philippines,PHL,2006,Flood,Flash flood,2,257641,5,9600000.0,14938186
+Philippines,PHL,2006,Flood,Flood (General),1,15000,26,,
+Philippines,PHL,2006,Flood,Riverine flood,3,459868,5,4557000.0,7090970
+Philippines,PHL,2006,Mass movement (wet),Avalanche (wet),1,1200,6,,
+Philippines,PHL,2006,Mass movement (wet),Landslide (wet),2,13451,1137,2203000.0,3428002
+Philippines,PHL,2006,Storm,Tropical cyclone,10,7821808,1805,330921000.0,514933267
+Philippines,PHL,2006,Volcanic activity,Ash fall,1,43849,,,
+Philippines,PHL,2007,Drought,Drought,1,,,,
+Philippines,PHL,2007,Flood,Coastal flood,2,50034,11,2520000.0,3812515
+Philippines,PHL,2007,Flood,Riverine flood,3,36713,29,4080000.0,6172643
+Philippines,PHL,2007,Storm,Tropical cyclone,8,1909794,78,9955000.0,15060947
+Philippines,PHL,2007,Volcanic activity,Ash fall,1,14036,,,
+Philippines,PHL,2008,Flood,Flash flood,2,240763,11,4088000.0,5956086
+Philippines,PHL,2008,Flood,Riverine flood,6,1362126,105,35489000.0,51706349
+Philippines,PHL,2008,Mass movement (wet),Landslide (wet),1,5028,24,,
+Philippines,PHL,2008,Storm,Tropical cyclone,11,6851979,819,441625000.0,643433633
+Philippines,PHL,2009,Earthquake,Ground movement,1,392,,90000.0,131595
+Philippines,PHL,2009,Flood,Flash flood,4,541692,22,22960000.0,33571353
+Philippines,PHL,2009,Flood,Riverine flood,4,541584,33,6354000.0,9290609
+Philippines,PHL,2009,Mass movement (wet),Landslide (wet),1,16,10,,
+Philippines,PHL,2009,Storm,Tornado,1,100,,5000.0,7311
+Philippines,PHL,2009,Storm,Tropical cyclone,13,12221563,1242,932698000.0,1363760196
+Philippines,PHL,2009,Volcanic activity,Ash fall,1,47137,,,
+Philippines,PHL,2010,Flood,Flash flood,4,2059862,118,50589000.0,72776008
+Philippines,PHL,2010,Flood,Riverine flood,5,787073,44,,
+Philippines,PHL,2010,Mass movement (wet),Landslide (wet),1,927,2,78000.0,112209
+Philippines,PHL,2010,Storm,Tropical cyclone,3,2595545,212,284420000.0,409159150
+Philippines,PHL,2010,Volcanic activity,Ash fall,1,14161,,,
+Philippines,PHL,2011,Earthquake,Ground movement,1,28,,,
+Philippines,PHL,2011,Flood,Flash flood,7,162272,33,179247000.0,249968889
+Philippines,PHL,2011,Flood,Riverine flood,8,2056556,89,23540000.0,32827705
+Philippines,PHL,2011,Mass movement (wet),Landslide (wet),3,889,29,,
+Philippines,PHL,2011,Storm,Tropical cyclone,12,9468676,1782,527238000.0,735259709
+Philippines,PHL,2011,Volcanic activity,Ash fall,2,33931,,,
+Philippines,PHL,2012,Earthquake,Ground movement,3,353157,114,12144000.0,16592070
+Philippines,PHL,2012,Flood,Flash flood,2,13000,1,,
+Philippines,PHL,2012,Flood,Riverine flood,6,4601628,156,75330000.0,102921659
+Philippines,PHL,2012,Mass movement (wet),Landslide (wet),1,23,75,,
+Philippines,PHL,2012,Storm,Tropical cyclone,9,7560480,2039,918137000.0,1254429614
+Philippines,PHL,2013,Earthquake,Ground movement,1,3222224,230,51459000.0,69292238
+Philippines,PHL,2013,Flood,Flash flood,1,507769,10,2800000.0,3770347
+Philippines,PHL,2013,Flood,Riverine flood,4,3992569,95,2231988000.0,3005488720
+Philippines,PHL,2013,Storm,Tropical cyclone,8,17944571,7415,10136563000.0,13649412878
+Philippines,PHL,2014,Flood,Flash flood,1,3770,4,,
+Philippines,PHL,2014,Flood,Flood (General),1,42175,1,,
+Philippines,PHL,2014,Flood,Riverine flood,1,99185,,791000.0,1048120
+Philippines,PHL,2014,Storm,Tropical cyclone,9,13068983,326,1062899000.0,1408401683
+Philippines,PHL,2014,Volcanic activity,Volcanic activity (General),1,60545,,,
+Philippines,PHL,2015,Drought,Drought,1,181687,,84399000.0,111700979
+Philippines,PHL,2015,Flood,Flood (General),4,230429,44,200000.0,264697
+Philippines,PHL,2015,Flood,Riverine flood,1,880,9,,
+Philippines,PHL,2015,Storm,Tropical cyclone,10,3606205,148,1881367000.0,2489964767
+Philippines,PHL,2016,Earthquake,Ground movement,1,202,8,,
+Philippines,PHL,2016,Flood,Flood (General),2,2563098,45,9320000.0,12181221
+Philippines,PHL,2016,Storm,Storm (General),1,8809,,,
+Philippines,PHL,2016,Storm,Tropical cyclone,7,2962703,34,170754000.0,223175122
+Philippines,PHL,2017,Earthquake,Ground movement,3,58357,11,20338000.0,26027309
+Philippines,PHL,2017,Flood,Flash flood,1,8000,,,
+Philippines,PHL,2017,Flood,Flood (General),2,1834000,22,8100000.0,10365877
+Philippines,PHL,2017,Storm,Storm (General),2,2785085,149,121901000.0,156001327
+Philippines,PHL,2017,Storm,Tropical cyclone,6,184363,51,10874920.0,13917047
+Philippines,PHL,2018,Flood,Flood (General),1,180000,11,,
+Philippines,PHL,2018,Storm,Tropical cyclone,7,9348889,302,566148000.0,707246540
+Philippines,PHL,2018,Volcanic activity,Lava flow,1,86056,,3564000.0,4452240
+Philippines,PHL,2019,Drought,Drought,1,16000,,25600000.0,31410924
+Philippines,PHL,2019,Earthquake,Ground movement,7,712735,88,55258000.0,67800970
+Philippines,PHL,2019,Flood,Flood (General),1,45000,,,
+Philippines,PHL,2019,Storm,Tropical cyclone,7,6025139,92,538313000.0,660504241
+Philippines,PHL,2020,Earthquake,Ground movement,1,4980,1,2500000.0,3030094
+Philippines,PHL,2020,Mass movement (wet),Landslide (wet),1,11,10,,
+Philippines,PHL,2020,Storm,Tropical cyclone,6,5374740,190,1044974000.0,1266547893
+Philippines,PHL,2020,Volcanic activity,Ash fall,1,736802,1,66000000.0,79994489
+Philippines,PHL,2021,Flood,Flash flood,1,38160,2,25000000.0,28941330
+Philippines,PHL,2021,Flood,Flood (General),4,307196,3,,
+Philippines,PHL,2021,Storm,Severe weather,1,37830,6,,
+Philippines,PHL,2021,Storm,Tropical cyclone,7,12379433,561,1025235000.0,1186866560
+Philippines,PHL,2021,Volcanic activity,Volcanic activity (General),1,22433,,,
+Philippines,PHL,2022,Earthquake,Ground movement,2,650278,10,152400000.0,163353493
+Philippines,PHL,2022,Flood,Flash flood,1,1955,3,,
+Philippines,PHL,2022,Flood,Flood (General),1,600016,70,11000000.0,11790606
+Philippines,PHL,2022,Mass movement (wet),Landslide (wet),1,11712,5,,
+Philippines,PHL,2022,Storm,Storm surge,1,913945,17,56946000.0,61038898
+Philippines,PHL,2022,Storm,Tropical cyclone,5,5740297,504,105125000.0,112680682
+Philippines,PHL,2022,Volcanic activity,Volcanic activity (General),1,10415,,,
+Philippines,PHL,2023,Earthquake,Ground movement,3,820834,14,48105000.0,49523862
+Philippines,PHL,2023,Flood,Flood (General),4,3548610,71,42531000.0,43785457
+Philippines,PHL,2023,Storm,Tropical cyclone,7,6878482,47,317520000.0,326885288
+Philippines,PHL,2023,Volcanic activity,Lava flow,1,39024,,,
+Philippines,PHL,2024,Earthquake,Ground movement,1,24000,,,
+Philippines,PHL,2024,Extreme temperature,Heat wave,1,34,,,
+Philippines,PHL,2024,Flood,Flood (General),1,1228014,21,30000000.0,30000000
+Philippines,PHL,2024,Mass movement (wet),Landslide (wet),2,2967382,150,115110000.0,115110000
+Philippines,PHL,2024,Storm,Tropical cyclone,11,24372752,343,768000000.0,768000000
+Philippines,PHL,2024,Volcanic activity,Ash fall,1,44053,,,
+Philippines,PHL,2024,Volcanic activity,Lahar,1,29137,,,
+Philippines,PHL,2025,Earthquake,Ground movement,2,1601319,89,100000000.0,
+Philippines,PHL,2025,Flood,Flood (General),2,123192,7,,
+Philippines,PHL,2025,Storm,Severe weather,1,233945,,,
+Philippines,PHL,2025,Storm,Storm (General),1,7660051,34,,
+Philippines,PHL,2025,Storm,Tropical cyclone,9,23517354,491,552000000.0,
+Philippines,PHL,2025,Volcanic activity,Ash fall,1,110000,,,
+Philippines,PHL,2026,Storm,Tropical cyclone,1,645612,7,5000000.0,
+Thailand,THA,2000,Flood,Flood (General),2,2502500,47,51050000.0,92995462
+Thailand,THA,2000,Flood,Riverine flood,2,821301,60,58006000.0,105666890
+Thailand,THA,2000,Storm,Tropical cyclone,1,41219,2,,
+Thailand,THA,2001,Flood,Flash flood,3,455239,187,28500000.0,50490219
+Thailand,THA,2001,Flood,Flood (General),2,10000,2,,
+Thailand,THA,2001,Storm,Storm (General),1,150,,,
+Thailand,THA,2002,Drought,Drought,1,5000000,,2300000.0,4011033
+Thailand,THA,2002,Flood,Flash flood,2,3290920,154,35827000.0,62479683
+Thailand,THA,2002,Mass movement (wet),Landslide (wet),1,33000,35,,
+Thailand,THA,2002,Storm,Hail,2,30204,1,2000000.0,3487855
+Thailand,THA,2003,Flood,Flash flood,1,104700,6,1400000.0,2387304
+Thailand,THA,2003,Flood,Riverine flood,2,3000,3,25000000.0,42630432
+Thailand,THA,2003,Storm,Hail,1,5000,,,
+Thailand,THA,2004,Earthquake,Tsunami,1,67007,8345,1000000000.0,1660754940
+Thailand,THA,2004,Flood,Flash flood,1,2000,2,,
+Thailand,THA,2004,Flood,Riverine flood,2,505000,11,175000000.0,290632115
+Thailand,THA,2004,Mass movement (wet),Landslide (wet),1,110,3,,
+Thailand,THA,2004,Storm,Storm (General),1,5050,13,,
+Thailand,THA,2004,Storm,Tropical cyclone,1,4000,1,,
+Thailand,THA,2005,Drought,Drought,1,,,420000000.0,674628585
+Thailand,THA,2005,Flood,Flash flood,1,700000,55,97000000.0,155807078
+Thailand,THA,2005,Flood,Riverine flood,1,119310,21,121000000.0,194357283
+Thailand,THA,2005,Storm,Storm (General),1,1500,,246000.0,395140
+Thailand,THA,2005,Storm,Tropical cyclone,1,2000,10,20000000.0,32125171
+Thailand,THA,2005,Wildfire,Forest fire,1,,,,
+Thailand,THA,2006,Flood,Flash flood,1,342895,116,25000000.0,38901525
+Thailand,THA,2006,Flood,Riverine flood,2,2214413,164,9940000.0,15467246
+Thailand,THA,2007,Flood,Flash flood,1,,38,,
+Thailand,THA,2007,Flood,Riverine flood,4,183000,15,1500000.0,2269354
+Thailand,THA,2008,Drought,Drought,1,10000000,,,
+Thailand,THA,2008,Flood,Flash flood,2,732584,21,11844000.0,17256333
+Thailand,THA,2008,Flood,Riverine flood,1,839573,18,16000000.0,23311493
+Thailand,THA,2008,Storm,Tropical cyclone,2,1000,,,
+Thailand,THA,2009,Flood,Riverine flood,1,200000,15,,
+Thailand,THA,2010,Drought,Drought,1,6482602,,,
+Thailand,THA,2010,Flood,Riverine flood,1,8970653,258,332000000.0,477606490
+Thailand,THA,2011,Earthquake,Ground movement,1,16,1,,
+Thailand,THA,2011,Flood,Flash flood,1,716110,64,317000000.0,442072324
+Thailand,THA,2011,Flood,Riverine flood,1,9500000,813,40000000000.0,55781996674
+Thailand,THA,2011,Storm,Tropical cyclone,1,1000000,18,,
+Thailand,THA,2012,Drought,Drought,1,12000000,,1200000.0,1639533
+Thailand,THA,2012,Flood,Riverine flood,1,235545,,,
+Thailand,THA,2013,Flood,Riverine flood,3,3515254,84,579000000.0,779653819
+Thailand,THA,2014,Drought,Drought,1,,,,
+Thailand,THA,2014,Earthquake,Ground movement,1,17523,1,62000000.0,82153530
+Thailand,THA,2014,Extreme temperature,Cold wave,1,1000000,63,,
+Thailand,THA,2014,Flood,Flash flood,1,12000,,,
+Thailand,THA,2014,Flood,Riverine flood,3,119288,29,10000000.0,13250569
+Thailand,THA,2014,Storm,Lightning/Thunderstorms,1,2000,,,
+Thailand,THA,2015,Drought,Drought,1,,,3300000000.0,4367507100
+Thailand,THA,2015,Storm,Tropical cyclone,1,1440,3,561000.0,742476
+Thailand,THA,2016,Extreme temperature,Cold wave,1,,14,,
+Thailand,THA,2016,Flood,Flash flood,1,22500,3,,
+Thailand,THA,2016,Flood,Flood (General),2,786343,18,145000000.0,189514698
+Thailand,THA,2017,Flood,Flood (General),2,1605000,32,308400000.0,394671162
+Thailand,THA,2017,Flood,Riverine flood,2,2185498,118,1000000000.0,1279737881
+Thailand,THA,2017,Storm,Tropical cyclone,2,28560,,,
+Thailand,THA,2019,Drought,Drought,1,,,,
+Thailand,THA,2019,Flood,Flood (General),1,158000,19,,
+Thailand,THA,2019,Storm,Tropical cyclone,1,720885,7,,
+Thailand,THA,2020,Flood,Flash flood,2,731659,30,50000000.0,60601885
+Thailand,THA,2020,Flood,Flood (General),1,139000,1,,
+Thailand,THA,2020,Storm,Severe weather,1,50502,2,10000000.0,12120377
+Thailand,THA,2020,Storm,Tropical cyclone,3,274923,11,,
+Thailand,THA,2021,Flood,Flood (General),5,957694,14,591000000.0,684173030
+Thailand,THA,2021,Storm,Severe weather,1,900,2,,
+Thailand,THA,2022,Flood,Flood (General),9,1380693,19,13000000.0,13934353
+Thailand,THA,2022,Storm,Severe weather,1,1050,1,,
+Thailand,THA,2022,Storm,Storm surge,1,2,1,,
+Thailand,THA,2023,Flood,Flood (General),2,249123,6,,
+Thailand,THA,2023,Storm,Lightning/Thunderstorms,1,22200,,,
+Thailand,THA,2024,Extreme temperature,Heat wave,1,,61,,
+Thailand,THA,2024,Flood,Flood (General),2,775350,57,210000000.0,210000000
+Thailand,THA,2024,Storm,Severe weather,3,6118,2,,
+Thailand,THA,2024,Storm,Tropical cyclone,1,100,45,904000000.0,904000000
+Thailand,THA,2025,Earthquake,Ground movement,1,2351,54,,
+Thailand,THA,2025,Flood,Flood (General),5,4621573,303,15600000000.0,
+Thailand,THA,2025,Storm,Severe weather,4,407118,14,,
+Thailand,THA,2025,Storm,Tropical cyclone,4,777441,30,,
+Vietnam,VNM,2000,Flood,Riverine flood,2,5025007,496,265000000.0,482738440
+Vietnam,VNM,2000,Mass movement (wet),Landslide (wet),2,39,73,,
+Vietnam,VNM,2000,Storm,Storm (General),4,8367,3,35000.0,63758
+Vietnam,VNM,2000,Storm,Tornado,1,134,,,
+Vietnam,VNM,2000,Storm,Tropical cyclone,2,6033,20,26000000.0,47363017
+Vietnam,VNM,2001,Flood,Coastal flood,1,3000,,,
+Vietnam,VNM,2001,Flood,Flash flood,1,35006,20,4700000.0,8326457
+Vietnam,VNM,2001,Flood,Flood (General),1,175,9,,
+Vietnam,VNM,2001,Flood,Riverine flood,1,1570270,310,84000000.0,148813277
+Vietnam,VNM,2001,Storm,Tropical cyclone,3,200639,53,83200000.0,147396008
+Vietnam,VNM,2002,Drought,Drought,1,1300000,,200000000.0,348785458
+Vietnam,VNM,2002,Flood,Riverine flood,3,1431816,147,84100000.0,146664285
+Vietnam,VNM,2002,Storm,Lightning/Thunderstorms,1,1800,,100000.0,174393
+Vietnam,VNM,2002,Wildfire,Forest fire,1,,,,
+Vietnam,VNM,2003,Flood,Coastal flood,1,221774,52,32000000.0,54566953
+Vietnam,VNM,2003,Flood,Riverine flood,2,195049,76,73000000.0,124480862
+Vietnam,VNM,2003,Storm,Tropical cyclone,1,5018,,,
+Vietnam,VNM,2004,Flood,Flash flood,1,18,53,8000000.0,13286040
+Vietnam,VNM,2004,Flood,Riverine flood,2,35000,43,,
+Vietnam,VNM,2004,Mass movement (wet),Landslide (wet),1,,23,,
+Vietnam,VNM,2004,Storm,Tropical cyclone,2,500905,70,30000000.0,49822648
+Vietnam,VNM,2005,Drought,Drought,1,410000,,42120000.0,67655609
+Vietnam,VNM,2005,Flood,Flash flood,1,33800,67,12000000.0,19275102
+Vietnam,VNM,2005,Flood,Riverine flood,4,58593,125,42000000.0,67462858
+Vietnam,VNM,2005,Storm,Storm (General),1,6500,13,,
+Vietnam,VNM,2005,Storm,Tropical cyclone,3,361160,103,250250000.0,401966198
+Vietnam,VNM,2006,Flood,Flash flood,2,2100,16,1000000.0,1556061
+Vietnam,VNM,2006,Flood,Riverine flood,3,50020,162,8000000.0,12448488
+Vietnam,VNM,2006,Storm,Hail,1,,13,10000000.0,15560610
+Vietnam,VNM,2006,Storm,Storm (General),1,1005,1,,
+Vietnam,VNM,2006,Storm,Tropical cyclone,4,3296285,387,1080000000.0,1680545895
+Vietnam,VNM,2007,Flood,Coastal flood,2,566130,129,480000000.0,726193307
+Vietnam,VNM,2007,Flood,Flood (General),1,280000,3,,
+Vietnam,VNM,2007,Flood,Riverine flood,2,116042,98,310000000.0,468999844
+Vietnam,VNM,2007,Storm,Tropical cyclone,1,685430,96,191000000.0,288964420
+Vietnam,VNM,2008,Flood,Flash flood,2,12504,33,4000000.0,5827873
+Vietnam,VNM,2008,Flood,Riverine flood,3,620000,124,479000000.0,697887824
+Vietnam,VNM,2008,Storm,Tropical cyclone,5,156649,254,190500000.0,277552465
+Vietnam,VNM,2009,Flood,Riverine flood,2,740000,37,,
+Vietnam,VNM,2009,Mass movement (wet),Landslide (wet),1,1,13,,
+Vietnam,VNM,2009,Storm,Tropical cyclone,3,2977460,306,1065200000.0,1557500242
+Vietnam,VNM,2010,Flood,Flash flood,1,679825,84,142500000.0,204996761
+Vietnam,VNM,2010,Flood,Riverine flood,3,810008,102,517700000.0,744749638
+Vietnam,VNM,2010,Storm,Tropical cyclone,3,34600,35,44500000.0,64016533
+Vietnam,VNM,2011,Flood,Riverine flood,3,1361584,122,219002000.0,305409221
+Vietnam,VNM,2011,Storm,Lightning/Thunderstorms,1,63,16,,
+Vietnam,VNM,2011,Storm,Tropical cyclone,1,,,,
+Vietnam,VNM,2012,Flood,Riverine flood,1,17540,34,30000000.0,40988315
+Vietnam,VNM,2012,Storm,Tropical cyclone,3,338972,38,342800000.0,468359811
+Vietnam,VNM,2013,Flood,Riverine flood,6,2161001,141,78500000.0,105704361
+Vietnam,VNM,2013,Storm,Tropical cyclone,4,1963444,74,1474230000.0,1985127893
+Vietnam,VNM,2014,Storm,Tropical cyclone,3,48075,38,10700000.0,14178109
+Vietnam,VNM,2015,Drought,Drought,1,1750000,,6750000000.0,8933537250
+Vietnam,VNM,2015,Flood,Flash flood,1,15000,32,204000000.0,269991348
+Vietnam,VNM,2015,Flood,Flood (General),1,100,2,,
+Vietnam,VNM,2015,Storm,Tropical cyclone,2,115,18,218000.0,288520
+Vietnam,VNM,2016,Flood,Flood (General),3,768970,56,57000000.0,74498881
+Vietnam,VNM,2016,Flood,Riverine flood,1,659615,35,104280000.0,136293743
+Vietnam,VNM,2016,Storm,Storm (General),1,182500,25,144000000.0,188207700
+Vietnam,VNM,2016,Storm,Tropical cyclone,3,812840,46,541157000.0,707291070
+Vietnam,VNM,2017,Flood,Flash flood,1,4161,39,88000000.0,112616934
+Vietnam,VNM,2017,Flood,Flood (General),4,86042,98,89655000.0,114734900
+Vietnam,VNM,2017,Storm,Tropical cyclone,4,5043013,147,2985000000.0,3820017574
+Vietnam,VNM,2018,Flood,Flash flood,2,121728,47,48000000.0,59962826
+Vietnam,VNM,2018,Flood,Flood (General),1,6000,20,,
+Vietnam,VNM,2018,Storm,Tropical cyclone,4,156028,67,239200000.0,298814749
+Vietnam,VNM,2019,Drought,Drought,1,685558,,,
+Vietnam,VNM,2019,Flood,Flash flood,1,1500,19,45000000.0,55214514
+Vietnam,VNM,2019,Flood,Flood (General),4,124510,28,13000000.0,15950860
+Vietnam,VNM,2019,Storm,Tropical cyclone,2,22164,4,4000000.0,4907957
+Vietnam,VNM,2020,Flood,Flash flood,1,2621,5,22000000.0,26664830
+Vietnam,VNM,2020,Storm,Extra-tropical storm,1,4652,5,1500000.0,1818057
+Vietnam,VNM,2020,Storm,Lightning/Thunderstorms,1,30013,3,,
+Vietnam,VNM,2020,Storm,Tropical cyclone,8,2160784,297,1428492000.0,1731386170
+Vietnam,VNM,2021,Flood,Flash flood,1,180,3,,
+Vietnam,VNM,2021,Flood,Flood (General),2,313603,21,,
+Vietnam,VNM,2021,Storm,Severe weather,1,1000,,,
+Vietnam,VNM,2021,Storm,Tropical cyclone,4,83560,11,26500000.0,30677809
+Vietnam,VNM,2022,Flood,Flood (General),5,23275,30,1500000.0,1607810
+Vietnam,VNM,2022,Storm,Storm (General),1,500,9,,
+Vietnam,VNM,2022,Storm,Storm surge,1,54412,2,,
+Vietnam,VNM,2022,Storm,Tropical cyclone,1,436978,19,65000000.0,69671765
+Vietnam,VNM,2023,Flood,Flash flood,1,214535,15,,
+Vietnam,VNM,2023,Flood,Flood (General),3,10615,9,,
+Vietnam,VNM,2023,Storm,Severe weather,1,80000,5,,
+Vietnam,VNM,2023,Storm,Tropical cyclone,1,3,1,,
+Vietnam,VNM,2024,Drought,Drought,1,266000,,10000000.0,10000000
+Vietnam,VNM,2024,Extreme temperature,Heat wave,1,,,,
+Vietnam,VNM,2024,Flood,Flood (General),1,9628,3,,
+Vietnam,VNM,2024,Mass movement (wet),Landslide (wet),1,234,11,,
+Vietnam,VNM,2024,Storm,Severe weather,3,10849,11,10000000.0,10000000
+Vietnam,VNM,2024,Storm,Tropical cyclone,3,3747257,354,2020600000.0,2020600000
+Vietnam,VNM,2025,Flood,Flood (General),2,800,17,,
+Vietnam,VNM,2025,Storm,Severe weather,5,1228034,125,345351000.0,
+Vietnam,VNM,2025,Storm,Tropical cyclone,7,2276544,116,1378900000.0,
+Vietnam,VNM,2026,Storm,Severe weather,1,26300,4,,

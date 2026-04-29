@@ -12,6 +12,7 @@ The original WDI download (`WB_WDI_WIDEF.csv`, ~243 MB) is **not committed to th
 |---|---:|---:|---|---|
 | `sea_panel_clean.csv` | 350 | 10 (SEA) | 1990–2024 | Primary modelling panel — all forecasting, STIRPAT, two-way FE, stress test |
 | `global_panel_clean.csv` | 9,275 | 217 | 1960–2024 | Global panel for XGBoost training (borrowing strength across countries) |
+| `external/external_features_sea.csv` | 290 | 10 (SEA) | 1995–2024 | EM-DAT (CRED/UCLouvain via HDX) annual disaster totals + ND-GAIN (Notre Dame) adaptive-capacity scores. See `external/README.md` for source URLs, licences, and rebuild script. |
 
 Header row counts as 1; data row counts above exclude it.
 

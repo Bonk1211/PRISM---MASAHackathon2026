@@ -105,15 +105,35 @@ This captures **cedent-side stranded-asset exposure** — an asset-side risk tha
 
 ## 7. Adaptive capacity (Input 5)
 
-Country GDP per capita (constant 2015 USD), banded:
+The **ND-GAIN Country Index** (Notre Dame Global Adaptation Initiative, 2026
+release) is the standard reference index in IPCC AR6 WG2 and Volz et al.
+(2020) sovereign-risk pricing. It combines a *vulnerability* pillar (exposure
++ sensitivity − adaptive capacity across food, water, health, ecosystems,
+human habitat and infrastructure) with a *readiness* pillar (economic +
+governance + social readiness to deploy adaptation finance) into a 0–100
+composite score. We prefer it over a raw GDP-per-capita band because it
+captures institutional readiness — which can offset scale, as Vietnam
+demonstrates against the Philippines.
 
-| GDP/capita band | Example countries | **Adaptive tier** |
+ND-GAIN composite (2023 latest), banded:
+
+| ND-GAIN composite | Example SEA countries (2023 score) | **Adaptive tier** |
 |---|---|:---:|
-| > USD 30,000 | Singapore, Brunei | **A** |
-| USD 5,000 – 30,000 | Malaysia, Thailand | **B** |
-| < USD 5,000 | Vietnam, Philippines, Indonesia, Cambodia, Myanmar, Lao PDR | **C** |
+| > 65 | Singapore (70.6) | **A** |
+| 55 – 65 | Malaysia (56.9), Brunei (56.7) | **B** |
+| 45 – 55 | Thailand (52.7), Indonesia (48.4), Vietnam (48.1), Philippines (45.6) | **C** |
+| 38 – 45 | Lao PDR (42.5), Cambodia (40.5) | **D** |
+| < 38 | Myanmar (36.9) | **E** |
 
-Adaptive capacity moderates physical-risk severity (wealthier countries can absorb shocks with public balance-sheet support). It does *not* directly drive transition-risk pricing.
+When ND-GAIN is unavailable for a non-SEA country, fall back to the raw
+GDP-per-capita band shown previously. Adaptive capacity moderates
+physical-risk severity (high-readiness economies can absorb shocks with
+balance-sheet support and faster claims-handling capacity); it does *not*
+directly drive transition-risk pricing.
+
+**Source.** Notre Dame Global Adaptation Initiative (2026). *ND-GAIN Country
+Index — 2026 Release*. SEA snapshot in `data/external/ndgain/`. Pillar
+methodology: Chen et al. (2015), University of Notre Dame Technical Report.
 
 ---
 

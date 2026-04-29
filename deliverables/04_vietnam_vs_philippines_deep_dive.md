@@ -86,16 +86,33 @@ For a reinsurer, that asymmetry has direct underwriting implications:
 
 ### 4.1 Event frequency and severity
 
+All event/affected/death/damage figures below are computed from the EM-DAT
+Country Profiles snapshot `emdat-country-profiles_2026_04_24.xlsx` (CRED /
+UCLouvain, distributed via OCHA HDX), filtered to ISO3 = `VNM` and `PHL` for
+years 2018–2023. Damage is reported in CPI-adjusted 2024 USD using EM-DAT's
+own deflator. Insured-loss figures use the Swiss Re *sigma* 1/2024 SEA
+benchmark insured-share (~12 % of economic loss) since EM-DAT does not
+publish insured loss directly. Source files in `data/external/emdat/`.
+
 | Metric | **Vietnam** | **Philippines** |
 |---|---:|---:|
-| Reported climate-related disaster events (2018–2023, EM-DAT) | 78 (≈13/yr) | 113 (≈19/yr) |
-| Of which Cat-3+ tropical cyclones | 12 | 23 |
-| People affected (millions, cumulative) | 18.4 | 64.7 |
-| Total economic loss (USD bn, cumulative) | ≈11.2 | ≈14.8 |
-| Insured loss share (Swiss Re *sigma* est.) | ≈8 % | ≈15 % |
-| Fatalities (cumulative) | ≈1,300 | ≈3,400 |
+| Reported disaster events (2018–2023, EM-DAT) | 48 (≈8/yr) | 75 (≈12.5/yr) |
+| — of which storms | 26 | 41 |
+| — of which floods | 21 | 13 |
+| — of which earthquakes / volcanic / mass movement | 0 | 20 |
+| People affected (millions, cumulative) | 4.5 | 54.5 |
+| Cumulative economic damage (USD bn, 2024-CPI adj.) | 2.30 | 4.81 |
+| Implied insured loss at *sigma* 12 % share (USD m/yr) | ≈46 | ≈96 |
+| Fatalities (cumulative) | 620 | 2,008 |
+| ND-GAIN composite index (2023, 0–100) | 48.1 | 45.6 |
+| ND-GAIN readiness pillar (2023, 0–1) | 0.43 | 0.36 |
+| ND-GAIN vulnerability pillar (2023, 0–1, higher = worse) | 0.47 | 0.44 |
 
-The Philippines is more frequently exposed (it sits further into the West Pacific cyclone path) and historically generates **higher absolute economic loss**. Vietnam is less frequently hit but has been rising both in event count and in loss severity, particularly in 2020 (typhoon Molave) and 2021 (typhoon Rai/Odette landfall on the Philippines side, with significant Vietnam coastal damage).
+Three readings:
+
+1. **The Philippines is the more diversified hazard profile.** Storms account for 41 of 75 events but PH also records 13 earthquakes, 5 volcanic events, and 2 wet mass-movement disasters in the window; Vietnam's exposure is essentially storms + floods. A multi-peril treaty for PH is structurally different from a typhoon-only treaty for VN.
+2. **The Philippines generates ~2× the cumulative economic damage** (USD 4.81 bn vs 2.30 bn) and ~12× the persons-affected count over the same window — consistent with both higher event count and larger per-event social impact, which feeds into life and contingency cover demand.
+3. **Vietnam scores higher on ND-GAIN despite higher vulnerability** — its readiness gap (+0.07 vs PH) reflects the policy/economic capacity to deploy adaptation finance at scale, the same condition that supports a parametric product launch in Vietnam earlier than in Philippines (where capacity tilts toward sovereign-backed cover).
 
 ### 4.2 Major recent events for context
 
@@ -214,8 +231,11 @@ The framework converts the Vietnam–Philippines macro contrast into **operation
 |---|---|---|
 | Aggregate transition-risk profile | High (+24 % STIRPAT residual) | Low (−49 %) |
 | Sectoral concentration | Power Industry +280 %, Industrial Combustion +276 % | Power Industry +66 %; all other sectors mildly negative |
-| Aggregate physical-risk frequency | Moderate (~13 events/yr) | High (~19 events/yr) |
-| Recent insured-loss scale | USD ~60 m/yr | USD ~150 m/yr |
+| Aggregate physical-risk frequency (EM-DAT 2018–23) | Moderate (~8 events/yr; storms+floods only) | High (~12.5 events/yr; multi-peril incl. quake/volcanic) |
+| Cumulative economic damage 2018–23 (USD bn, 2024-CPI) | 2.30 | 4.81 |
+| Persons affected 2018–23 (millions) | 4.5 | 54.5 |
+| Implied insured loss (sigma 12 % share, USD m/yr) | ≈46 | ≈96 |
+| ND-GAIN composite 2023 (0–100) | 48.1 | 45.6 |
 | Insurance penetration (% GDP) | 2.4 % | 1.7 % |
 | Protection gap (uninsured share) | 92 % | 85 % |
 | Top-3 cedent relationships | Greenfield (target: PVI, Bao Viet, MIC) | Existing (Malayan, BPI/MS, Pioneer) |

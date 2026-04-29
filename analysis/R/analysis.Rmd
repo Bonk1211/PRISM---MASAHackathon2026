@@ -212,6 +212,41 @@ cat("After imputation, complete-row rate (excl. 2024 holdout):",
     round(mean(complete.cases(sea_panel_imp %>% filter(year < 2024))) * 100, 1), "%\n")
 ```
 
+## 2.3 Join External Datasets (EM-DAT + ND-GAIN)
+
+Two open external sources are joined into the modelling frame to support the
+disaster-claims analysis (§5) and the cedent-screening framework. Provenance,
+licences, and a re-fetch script live in `data/external/README.md`.
+
+- **EM-DAT Country Profiles** (CRED/UCLouvain, distributed via OCHA HDX) —
+  country-year totals for disaster events, persons affected, deaths, and
+  CPI-adjusted damage in USD. Replaces the hand-coded stub previously used in
+  §5.1.
+- **ND-GAIN Country Index** (University of Notre Dame) — annual *gain*,
+  *vulnerability*, and *readiness* scores. Provides an adaptive-capacity
+  signal independent of the WDI scale variables (population, GDP).
+
+```{r external-data}
+ext_features <- readr::read_csv("../../data/external/external_features_sea.csv",
+                                show_col_types = FALSE) %>%
+  select(country, year,
+         ndgain_index, ndgain_vulnerability, ndgain_readiness,
+         disaster_events = events,
+         disaster_affected = affected,
+         disaster_deaths = deaths,
+         disaster_damage_usd_2024 = damage_usd_2024)
+
+sea_panel_ext <- sea_panel_imp %>% left_join(ext_features, by = c("country", "year"))
+
+cat("External-feature coverage by country (non-NA ND-GAIN years 1995–2023):\n")
+sea_panel_ext %>%
+  filter(year >= 1995, year <= 2023) %>%
+  group_by(country) %>%
+  summarise(ndgain_obs = sum(!is.na(ndgain_index)),
+            emdat_event_yrs = sum(!is.na(disaster_events) & disaster_events > 0)) %>%
+  kable()
+```
+
 # 3. Exploratory Data Analysis
 
 ## 3.1 SEA Emissions Trajectory (1990 → 2024)
@@ -432,34 +467,35 @@ kable(comparison, caption = "Out-of-sample 2024 MAPE")
 
 # 5. Linking Climate to Natural-Disaster Insurance Claims (Philippines vs Vietnam)
 
-## 5.1 External Data — EM-DAT & Industry Sources
+## 5.1 External Data — EM-DAT (real) + Industry Benchmarks
 
-We supplement WDI with the following open sources (cited in Bibliography):
+The disaster-claims analysis uses the **EM-DAT Country Profiles** snapshot
+joined in §2.3 (CRED/UCLouvain via HDX; pulled 2026-04-29; pre-processing
+documented in `data/external/README.md`). Insured-loss share, premium-to-GDP
+penetration, and protection-gap figures still come from industry secondary
+sources where EM-DAT does not publish primary values:
 
-- **EM-DAT International Disaster Database** (CRED, UCLouvain) — disaster losses
-- **Swiss Re Institute sigma reports 2020–2024** — insured catastrophe losses
-- **Munich Re NatCatSERVICE** — disaster frequency & severity
-- **OECD Insurance Statistics** — premium volume / penetration
+- **EM-DAT International Disaster Database** (CRED, UCLouvain) — events, affected, deaths, CPI-adjusted damage
+- **Swiss Re Institute sigma 1/2024** — insured-loss share of natural-catastrophe damage
+- **Munich Re NatCatSERVICE 2024 review** — peril-attribution cross-check
+- **OECD Insurance Statistics 2023** — non-life premium / GDP penetration
 
-```{r emdat-stub}
-# In production, this is read from a manually-curated CSV; here we stub representative
-# values sourced from EM-DAT and Swiss Re sigma reports. In the final submission, replace
-# with actual extracted data and cite each row.
-emdat <- tribble(
-  ~country,       ~year, ~events, ~total_damage_USDm, ~insured_loss_USDm,
-  "Philippines",  2018,  21,      1300,                160,
-  "Philippines",  2019,  19,      770,                  90,
-  "Philippines",  2020,  20,      1230,                150,
-  "Philippines",  2021,  18,      1620,                210,
-  "Philippines",  2022,  21,      1140,                170,
-  "Philippines",  2023,  17,      980,                 140,
-  "Vietnam",      2018,  14,      1400,                 80,
-  "Vietnam",      2019,  12,       380,                 30,
-  "Vietnam",      2020,  16,      1860,                120,
-  "Vietnam",      2021,  11,       420,                 40,
-  "Vietnam",      2022,  13,       720,                 60,
-  "Vietnam",      2023,  12,       540,                 50
-)
+```{r emdat-load}
+# Country-year aggregate (all disaster types) for the Vietnam / Philippines deep-dive.
+emdat <- ext_features %>%
+  filter(country %in% c("Philippines", "Vietnam"),
+         year >= 2000, year <= 2024) %>%
+  transmute(country, year,
+            events = disaster_events,
+            total_damage_USDm = disaster_damage_usd_2024 / 1e6,  # CPI-adjusted
+            deaths = disaster_deaths,
+            affected_m = disaster_affected / 1e6) %>%
+  arrange(country, year)
+
+# Swiss Re sigma 2024: SEA insured share averaged ~12 % of economic loss in 2023.
+# Apply as a flat industry benchmark since EM-DAT does not publish insured loss.
+SIGMA_INSURED_SHARE_SEA <- 0.12
+emdat <- emdat %>% mutate(insured_loss_USDm = total_damage_USDm * SIGMA_INSURED_SHARE_SEA)
 
 emdat %>%
   pivot_longer(c(events, total_damage_USDm, insured_loss_USDm)) %>%
@@ -468,9 +504,9 @@ emdat %>%
   facet_wrap(~ name, scales = "free_y", ncol = 1) +
   scale_colour_manual(values = c("Philippines" = "#0070C0", "Vietnam" = "#C00000")) +
   labs(title = "Natural-disaster activity & insured loss",
-       subtitle = "Philippines vs Vietnam, 2018–2023",
+       subtitle = "Philippines vs Vietnam, 2000–2024 (EM-DAT actual; insured share = sigma 2024 benchmark)",
        y = NULL, x = NULL,
-       caption = "Sources: EM-DAT (CRED), Swiss Re sigma — figures illustrative")
+       caption = "Sources: EM-DAT/CRED via HDX (downloaded 2026-04-29); Swiss Re sigma 1/2024.")
 ```
 
 ## 5.2 Insurance Penetration Gap
@@ -617,12 +653,27 @@ NGFS framework and BNM CRST 2024.
 # Bibliography {-}
 
 - Bank Negara Malaysia (2024). *Climate Risk Stress Testing Methodology Paper*.
-- Dietz, T. & Rosa, E. (1997). Effects of population and affluence on CO2 emissions. 
+- Chen, C., Noble, I., Hellmann, J., Coffee, J., Murillo, M., & Chawla, N. (2015).
+  *University of Notre Dame Global Adaptation Index Country Index Technical Report.*
+  Notre Dame, IN.
+- CRED / UCLouvain (2026). *EM-DAT — The International Disaster Database, Country
+  Profiles snapshot 2026-04-24*. Distributed via Humanitarian Data Exchange (HDX).
+  <https://data.humdata.org/dataset/emdat-country-profiles>
+- Dietz, T. & Rosa, E. (1997). Effects of population and affluence on CO2 emissions.
   *PNAS* 94(1).
 - IFRS Foundation (2023). *IFRS S2 Climate-related Disclosures*.
 - Network for Greening the Financial System (2024). *NGFS Climate Scenarios Phase V*.
+- Notre Dame Global Adaptation Initiative (2026). *ND-GAIN Country Index — 2026
+  Release.* University of Notre Dame.
+  <https://gain.nd.edu/our-work/country-index/download-data/>
+- OECD (2023). *Global Insurance Statistics — Non-life premium and penetration*.
 - Swiss Re Institute (2024). *sigma 1/2024 — Natural catastrophes in 2023*.
+- TCFD (2017). *Recommendations of the Task Force on Climate-related Financial
+  Disclosures*.
 - UNFCCC (2015). *Paris Agreement*.
+- Volz, U., Beirne, J., Ambrosio Preudhomme, N., Fenton, A., Mazzacurati, E.,
+  Renzhi, N., & Stampe, J. (2020). *Climate Change and Sovereign Risk*.
+  SOAS Centre for Sustainable Finance.
 - World Bank (2024). *World Development Indicators (WDI), Wide format*.
 
 ```{r session-info, include=FALSE}

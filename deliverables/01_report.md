@@ -22,7 +22,7 @@ This report assesses climate-related risks for our multinational reinsurance cli
 
 The client — a multinational reinsurer with material SEA exposure — faces a structural shift: climate risk is moving from a tail concern to a primary driver of expected loss. Three aspects of the SEA region make this consultation particularly timely:
 
-- **Concentration of physical risk.** Five of the world's ten most disaster-prone economies are in SEA (CRED EM-DAT 2024).
+- **Concentration of physical risk.** Five of the world's ten most disaster-prone economies are in SEA (CRED EM-DAT Country Profiles, snapshot 2026-04-24, distributed via OCHA HDX).
 - **Wide protection gap.** SEA average insurance penetration is ~2.0 % of GDP, half the OECD level (Swiss Re sigma 1/2024); ~85 % of regional disaster losses go uninsured.
 - **Regulatory tailwind.** Bank Negara Malaysia issued its **Climate Risk Stress Testing (CRST) Methodology** in 2024, mandating reinsurers operating in Malaysia to adopt NGFS-aligned scenario analysis. IFRS S2 reporting takes effect across ASEAN markets in 2026–27.
 
@@ -31,7 +31,13 @@ We frame the engagement around **four questions** mapped to the hackathon brief:
 ## 2. Data & Methodology
 
 ### 2.1 Data
-We use the **World Bank WDI Wide-format release** (1,486 indicators × 217 economies × 1960–2024). From this we curate a panel of **16 indicators** spanning emissions, energy, land use, and macro/sectoral structure — selected for SEA completeness and theoretical relevance to the **STIRPAT framework** (Dietz & Rosa 1997: Impact = ƒ(Population, Affluence, Technology)). External data sources for the disaster-claims analysis: EM-DAT (CRED, UCLouvain), Swiss Re Institute *sigma* 1/2024, Munich Re NatCatSERVICE, OECD Insurance Statistics.
+We use the **World Bank WDI Wide-format release** (1,486 indicators × 217 economies × 1960–2024). From this we curate a panel of **16 indicators** spanning emissions, energy, land use, and macro/sectoral structure — selected for SEA completeness and theoretical relevance to the **STIRPAT framework** (Dietz & Rosa 1997: Impact = ƒ(Population, Affluence, Technology)). External data integrated into the country-year frame:
+
+- **EM-DAT Country Profiles** (CRED/UCLouvain, distributed via OCHA HDX, snapshot 2026-04-24): country-year totals for events, persons affected, deaths and CPI-adjusted damage in USD — drives §5 disaster-claims analysis.
+- **ND-GAIN Country Index** (University of Notre Dame, 2026 release): annual *gain*, *vulnerability*, and *readiness* scores — provides an adaptive-capacity signal independent of WDI scale variables; feeds the cedent-screening framework (`05_cedent_screening_framework.md`).
+- **Swiss Re Institute *sigma* 1/2024**, **Munich Re NatCatSERVICE 2024**, **OECD Insurance Statistics 2023**: industry benchmarks for insured-share, premium-to-GDP, and protection-gap figures where EM-DAT does not publish primary values.
+
+Provenance, licences, and a re-fetch script for the two open datasets are documented in `data/external/README.md`.
 
 ### 2.2 Pre-processing
 Modelling window restricted to **1990–2024** (UNFCCC baseline year and post-1990 GHG data quality threshold). Within-country **linear interpolation** for gaps ≤ 3 years; indicators with > 30 % missingness dropped. Log-transformation applied to GHG and GDP to stabilise variance. **2024 actuals held out** for unbiased model selection.
@@ -209,13 +215,15 @@ We benchmark **two candidate XGBoost specifications** plus the log-linear baseli
 
 We compare **Philippines vs Vietnam** because both face similar typhoon-physical risk profiles but diverge sharply on emissions trajectory and insurance market structure — making them the cleanest natural experiment in SEA for our client.
 
-[**Figure 6**: dual-axis chart — events count + insured losses, Philippines vs Vietnam, 2018–2023, sourced from EM-DAT and Swiss Re sigma]
+[**Figure 6**: dual-axis chart — events count + economic damage (CPI-adjusted) + benchmarked insured losses, Philippines vs Vietnam, 2000–2024, sourced from EM-DAT Country Profiles (HDX snapshot 2026-04-24) and Swiss Re *sigma* 1/2024]
 
 Key contrasts:
 
-- **Disaster frequency**: Philippines averages **~19 reported events/year**, Vietnam **~13/year** (EM-DAT 2018–2023). The Philippines sits within the typhoon belt and is more directly exposed to North Pacific cyclones.
-- **Insured losses**: Philippines averages **USD ~150 m/yr** insured loss; Vietnam **USD ~60 m/yr** — but the *gap* is larger in Vietnam.
-- **Penetration**: Vietnam premium-to-GDP **2.4 %** vs Philippines **1.7 %**, but Vietnam's **protection gap is wider (92 % uninsured) vs Philippines (85 %)**.
+- **Disaster frequency**: Philippines averages **~12.5 reported events/year**, Vietnam **~8/year** (EM-DAT Country Profiles 2018–2023; storms dominate both — 41 of 75 PH events, 26 of 48 VN events). The Philippines sits within the typhoon belt and is more directly exposed to North Pacific cyclones; PH events also span six disaster types vs three for VN, reflecting earthquake and volcanic exposure on top of hydromet risk.
+- **Economic damage** (CPI-adjusted to 2024 USD, EM-DAT 2018–2023): Philippines totalled **USD 4.81 bn** (~USD 800 m/yr); Vietnam **USD 2.30 bn** (~USD 380 m/yr). Applying the Swiss Re *sigma* 1/2024 SEA insured-share benchmark of **12 %**, this implies insured losses of ~USD 96 m/yr for PH and ~USD 46 m/yr for VN — but the *protection gap* is wider in Vietnam.
+- **Persons affected** (EM-DAT 2018–2023): Philippines **54.5 m**, Vietnam **4.5 m** — a 12× gap that reinforces the per-event-severity divergence and the strategic case for a parametric product calibrated to PH life-and-livelihood exposure.
+- **Adaptive capacity** (ND-GAIN 2023): Vietnam **48.1**, Philippines **45.6** on the composite GAIN index. Vietnam scores higher on *readiness* (0.43 vs 0.36) — better governance, economic and social capacity to deploy adaptation finance — even though its underlying *vulnerability* is also higher (0.47 vs 0.44). This nuances the country-tier reading: Vietnam's faster GHG trajectory is partly compensated by stronger institutional readiness.
+- **Penetration**: Vietnam premium-to-GDP **2.4 %** vs Philippines **1.7 %** (OECD 2023), but Vietnam's **protection gap is wider (92 % uninsured) vs Philippines (85 %)** (Swiss Re *sigma* 1/2024).
 - **Trajectory**: Vietnam's GHG growth ~5× the Philippines' since 2000 — a useful proxy for the speed of physical-asset accumulation that will need protection in the next decade.
 
 **Strategic implication for the client.** The combination of fast-growing physical exposure plus a wide protection gap makes **Vietnam the stronger commercial opportunity**, even though the Philippines is the larger current insured market. The recommended product (Section 7) reflects this.
@@ -270,18 +278,21 @@ Climate risk in Southeast Asia is not a tail event; it is a **structural driver 
 ## Bibliography
 
 1. Bank Negara Malaysia (2024). *Climate Risk Stress Testing Methodology Paper*.
-2. CRED / UCLouvain. *EM-DAT International Disaster Database* (accessed 2026).
-3. Dietz, T. & Rosa, E. A. (1997). Effects of population and affluence on CO₂ emissions. *PNAS* 94(1).
-4. IFRS Foundation (2023). *IFRS S2 — Climate-related Disclosures*.
-5. Munich Re (2024). *NatCatSERVICE — Loss Events Worldwide 2023*.
-6. Network for Greening the Financial System (2024). *NGFS Climate Scenarios — Phase V*.
-7. OECD (2024). *Insurance Statistics*.
-8. Swiss Re Institute (2024). *sigma No 1/2024 — Natural catastrophes in 2023*.
-9. Task Force on Climate-related Financial Disclosures (2017). *Final Recommendations*.
-10. UNFCCC (2015). *Paris Agreement* (esp. Article 2.1(c)).
-11. UNFCCC (2022). Vietnam *Updated Nationally Determined Contribution*.
-12. UNFCCC (2021). Philippines *Nationally Determined Contribution*.
-13. World Bank (2024). *World Development Indicators (WDI), Wide format*.
+2. Chen, C., Noble, I., Hellmann, J., Coffee, J., Murillo, M., & Chawla, N. (2015). *University of Notre Dame Global Adaptation Index — Country Index Technical Report*. Notre Dame, IN.
+3. CRED / UCLouvain (2026). *EM-DAT — The International Disaster Database, Country Profiles*. Snapshot file `emdat-country-profiles_2026_04_24.xlsx`, distributed via Humanitarian Data Exchange (OCHA HDX). <https://data.humdata.org/dataset/emdat-country-profiles> (downloaded 2026-04-29).
+4. Dietz, T. & Rosa, E. A. (1997). Effects of population and affluence on CO₂ emissions. *PNAS* 94(1).
+5. IFRS Foundation (2023). *IFRS S2 — Climate-related Disclosures*.
+6. Munich Re (2024). *NatCatSERVICE — Loss Events Worldwide 2023*.
+7. Network for Greening the Financial System (2024). *NGFS Climate Scenarios — Phase V*.
+8. Notre Dame Global Adaptation Initiative (2026). *ND-GAIN Country Index — 2026 Release*. University of Notre Dame. <https://gain.nd.edu/our-work/country-index/download-data/> (downloaded 2026-04-29).
+9. OECD (2023). *Insurance Statistics — Non-life premium and penetration*.
+10. Swiss Re Institute (2024). *sigma No 1/2024 — Natural catastrophes in 2023*.
+11. Task Force on Climate-related Financial Disclosures (2017). *Final Recommendations*.
+12. UNFCCC (2015). *Paris Agreement* (esp. Article 2.1(c)).
+13. UNFCCC (2022). Vietnam *Updated Nationally Determined Contribution*.
+14. UNFCCC (2021). Philippines *Nationally Determined Contribution*.
+15. Volz, U., Beirne, J., Ambrosio Preudhomme, N., Fenton, A., Mazzacurati, E., Renzhi, N., & Stampe, J. (2020). *Climate Change and Sovereign Risk*. SOAS Centre for Sustainable Finance, London.
+16. World Bank (2024). *World Development Indicators (WDI), Wide format*. <https://data360.worldbank.org/en/dataset/WB_WDI>.
 
 ## Appendix A — Indicator Panel (extracted)
 
