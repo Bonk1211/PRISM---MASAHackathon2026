@@ -4,6 +4,9 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
+    "sync-data": "cp ../exhibits/results/key_numbers_python.json src/data/key_numbers_python.json",
+    "predev": "npm run sync-data",
+    "prebuild": "npm run sync-data",
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
