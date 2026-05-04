@@ -39,9 +39,10 @@ export function HotSpots() {
             <button
               key={m}
               onClick={() => setMode(m)}
+              aria-pressed={mode === m}
               className={[
-                'rounded-full px-3 py-1 text-[11px] font-semibold capitalize transition',
-                mode === m ? 'bg-paper text-ink' : 'text-paper/70',
+                'min-h-[36px] rounded-full px-4 py-2 text-[11px] font-semibold capitalize transition',
+                mode === m ? 'bg-paper text-ink' : 'text-paper/80',
               ].join(' ')}
             >
               {m === 'compare' ? 'Compare' : 'Single country'}
@@ -111,7 +112,11 @@ function CompareView() {
       </Card>
 
       <Card title="Sectoral residual %" subtitle="Over STIRPAT-implied. Source: SECTOR_RESIDUAL_PCT.">
-        <div className="h-48">
+        <div
+          role="img"
+          aria-label={`Bar chart: Vietnam vs Philippines sectoral residual percent over STIRPAT-implied. ${sectorData.map((d) => `${d.sector} — Vietnam ${d.vn >= 0 ? '+' : ''}${d.vn}%, Philippines ${d.ph >= 0 ? '+' : ''}${d.ph}%`).join('; ')}.`}
+          className="h-48"
+        >
           <ResponsiveContainer>
             <BarChart layout="vertical" data={sectorData} margin={{ top: 4, right: 24, left: 4, bottom: 4 }}>
               <XAxis type="number" domain={[-50, 300]} tickLine={false} axisLine={false} fontSize={10} />
@@ -185,7 +190,7 @@ function CompareTable({
 }
 
 const TIER_BG: Record<string, string> = {
-  A: '#5DAE8B', B: '#0E7C86', C: '#E5A23E', D: '#C0392B', E: '#0B1F33',
+  A: '#3F8A66', B: '#0E7C86', C: '#B8761C', D: '#C0392B', E: '#0B1F33',
 };
 
 function TierBadge({ t }: { t: string }) {
@@ -219,7 +224,7 @@ function MarketTile({
         <div className="text-muted">Protection gap</div>
         <div className="text-right font-bold tabular-nums text-ink">{m.protectionGapPct} %</div>
         <div className="text-muted">LR sensitivity</div>
-        <div className="text-right font-bold tabular-nums" style={{ color: lrPp > 5 ? '#C0392B' : '#5DAE8B' }}>+{lrPp.toFixed(1)} pp</div>
+        <div className="text-right font-bold tabular-nums" style={{ color: lrPp > 5 ? '#C0392B' : '#3F8A66' }}>+{lrPp.toFixed(1)} pp</div>
       </div>
     </div>
   );
@@ -237,8 +242,9 @@ function SingleView({ side, setSide }: { side: Side; setSide: (s: Side) => void 
             <button
               key={s}
               onClick={() => setSide(s)}
+              aria-pressed={side === s}
               className={[
-                'rounded-full py-2 text-sm font-semibold capitalize transition',
+                'min-h-[44px] rounded-full py-2 text-sm font-semibold capitalize transition',
                 side === s ? 'bg-ink text-paper' : 'text-muted',
               ].join(' ')}
             >
@@ -268,7 +274,11 @@ function SingleView({ side, setSide }: { side: Side; setSide: (s: Side) => void 
       </Card>
 
       <Card title="ND-GAIN 2023 — adaptive capacity ranking" subtitle="University of Notre Dame, 2026 release. Higher = better placed for climate change.">
-        <div className="h-56">
+        <div
+          role="img"
+          aria-label={`Bar chart: ND-GAIN 2023 composite ranking. ${ndg.map((r) => `${r.country} ${r.gain.toFixed(1)}`).join('; ')}.`}
+          className="h-56"
+        >
           <ResponsiveContainer>
             <BarChart layout="vertical" data={ndg} margin={{ top: 4, right: 24, left: 4, bottom: 4 }}>
               <XAxis type="number" domain={[30, 75]} tickLine={false} axisLine={false} fontSize={10} />

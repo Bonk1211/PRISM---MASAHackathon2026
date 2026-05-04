@@ -3,12 +3,12 @@ import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell,
 } from 'recharts';
 import { Card, StatBig } from '../components/Card';
-import { PORTFOLIO, STRESS_2030 } from '../data/keyNumbers';
+import { HEADLINE, PORTFOLIO, STRESS_2030 } from '../data/keyNumbers';
 
 const COLOURS: Record<string, string> = {
-  'Net Zero 2050':      '#5DAE8B',
+  'Net Zero 2050':      '#3F8A66',
   'Mitigation':         '#0E7C86',
-  'Delayed Transition': '#E5A23E',
+  'Delayed Transition': '#B8761C',
   'Current Policies':   '#C0392B',
 };
 
@@ -66,7 +66,11 @@ export function Stress() {
       </div>
 
       <Card title="2030 expected loss by scenario" subtitle={`Computed: GWP × base LR × (1 + ε × Δ emissions). ε = ${PORTFOLIO.elasticity} (sigma 1/2024).`}>
-        <div className="h-56">
+        <div
+          role="img"
+          aria-label={`Bar chart: 2030 expected loss across ${STRESS_2030.length} NGFS scenarios. ${STRESS_2030.map((s) => `${s.scenario} USD ${s.lossUsdM} million at ${(s.lr * 100).toFixed(1)} percent loss ratio`).join('; ')}.`}
+          className="h-56"
+        >
           <ResponsiveContainer>
             <BarChart data={STRESS_2030} margin={{ top: 6, right: 12, left: -8, bottom: 32 }}>
               <XAxis dataKey="scenario" tickLine={false} axisLine={false} fontSize={9} interval={0} angle={-15} textAnchor="end" height={60} />
@@ -87,11 +91,23 @@ export function Stress() {
       </Card>
 
       <Card title="Translation to capital" tone="sand">
-        <p className="text-sm">
-          The Hot House World scenario sits <b>{((ref.lr - STRESS_2030.find((s) => s.scenario === 'Net Zero 2050')!.lr) * 100).toFixed(0)} pp</b> above Net Zero 2050 in loss ratio
-          (62 % vs 51 %), implying a <b>USD 135 m</b> swing in expected loss. Under BNM CRST 2024 §6.3, this triggers an additional <b>+8 %</b> regional
-          risk-capital buffer recommendation. The proposed mitigation strategy recovers <b>~73 %</b> (USD 98 m of the USD 135 m swing){/* derivation: exhibits/results/key_numbers.json stress_test_2030_aggregate -> (744 - 646) / (744 - 609) = 0.7259 */}.
-        </p>
+        {(() => {
+          const netZero = STRESS_2030.find((s) => s.scenario === 'Net Zero 2050')!;
+          const mitig = STRESS_2030.find((s) => s.scenario === 'Mitigation')!;
+          const headlinePp = ((ref.lr - netZero.lr) * 100).toFixed(0);
+          const mitigSwingUsdM = ref.lossUsdM - mitig.lossUsdM;
+          const recoveryPct = ((mitigSwingUsdM / HEADLINE.lossSwingUsdM) * 100).toFixed(0);
+          return (
+            <p className="text-sm">
+              The Hot House World scenario sits <b>{headlinePp} pp</b> above Net Zero 2050 in loss ratio
+              (<b>{(ref.lr * 100).toFixed(0)}%</b> vs <b>{(netZero.lr * 100).toFixed(0)}%</b>),
+              implying a <b>USD {HEADLINE.lossSwingUsdM} m</b> swing in expected loss.
+              Under BNM CRST 2024 §6.3, this triggers an additional <b>+8 %</b> regional
+              risk-capital buffer recommendation. The proposed mitigation strategy recovers
+              <b> ~{recoveryPct} %</b> (USD {mitigSwingUsdM} m of the USD {HEADLINE.lossSwingUsdM} m swing).
+            </p>
+          );
+        })()}
       </Card>
     </div>
   );

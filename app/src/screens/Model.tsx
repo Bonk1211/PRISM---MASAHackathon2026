@@ -22,7 +22,11 @@ export function Model() {
       </Card>
 
       <Card title="XGBoost feature gain" subtitle="Panel model on 1990–2023; gain = average improvement at split.">
-        <div className="h-56">
+        <div
+          role="img"
+          aria-label={`Bar chart: XGBoost M3b feature gain. ${DRIVERS.map((d) => `${d.feature} ${(d.gain * 100).toFixed(1)} percent`).join('; ')}.`}
+          className="h-56"
+        >
           <ResponsiveContainer>
             <BarChart layout="vertical" data={DRIVERS} margin={{ top: 6, right: 16, left: 4, bottom: 4 }}>
               <XAxis type="number" tickLine={false} axisLine={false} tickFormatter={(v) => `${(v * 100).toFixed(0)}%`} fontSize={10} />
@@ -50,7 +54,11 @@ export function Model() {
       </div>
 
       <Card title="2024 hold-out — XGBoost predicted vs actual" subtitle="MAPE 2.18 % across SEA. Vietnam, Indonesia, Thailand all under 1.1 % error.">
-        <div className="h-64">
+        <div
+          role="img"
+          aria-label={`Bar chart: 2024 hold-out predicted vs actual emissions per SEA country, in megatonnes. ${FORECAST_2024.map((r) => `${r.country} actual ${r.actual.toFixed(0)}, predicted ${r.pred.toFixed(0)}, error ${r.errPct >= 0 ? '+' : ''}${r.errPct.toFixed(1)} percent`).join('; ')}.`}
+          className="h-64"
+        >
           <ResponsiveContainer>
             <BarChart data={FORECAST_2024} margin={{ top: 4, right: 8, left: -8, bottom: 32 }}>
               <XAxis dataKey="country" tickLine={false} axisLine={false} fontSize={10} interval={0} angle={-30} textAnchor="end" height={60} />

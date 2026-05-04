@@ -11,6 +11,7 @@ const tabs: { to: string; label: string; glyph: string }[] = [
 export function BottomNav() {
   return (
     <nav
+      aria-label="Primary"
       className="fixed inset-x-0 bottom-0 z-30 mx-auto max-w-app border-t border-black/5 bg-paper/95 backdrop-blur"
       style={{ paddingBottom: 'env(safe-area-inset-bottom, 0)' }}
     >
@@ -22,7 +23,7 @@ export function BottomNav() {
               end={t.to === '/'}
               className={({ isActive }) =>
                 [
-                  'flex flex-col items-center gap-0.5 py-2 text-[11px] font-medium',
+                  'flex min-h-[48px] flex-col items-center justify-center gap-0.5 py-2 text-[11px] font-medium',
                   isActive ? 'text-ink' : 'text-muted',
                 ].join(' ')
               }
@@ -30,6 +31,7 @@ export function BottomNav() {
               {({ isActive }) => (
                 <>
                   <span
+                    aria-hidden="true"
                     className={[
                       'grid h-7 w-7 place-items-center rounded-full text-base leading-none',
                       isActive ? 'bg-ink text-paper' : 'bg-transparent',

@@ -57,8 +57,9 @@ export function Cedent() {
             <button
               key={c}
               onClick={() => setCountry(c)}
+              aria-pressed={country === c}
               className={[
-                'rounded-full whitespace-nowrap px-3 py-1.5 text-xs font-medium transition',
+                'min-h-[40px] rounded-full whitespace-nowrap px-4 py-2 text-xs font-medium transition',
                 country === c ? 'bg-ink text-paper' : 'bg-white text-ink shadow-card',
               ].join(' ')}
             >
@@ -77,38 +78,43 @@ export function Cedent() {
             <button
               key={p.name}
               onClick={() => setMix(normalise(p.mix))}
-              className="rounded-full border border-ink/15 bg-white px-2.5 py-1 text-[11px] font-medium text-ink"
+              className="min-h-[40px] rounded-full border border-ink/15 bg-white px-3 py-2 text-[11px] font-medium text-ink"
             >
               {p.name}
             </button>
           ))}
         </div>
         <div className="space-y-1.5">
-          {SECTORS.map((s) => (
-            <div key={s} className="flex items-center gap-3">
-              <label className="w-36 text-[11px] text-muted">{s}</label>
-              <input
-                type="range"
-                min={0}
-                max={100}
-                value={mix[s]}
-                onChange={(e) => setMix({ ...mix, [s]: Number(e.target.value) })}
-                className="flex-1 accent-sea"
-              />
-              <span className="w-10 text-right text-[11px] tabular-nums">{mix[s].toFixed(0)}%</span>
-            </div>
-          ))}
+          {SECTORS.map((s) => {
+            const sliderId = `mix-${s.replace(/\s+/g, '-')}`;
+            return (
+              <div key={s} className="flex items-center gap-3">
+                <label htmlFor={sliderId} className="w-36 text-[11px] text-muted">{s}</label>
+                <input
+                  id={sliderId}
+                  type="range"
+                  min={0}
+                  max={100}
+                  value={mix[s]}
+                  aria-valuetext={`${s}, ${mix[s].toFixed(0)} percent`}
+                  onChange={(e) => setMix({ ...mix, [s]: Number(e.target.value) })}
+                  className="h-6 flex-1 accent-sea"
+                />
+                <span className="w-10 text-right text-[11px] tabular-nums">{mix[s].toFixed(0)}%</span>
+              </div>
+            );
+          })}
         </div>
         <button
           onClick={() => setMix(normalise(mix))}
-          className="mt-2 text-[11px] text-sea underline-offset-2 hover:underline"
+          className="mt-2 min-h-[44px] py-2 text-[11px] text-sea underline-offset-2 hover:underline"
         >
           Normalise to 100 %
         </button>
       </Card>
 
       <Card title="NDC alignment" tone="sand">
-        <label className="flex items-center justify-between gap-4">
+        <label className="flex min-h-[44px] cursor-pointer items-center justify-between gap-4">
           <span className="text-sm">
             Cedent has a <b>credible</b>, NDC-aligned transition plan filed with regulator?
           </span>
@@ -116,7 +122,7 @@ export function Cedent() {
             type="checkbox"
             checked={ndcPlanFiled}
             onChange={(e) => setNdcPlanFiled(e.target.checked)}
-            className="h-5 w-5 accent-sea"
+            className="h-6 w-6 shrink-0 accent-sea"
           />
         </label>
         <p className="mt-1 text-[11px] text-muted">

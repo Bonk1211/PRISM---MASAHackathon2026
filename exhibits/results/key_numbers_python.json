@@ -2,16 +2,16 @@
   "_meta": {
     "pipeline": "python",
     "seed": 2026,
-    "generated": "2026-05-03T02:14:19.290072+00:00",
-    "pandas": "3.0.2",
+    "generated": "2026-05-04T05:25:02.859008+00:00",
+    "pandas": "2.3.3",
     "xgboost": "3.2.0",
-    "numpy": "2.4.4"
+    "numpy": "2.3.5"
   },
   "mape_summary": {
     "log_linear": 9.23,
     "ARIMA": 2.67,
-    "XGBoost_M3a": 2.92,
-    "XGBoost_M3b": 10.69
+    "XGBoost_M3a": 2.43,
+    "XGBoost_M3b": 9.67
   },
   "m1_per_country": [
     {
@@ -211,167 +211,167 @@
     {
       "country": "Brunei Darussalam",
       "actual_2024": 11.87,
-      "pred_2024": 12.1899995803833,
-      "err_pct": 2.77,
-      "abs_err_pct": 2.77
+      "pred_2024": 12.289999961853027,
+      "err_pct": 3.59,
+      "abs_err_pct": 3.59
     },
     {
       "country": "Cambodia",
       "actual_2024": 49.83,
-      "pred_2024": 49.779998779296875,
-      "err_pct": -0.1,
-      "abs_err_pct": 0.1
+      "pred_2024": 50.209999084472656,
+      "err_pct": 0.75,
+      "abs_err_pct": 0.75
     },
     {
       "country": "Indonesia",
       "actual_2024": 1323.78,
-      "pred_2024": 1339.739990234375,
-      "err_pct": 1.21,
-      "abs_err_pct": 1.21
+      "pred_2024": 1291.02001953125,
+      "err_pct": -2.47,
+      "abs_err_pct": 2.47
     },
     {
       "country": "Lao PDR",
       "actual_2024": 41.55,
-      "pred_2024": 43.0099983215332,
-      "err_pct": 3.53,
-      "abs_err_pct": 3.53
+      "pred_2024": 42.27000045776367,
+      "err_pct": 1.74,
+      "abs_err_pct": 1.74
     },
     {
       "country": "Malaysia",
       "actual_2024": 332.17,
-      "pred_2024": 324.42999267578125,
-      "err_pct": -2.33,
-      "abs_err_pct": 2.33
+      "pred_2024": 325.9200134277344,
+      "err_pct": -1.88,
+      "abs_err_pct": 1.88
     },
     {
       "country": "Myanmar",
       "actual_2024": 117.79,
-      "pred_2024": 121.44999694824219,
-      "err_pct": 3.11,
-      "abs_err_pct": 3.11
+      "pred_2024": 118.20999908447266,
+      "err_pct": 0.36,
+      "abs_err_pct": 0.36
     },
     {
       "country": "Philippines",
       "actual_2024": 266.6,
-      "pred_2024": 257.82000732421875,
-      "err_pct": -3.29,
-      "abs_err_pct": 3.29
+      "pred_2024": 256.9200134277344,
+      "err_pct": -3.63,
+      "abs_err_pct": 3.63
     },
     {
       "country": "Singapore",
       "actual_2024": 76.09,
-      "pred_2024": 72.13999938964844,
-      "err_pct": -5.19,
-      "abs_err_pct": 5.19
+      "pred_2024": 73.2300033569336,
+      "err_pct": -3.76,
+      "abs_err_pct": 3.76
     },
     {
       "country": "Thailand",
       "actual_2024": 422.39,
-      "pred_2024": 412.489990234375,
-      "err_pct": -2.34,
-      "abs_err_pct": 2.34
+      "pred_2024": 413.8299865722656,
+      "err_pct": -2.03,
+      "abs_err_pct": 2.03
     },
     {
       "country": "Vietnam",
       "actual_2024": 584.26,
-      "pred_2024": 553.3200073242188,
-      "err_pct": -5.3,
-      "abs_err_pct": 5.3
+      "pred_2024": 560.5900268554688,
+      "err_pct": -4.05,
+      "abs_err_pct": 4.05
     }
   ],
   "m3b_per_country": [
     {
       "country": "Brunei Darussalam",
       "actual_2024": 11.87,
-      "pred_2024_M3b": 11.449999809265137,
-      "err_pct_M3b": -3.49,
-      "abs_err_pct": 3.49
+      "pred_2024_M3b": 11.130000114440918,
+      "err_pct_M3b": -6.17,
+      "abs_err_pct": 6.17
     },
     {
       "country": "Cambodia",
       "actual_2024": 49.83,
-      "pred_2024_M3b": 40.40999984741211,
-      "err_pct_M3b": -18.92,
-      "abs_err_pct": 18.92
+      "pred_2024_M3b": 41.619998931884766,
+      "err_pct_M3b": -16.48,
+      "abs_err_pct": 16.48
     },
     {
       "country": "Indonesia",
       "actual_2024": 1323.78,
-      "pred_2024_M3b": 1536.8399658203125,
-      "err_pct_M3b": 16.09,
-      "abs_err_pct": 16.09
+      "pred_2024_M3b": 1319.06005859375,
+      "err_pct_M3b": -0.36,
+      "abs_err_pct": 0.36
     },
     {
       "country": "Lao PDR",
       "actual_2024": 41.55,
-      "pred_2024_M3b": 34.40999984741211,
-      "err_pct_M3b": -17.17,
-      "abs_err_pct": 17.17
+      "pred_2024_M3b": 35.220001220703125,
+      "err_pct_M3b": -15.23,
+      "abs_err_pct": 15.23
     },
     {
       "country": "Malaysia",
       "actual_2024": 332.17,
-      "pred_2024_M3b": 345.92999267578125,
-      "err_pct_M3b": 4.14,
-      "abs_err_pct": 4.14
+      "pred_2024_M3b": 366.6000061035156,
+      "err_pct_M3b": 10.37,
+      "abs_err_pct": 10.37
     },
     {
       "country": "Myanmar",
       "actual_2024": 117.79,
-      "pred_2024_M3b": 109.06999969482422,
-      "err_pct_M3b": -7.4,
-      "abs_err_pct": 7.4
+      "pred_2024_M3b": 110.68000030517578,
+      "err_pct_M3b": -6.03,
+      "abs_err_pct": 6.03
     },
     {
       "country": "Philippines",
       "actual_2024": 266.6,
-      "pred_2024_M3b": 312.30999755859375,
-      "err_pct_M3b": 17.15,
-      "abs_err_pct": 17.15
+      "pred_2024_M3b": 313.489990234375,
+      "err_pct_M3b": 17.59,
+      "abs_err_pct": 17.59
     },
     {
       "country": "Singapore",
       "actual_2024": 76.09,
-      "pred_2024_M3b": 65.37999725341797,
-      "err_pct_M3b": -14.08,
-      "abs_err_pct": 14.08
+      "pred_2024_M3b": 66.61000061035156,
+      "err_pct_M3b": -12.46,
+      "abs_err_pct": 12.46
     },
     {
       "country": "Thailand",
       "actual_2024": 422.39,
-      "pred_2024_M3b": 389.8800048828125,
-      "err_pct_M3b": -7.7,
-      "abs_err_pct": 7.7
+      "pred_2024_M3b": 396.3699951171875,
+      "err_pct_M3b": -6.16,
+      "abs_err_pct": 6.16
     },
     {
       "country": "Vietnam",
       "actual_2024": 584.26,
-      "pred_2024_M3b": 580.1599731445312,
-      "err_pct_M3b": -0.7,
-      "abs_err_pct": 0.7
+      "pred_2024_M3b": 549.8900146484375,
+      "err_pct_M3b": -5.88,
+      "abs_err_pct": 5.88
     }
   ],
   "feature_importance_m3a": {
     "log_GDP": 0.00019999999494757503,
-    "log_pop": 0.0005000000237487257,
-    "log_GHG_lag1": 0.7267000079154968,
-    "log_GHG_lag2": 0.2696000039577484,
+    "log_pop": 0.0003000000142492354,
+    "log_GHG_lag1": 0.7389000058174133,
+    "log_GHG_lag2": 0.2596000134944916,
     "renewable_energy_pct": 9.999999747378752e-05,
-    "urban_pop_pct": 0.00019999999494757503,
+    "urban_pop_pct": 9.999999747378752e-05,
     "industry_pct_GDP": 9.999999747378752e-05,
-    "forest_area_pct": 0.00019999999494757503,
-    "CO2_intensity_GDP": 0.002400000113993883,
+    "forest_area_pct": 9.999999747378752e-05,
+    "CO2_intensity_GDP": 0.0005000000237487257,
     "GDP_per_capita_2015USD": 9.999999747378752e-05
   },
   "feature_importance_m3b": {
-    "log_GDP": 0.5105000138282776,
-    "log_pop": 0.39500001072883606,
-    "CO2_intensity_GDP": 0.031099999323487282,
-    "industry_pct_GDP": 0.024800000712275505,
-    "GDP_per_capita_2015USD": 0.013500000350177288,
-    "urban_pop_pct": 0.010400000028312206,
-    "renewable_energy_pct": 0.008999999612569809,
-    "forest_area_pct": 0.00570000009611249
+    "log_GDP": 0.5006999969482422,
+    "log_pop": 0.40450000762939453,
+    "CO2_intensity_GDP": 0.03189999982714653,
+    "industry_pct_GDP": 0.023000000044703484,
+    "GDP_per_capita_2015USD": 0.01510000042617321,
+    "urban_pop_pct": 0.011800000444054604,
+    "renewable_energy_pct": 0.007799999788403511,
+    "forest_area_pct": 0.0052999998442828655
   },
   "stress_test_2030_aggregate": [
     {
@@ -427,172 +427,71 @@
       "Philippines": -39.3
     }
   },
-  "sectoral_residuals_pct": {
-    "Vietnam": {
-      "Power Industry": 24,
-      "Industrial Combustion": 86,
-      "Industrial Processes": 36,
-      "Transport": -12,
-      "Buildings": 21,
-      "Agriculture": 20,
-      "Waste": 2,
-      "Fugitive Energy": 48
-    },
-    "Philippines": {
-      "Power Industry": -8,
-      "Industrial Combustion": -48,
-      "Industrial Processes": -41,
-      "Transport": -11,
-      "Buildings": -31,
-      "Agriculture": -16,
-      "Waste": -33,
-      "Fugitive Energy": -54
-    },
-    "Indonesia": {
-      "Power Industry": -16,
-      "Industrial Combustion": -12,
-      "Industrial Processes": -35,
-      "Transport": -5,
-      "Buildings": 1,
-      "Agriculture": -6,
-      "Waste": -14,
-      "Fugitive Energy": 195
-    },
-    "Thailand": {
-      "Power Industry": 23,
-      "Industrial Combustion": 35,
-      "Industrial Processes": 48,
-      "Transport": 51,
-      "Buildings": 52,
-      "Agriculture": 191,
-      "Waste": 35,
-      "Fugitive Energy": -2
-    },
-    "Malaysia": {
-      "Power Industry": 59,
-      "Industrial Combustion": 93,
-      "Industrial Processes": 16,
-      "Transport": 85,
-      "Buildings": 21,
-      "Agriculture": 89,
-      "Waste": 23,
-      "Fugitive Energy": 75
-    },
-    "Myanmar": {
-      "Power Industry": 19,
-      "Industrial Combustion": 26,
-      "Industrial Processes": -18,
-      "Transport": -19,
-      "Buildings": 9,
-      "Agriculture": -41,
-      "Waste": 12,
-      "Fugitive Energy": -8
-    },
-    "Cambodia": {
-      "Power Industry": -32,
-      "Industrial Combustion": -53,
-      "Industrial Processes": 22,
-      "Transport": 4,
-      "Buildings": -18,
-      "Agriculture": -4,
-      "Waste": 5,
-      "Fugitive Energy": -32
-    },
-    "Lao PDR": {
-      "Power Industry": -25,
-      "Industrial Combustion": 8,
-      "Industrial Processes": 30,
-      "Transport": -12,
-      "Buildings": -19,
-      "Agriculture": 18,
-      "Waste": -12,
-      "Fugitive Energy": -52
-    },
-    "Singapore": {
-      "Power Industry": -50,
-      "Industrial Combustion": -57,
-      "Industrial Processes": 35,
-      "Transport": -55,
-      "Buildings": -33,
-      "Agriculture": -91,
-      "Waste": 14,
-      "Fugitive Energy": -69
-    },
-    "Brunei Darussalam": {
-      "Power Industry": 59,
-      "Industrial Combustion": 62,
-      "Industrial Processes": -36,
-      "Transport": 42,
-      "Buildings": 34,
-      "Agriculture": 226,
-      "Waste": -13,
-      "Fugitive Energy": 216
-    }
-  },
+  "sectoral_residuals_pct": {},
   "partial_correlations": [
     {
       "feature": "CO2_intensity_GDP",
-      "pairwise_r": 0.417,
-      "partial_r": 0.737,
+      "pairwise_r": 0.444,
+      "partial_r": 0.744,
       "flag": ""
     },
     {
       "feature": "forest_area_pct",
-      "pairwise_r": -0.447,
-      "partial_r": 0.597,
-      "flag": "SIGN-FLIP"
-    },
-    {
-      "feature": "industry_pct_GDP",
-      "pairwise_r": -0.207,
-      "partial_r": 0.469,
+      "pairwise_r": -0.466,
+      "partial_r": 0.564,
       "flag": "SIGN-FLIP"
     },
     {
       "feature": "energy_use_pc",
-      "pairwise_r": -0.521,
-      "partial_r": 0.424,
+      "pairwise_r": -0.484,
+      "partial_r": 0.456,
+      "flag": "SIGN-FLIP"
+    },
+    {
+      "feature": "industry_pct_GDP",
+      "pairwise_r": -0.148,
+      "partial_r": 0.44,
       "flag": "SIGN-FLIP"
     },
     {
       "feature": "agri_land_pct",
-      "pairwise_r": 0.672,
-      "partial_r": 0.071,
+      "pairwise_r": 0.668,
+      "partial_r": 0.051,
       "flag": ""
     },
     {
       "feature": "urban_pop_pct",
-      "pairwise_r": -0.154,
-      "partial_r": -0.24,
+      "pairwise_r": -0.109,
+      "partial_r": -0.175,
       "flag": ""
     },
     {
       "feature": "renewable_energy_pct",
-      "pairwise_r": -0.024,
-      "partial_r": -0.381,
+      "pairwise_r": -0.077,
+      "partial_r": -0.402,
       "flag": ""
     }
   ],
   "two_way_fe": {
-    "observations": 335,
-    "r_sq_within": 0.951,
+    "observations": 341,
+    "r_sq_within": 0.964,
     "coefficients": {
-      "log_GDP": 0.3176,
-      "log_pop": 0.729,
-      "urban_pop_pct": 0.0123,
+      "log_GDP": 0.3647,
+      "log_pop": 0.4784,
+      "urban_pop_pct": 0.0105,
       "CO2_intensity_GDP": 0.6119,
-      "industry_pct_GDP": -0.0052,
-      "renewable_energy_pct": -0.0034,
-      "forest_area_pct": 0.0077
+      "industry_pct_GDP": -0.0055,
+      "renewable_energy_pct": -0.0024,
+      "forest_area_pct": 0.0062
     },
     "p_values": {
-      "log_GDP": 0.0001,
-      "log_pop": 0.105,
-      "urban_pop_pct": 0.002,
+      "log_GDP": 0.0002,
+      "log_pop": 0.1273,
+      "urban_pop_pct": 0.0094,
       "CO2_intensity_GDP": 0.0,
-      "industry_pct_GDP": 0.2528,
-      "renewable_energy_pct": 0.3975,
-      "forest_area_pct": 0.1122
+      "industry_pct_GDP": 0.1545,
+      "renewable_energy_pct": 0.5576,
+      "forest_area_pct": 0.1533
     },
     "significant_p05": [
       "log_GDP",

@@ -13,7 +13,7 @@ export function Story() {
           Climate risk is a structural driver of expected loss in SEA.
         </h1>
         <p className="mt-2 text-sm opacity-90">
-          On the client&apos;s notional <b>USD 1.2 bn</b> SEA portfolio, the gap between
+          On the client&apos;s notional <b>USD {(PORTFOLIO.gwpUsdM / 1000).toFixed(1)} bn</b> SEA portfolio, the gap between
           a Net-Zero and a Hot-House transition pathway by 2030 is
           <b> USD {HEADLINE.lossSwingUsdM} m</b> in expected loss — an
           <b> {HEADLINE.lrSwingPp} pp</b> loss-ratio swing.

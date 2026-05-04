@@ -27,9 +27,9 @@ export function Layout() {
               <button
                 onClick={() => nav(-1)}
                 aria-label="Back"
-                className="rounded-full p-1 text-ink hover:bg-black/5"
+                className="grid min-h-[44px] min-w-[44px] place-items-center rounded-full text-ink hover:bg-black/5"
               >
-                ←
+                <span aria-hidden="true">←</span>
               </button>
             ) : (
               <span className="grid h-7 w-7 place-items-center rounded-md bg-ink text-[11px] font-bold text-paper">
