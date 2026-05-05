@@ -1,6 +1,6 @@
-import { useEffect } from 'react';
 import type { EvidenceEntry } from '../data/evidence';
 import { POLICY_BY_ID } from '../data/policy';
+import { useFocusTrap } from '../lib/useFocusTrap';
 
 export function EvidenceModal({
   entry,
@@ -9,50 +9,41 @@ export function EvidenceModal({
   entry: EvidenceEntry | null;
   onClose: () => void;
 }) {
-  useEffect(() => {
-    if (!entry) return;
-    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
-    window.addEventListener('keydown', onKey);
-    document.body.style.overflow = 'hidden';
-    return () => {
-      window.removeEventListener('keydown', onKey);
-      document.body.style.overflow = '';
-    };
-  }, [entry, onClose]);
-
+  const dialogRef = useFocusTrap<HTMLDivElement>(!!entry, onClose);
   if (!entry) return null;
   const policy = entry.policyId ? POLICY_BY_ID[entry.policyId] : undefined;
 
   return (
     <div
+      ref={dialogRef}
       role="dialog"
       aria-modal="true"
-      aria-label={`Source for ${entry.label}`}
+      aria-labelledby="evidence-modal-title"
       className="fixed inset-0 z-50 flex items-end justify-center"
     >
-      <button
-        aria-label="Close source"
+      <div
+        aria-hidden="true"
         onClick={onClose}
-        className="absolute inset-0 bg-ink/45 backdrop-blur-[2px]"
+        className="absolute inset-0 cursor-pointer bg-ink/45 backdrop-blur-[2px]"
       />
       <article
         className="relative mx-auto w-full max-w-app rounded-t-[18px] border-t border-rule bg-paper px-5 pb-8 pt-5 shadow-plate"
         style={{ paddingBottom: 'calc(2rem + env(safe-area-inset-bottom, 0))' }}
       >
-        <div className="mx-auto mb-3 h-1 w-10 rounded-full bg-ink/15" />
+        <div aria-hidden="true" className="mx-auto mb-3 h-1 w-10 rounded-full bg-ink/15" />
 
         <div className="flex items-baseline justify-between">
           <p className="eyebrow text-muted">Source · trace-back</p>
           <button
             onClick={onClose}
             className="font-mono text-[11px] uppercase tracking-eyebrow text-muted hover:text-ink"
-            aria-label="Close"
+            aria-label="Close source dialog"
           >
-            Close ✕
+            Close <span aria-hidden="true">✕</span>
           </button>
         </div>
 
-        <h2 className="display mt-2 text-[34px] leading-[0.95] text-ink">
+        <h2 id="evidence-modal-title" className="display mt-2 text-[34px] leading-[0.95] text-ink">
           <span className="italic">{entry.value}</span>
         </h2>
         <p className="mt-1 text-[12px] uppercase tracking-eyebrow text-muted">{entry.label}</p>

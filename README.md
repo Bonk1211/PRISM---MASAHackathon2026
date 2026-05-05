@@ -164,55 +164,72 @@ cp .env.example .env.local             # default points VITE_PIPELINE_API at loc
 cd ..
 ```
 
-### Run both in parallel (two terminals)
+### Run both in parallel
 
-**Terminal 1 — backend**
+The `Makefile` orchestrates the demo. Common targets:
 
 ```bash
-# from repo root
+make demo        # install deps, build models, start API + web in parallel
+make dev         # API + web in parallel (assumes installed)
+make api         # API only, with --reload (dev)
+make api-prod    # API only, no --reload (use for ngrok / live demo)
+make web         # Vite dev server only
+make smoke       # curl /healthz + 2× /predict and ASSERT expected ranges
+make test        # pytest regression anchors against canon JSON (19 cases)
+make stop        # kill any running uvicorn / vite
+```
+
+**Manual two-terminal run** (equivalent to `make dev`):
+
+```bash
+# Terminal 1 — backend
 uvicorn serve.main:app --host 0.0.0.0 --port 8000 --reload
+
+# Terminal 2 — frontend
+cd app && npm run dev
 ```
 
-Verify:
+Then open **`http://localhost:5173/#/pipeline`**. Drag any feature slider — you should see real M3a inference at sub-millisecond latency with the 5-stage trace animating live.
 
-```bash
-curl http://localhost:8000/healthz
-# → {"ok":true,"version":"1.0","seed":2026}
-
-curl -X POST http://localhost:8000/predict \
-  -H 'content-type: application/json' \
-  -d '{"country":"Vietnam","mode":"hindcast"}' | jq '.stage_3_xgb'
-# → pred 560.59 Mt vs actual 584.26 Mt · err -4.05%
-```
-
-Open `http://localhost:8000/` for an editorial landing page listing every endpoint, or `http://localhost:8000/docs` for Swagger UI.
-
-**Terminal 2 — frontend**
-
-```bash
-cd app
-npm run dev
-# → vite dev at http://localhost:5173
-```
-
-Then open **`http://localhost:5173/#/pipeline`** in your browser. Drag any feature slider — you should see real M3a inference at sub-millisecond latency with the 5-stage trace animating live.
+The FastAPI root (`http://localhost:8000/`) renders an editorial landing page listing every endpoint with a working `curl` example computed from the request URL (works behind ngrok). Swagger at `/docs`, ReDoc at `/redoc`.
 
 ### Verify the integration
 
 ```bash
-# From repo root, with both servers up:
-curl -s -X POST http://localhost:8000/predict \
-  -H 'content-type: application/json' \
-  -d '{"country":"Vietnam","mode":"forward","scenario":"Net Zero 2050","elasticity":0.7,"gwp_usdm":1200,"base_lr":0.62}' \
-  | jq '.stage_5_loss'
-# → loss USD 609 m, swing −USD 135 m vs Hot House  (matches headline)
+# From repo root, with API up:
+make smoke
+# ==> /healthz                                              {"ok":true,"version":"1.0","seed":2026}
+# ==> /predict Vietnam hindcast      err -4.05%             ASSERT err_pct ∈ [-5,-3]%
+# ==> /predict Vietnam forward Net Zero 2050  swing -135m   ASSERT lr_pp_vs_base < 0
+# smoke OK
 ```
+
+For a deeper invariant check (every SEA country pinned to canon `key_numbers_python.json` to within 0.5 percentage points):
+
+```bash
+make test
+# 19 passed — covers all 10 SEA hindcasts, scenario sign-direction, validation surfaces
+```
+
+### Input validation surfaces
+
+The API rejects malformed input with HTTP 422 (Pydantic validation) so `make demo` is safe to expose during judging:
+
+| Input | Result |
+|---|---|
+| `country` not in the 10 SEA whitelist | **422** |
+| `scenario` not in NGFS Phase V scenarios | **422** |
+| `target_year < 2024` or `> 2050` | **422** |
+| `feature_overrides` with > 32 keys | **422** |
+| Unknown `feature_overrides` keys | **silently ignored** (still 200 OK) |
+| `feature_overrides` with NaN/Inf | **silently dropped** |
+| `feature_overrides` outside `feature_ranges` | **clamped** to 5/95 percentile |
 
 ### Stop both servers
 
 ```bash
-# Ctrl-C in each terminal, or globally:
-pkill -f "uvicorn serve" && pkill -f "vite"
+make stop
+# or globally: pkill -f "uvicorn serve" && pkill -f "vite"
 ```
 
 ### Optional — share the backend over the internet for the live demo
@@ -231,30 +248,42 @@ The frontend also has an offline fallback — if `VITE_PIPELINE_API` is unset or
 ### Production build
 
 ```bash
-cd app
-npm run build         # → app/dist/  · ~215 KB gzip
-npm run preview       # serves the build at http://localhost:4173
+make build            # → app/dist/  · ~103 KB gzip initial route (Pipeline)
+make preview          # serves the build at http://localhost:4173
 ```
 
-For deployment, point any static host (Vercel / Netlify / Cloudflare Pages) at `app/dist/` and host the FastAPI service on Render / Fly / equivalent. CORS is wide-open for the demo — tighten before any production use.
+The bundle is route-split: Pipeline + Story load in ~103 KB gzip; chart-heavy screens (Model, HotSpots, Stress, Sectoral, Compare, Brief, Cedent, Diagnostic, Evidence) lazy-load Recharts (106 KB gzip) only on first visit.
+
+For deployment, point any static host (Vercel / Netlify / Cloudflare Pages) at `app/dist/` and host the FastAPI service on Render / Fly / equivalent.
+
+**CORS** is locked to `localhost:5173`, `localhost:4173`, and `127.0.0.1:5173` by default. To expose the API to a deployed frontend, set `CORS_ALLOW_ORIGINS` (comma-separated) when starting `uvicorn`:
+
+```bash
+CORS_ALLOW_ORIGINS="https://r-ignite.vercel.app" make api-prod
+```
 
 ### File map for the demo stack
 
 ```
-app/                         React + Vite single-page app
-├── src/screens/Pipeline.tsx ← live model demo screen (5 stages + inspect modals)
-├── src/lib/pipeline.ts      ← typed /predict client + offline synthesiser
-├── src/components/          ← Sidebar, Layout, Card, EvidenceModal, …
-├── .env.example             ← VITE_PIPELINE_API documented here
-└── package.json
+app/                          React + Vite single-page app
+├── src/screens/Pipeline.tsx  ← live model demo (5 stages + inspect modals)
+├── src/lib/pipeline.ts       ← typed /predict client + offline synthesiser
+├── src/lib/useFocusTrap.ts   ← WCAG-compliant modal focus trap
+├── src/data/pipeline_meta.json ← synced from serve/models/meta.json (10 SEA panels)
+├── src/data/key_numbers_python.json ← synced from exhibits/results/
+├── src/components/           ← Sidebar, Layout, Card, EvidenceModal, …
+├── .env.example              ← VITE_PIPELINE_API documented here
+└── package.json              ← sync-data hook copies meta + canon JSON pre-build
 
-serve/                       FastAPI backend
-├── main.py                  ← / · /healthz · /meta · POST /predict
-├── pipeline.py              ← model load + 5-stage trace builder
-├── models/                  ← m3a.json · m3b.json · meta.json (from notebook)
+serve/                        FastAPI backend
+├── main.py                   ← / · /healthz · /meta · POST /predict (CORS locked)
+├── pipeline.py               ← model load + 5-stage trace builder + Pydantic validation
+├── tests/                    ← pytest regression anchors (19 cases pinning canon)
+│   └── test_regression_anchors.py
+├── models/                   ← m3a.json · m3b.json · meta.json (from notebook)
 ├── pyproject.toml / requirements.txt
-├── Dockerfile               ← optional Render / Fly deploy
-└── README.md                ← backend-only run notes
+├── Dockerfile                ← optional Render / Fly deploy
+└── README.md                 ← backend-only run notes
 ```
 
 ---

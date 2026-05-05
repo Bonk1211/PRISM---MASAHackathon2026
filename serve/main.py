@@ -9,7 +9,7 @@ Expose via ngrok for the live demo:
 """
 from __future__ import annotations
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse
 
@@ -17,58 +17,66 @@ from serve.pipeline import META, PredictRequest, run_pipeline
 
 app = FastAPI(title="R-Ignite Pipeline", version="1.0")
 
+import os
+
+# CORS: lock to local dev origins by default. Override for ngrok demos via
+# CORS_ALLOW_ORIGINS env var (comma-separated). Wildcard kept available but not
+# the default so the endpoint isn't a drive-by target during a public tunnel.
+_default_origins = "http://localhost:5173,http://localhost:4173,http://127.0.0.1:5173"
+_origins = os.environ.get("CORS_ALLOW_ORIGINS", _default_origins).split(",")
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=[o.strip() for o in _origins if o.strip()],
     allow_credentials=False,
     allow_methods=["GET", "POST", "OPTIONS"],
     allow_headers=["*"],
 )
 
 
-_INDEX_HTML = """<!doctype html>
+_INDEX_TEMPLATE = """<!doctype html>
 <html lang="en">
 <head>
   <meta charset="utf-8">
   <title>R-Ignite Pipeline · API</title>
   <style>
-    body { font-family: -apple-system, system-ui, sans-serif; background: #F4EFE3; color: #0A1A2A;
-           max-width: 640px; margin: 4rem auto; padding: 0 1.5rem; line-height: 1.55; }
-    h1 { font-family: Georgia, serif; font-style: italic; font-weight: 400; font-size: 2.4rem; margin: 0 0 .25rem; }
-    .eyebrow { font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase; color: #6E6A60; }
-    code { font-family: ui-monospace, Menlo, monospace; background: rgba(10,26,42,0.06); padding: 1px 5px; border-radius: 2px; }
-    a { color: #0E7C86; }
-    .row { display: grid; grid-template-columns: 110px 1fr; gap: 12px; padding: 8px 0;
-           border-bottom: 1px solid rgba(10,26,42,0.14); }
-    .meth { font-family: ui-monospace, Menlo, monospace; font-size: 11px; color: #8B2E1F; }
-    .muted { color: #6E6A60; font-size: 12px; }
+    body {{ font-family: -apple-system, system-ui, sans-serif; background: #F4EFE3; color: #0A1A2A;
+           max-width: 640px; margin: 4rem auto; padding: 0 1.5rem; line-height: 1.55; }}
+    h1 {{ font-family: Georgia, serif; font-style: italic; font-weight: 400; font-size: 2.4rem; margin: 0 0 .25rem; }}
+    .eyebrow {{ font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase; color: #52504A; }}
+    code {{ font-family: ui-monospace, Menlo, monospace; background: rgba(10,26,42,0.06); padding: 1px 5px; border-radius: 2px; }}
+    a {{ color: #0E7C86; }}
+    .row {{ display: grid; grid-template-columns: 110px 1fr; gap: 12px; padding: 8px 0;
+           border-bottom: 1px solid rgba(10,26,42,0.14); }}
+    .meth {{ font-family: ui-monospace, Menlo, monospace; font-size: 11px; color: #8B2E1F; }}
+    .muted {{ color: #52504A; font-size: 12px; }}
   </style>
 </head>
 <body>
   <p class="eyebrow">R·Ignite · MASA Hackathon 2026</p>
   <h1>Pipeline <em>API</em></h1>
   <p class="muted">FastAPI service · serves M3a / M3b XGBoost models exported from analysis.ipynb cell 42.</p>
+  <p class="muted">Base URL: <code>{base_url}</code></p>
 
-  <h3 class="eyebrow" style="margin-top:2rem">Endpoints</h3>
+  <h2 class="eyebrow" style="margin-top:2rem">Endpoints</h2>
   <div class="row"><span class="meth">GET</span><a href="/healthz">/healthz</a></div>
   <div class="row"><span class="meth">GET</span><a href="/meta">/meta</a> &nbsp;<span class="muted">slider bounds, country list, scenarios</span></div>
   <div class="row"><span class="meth">POST</span><code>/predict</code> &nbsp;<span class="muted">5-stage pipeline trace</span></div>
   <div class="row"><span class="meth">GET</span><a href="/docs">/docs</a> &nbsp;<span class="muted">Swagger UI · interactive testing</span></div>
   <div class="row"><span class="meth">GET</span><a href="/redoc">/redoc</a> &nbsp;<span class="muted">ReDoc reference</span></div>
 
-  <h3 class="eyebrow" style="margin-top:2rem">Try it</h3>
-  <pre style="background:#0A1A2A;color:#FAF7EE;padding:14px;font-size:11px;overflow:auto"><code>curl -X POST http://localhost:8000/predict \\
+  <h2 class="eyebrow" style="margin-top:2rem">Try it</h2>
+  <pre style="background:#0A1A2A;color:#FAF7EE;padding:14px;font-size:11px;overflow:auto"><code>curl -X POST {base_url}predict \\
   -H 'content-type: application/json' \\
-  -d '{"country":"Vietnam","mode":"hindcast"}'</code></pre>
-
-  <p class="muted" style="margin-top:2rem">UI lives at <a href="http://localhost:5173/#/pipeline">localhost:5173/#/pipeline</a> when running <code>npm run dev</code> with <code>VITE_PIPELINE_API=http://localhost:8000</code>.</p>
+  -d '{{"country":"Vietnam","mode":"hindcast"}}'</code></pre>
 </body>
 </html>"""
 
 
 @app.get("/", response_class=HTMLResponse, include_in_schema=False)
-def index() -> str:
-    return _INDEX_HTML
+def index(request: Request) -> str:
+    # Compute the base URL from the actual incoming request — works behind ngrok,
+    # reverse proxies, and the local Make demo without hardcoding localhost.
+    return _INDEX_TEMPLATE.format(base_url=str(request.base_url))
 
 
 @app.get("/healthz")

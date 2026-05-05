@@ -1,17 +1,28 @@
+import { Suspense, lazy } from 'react';
 import { HashRouter, Route, Routes } from 'react-router-dom';
 import { Layout } from './components/Layout';
 import { Story } from './screens/Story';
 import { Pipeline } from './screens/Pipeline';
-import { Model } from './screens/Model';
-import { Diagnostic } from './screens/Diagnostic';
-import { HotSpots } from './screens/HotSpots';
-import { Sectoral } from './screens/Sectoral';
-import { Compare } from './screens/Compare';
-import { Stress } from './screens/Stress';
-import { Cedent } from './screens/Cedent';
-import { Actions } from './screens/Actions';
-import { Brief } from './screens/Brief';
-import { Evidence } from './screens/Evidence';
+
+// Chart-heavy screens lazy-loaded — keeps Recharts out of the initial bundle.
+const Model = lazy(() => import('./screens/Model').then((m) => ({ default: m.Model })));
+const Diagnostic = lazy(() => import('./screens/Diagnostic').then((m) => ({ default: m.Diagnostic })));
+const HotSpots = lazy(() => import('./screens/HotSpots').then((m) => ({ default: m.HotSpots })));
+const Sectoral = lazy(() => import('./screens/Sectoral').then((m) => ({ default: m.Sectoral })));
+const Compare = lazy(() => import('./screens/Compare').then((m) => ({ default: m.Compare })));
+const Stress = lazy(() => import('./screens/Stress').then((m) => ({ default: m.Stress })));
+const Cedent = lazy(() => import('./screens/Cedent').then((m) => ({ default: m.Cedent })));
+const Actions = lazy(() => import('./screens/Actions').then((m) => ({ default: m.Actions })));
+const Brief = lazy(() => import('./screens/Brief').then((m) => ({ default: m.Brief })));
+const Evidence = lazy(() => import('./screens/Evidence').then((m) => ({ default: m.Evidence })));
+
+function Loading() {
+  return (
+    <div role="status" aria-live="polite" className="px-1 py-12 text-center font-mono text-[11px] uppercase tracking-eyebrow text-muted">
+      Loading…
+    </div>
+  );
+}
 
 export default function App() {
   return (
@@ -20,16 +31,16 @@ export default function App() {
         <Route element={<Layout />}>
           <Route index element={<Story />} />
           <Route path="pipeline" element={<Pipeline />} />
-          <Route path="model" element={<Model />} />
-          <Route path="diagnostic" element={<Diagnostic />} />
-          <Route path="hotspots" element={<HotSpots />} />
-          <Route path="sectoral" element={<Sectoral />} />
-          <Route path="compare" element={<Compare />} />
-          <Route path="stress" element={<Stress />} />
-          <Route path="cedent" element={<Cedent />} />
-          <Route path="actions" element={<Actions />} />
-          <Route path="brief" element={<Brief />} />
-          <Route path="evidence" element={<Evidence />} />
+          <Route path="model" element={<Suspense fallback={<Loading />}><Model /></Suspense>} />
+          <Route path="diagnostic" element={<Suspense fallback={<Loading />}><Diagnostic /></Suspense>} />
+          <Route path="hotspots" element={<Suspense fallback={<Loading />}><HotSpots /></Suspense>} />
+          <Route path="sectoral" element={<Suspense fallback={<Loading />}><Sectoral /></Suspense>} />
+          <Route path="compare" element={<Suspense fallback={<Loading />}><Compare /></Suspense>} />
+          <Route path="stress" element={<Suspense fallback={<Loading />}><Stress /></Suspense>} />
+          <Route path="cedent" element={<Suspense fallback={<Loading />}><Cedent /></Suspense>} />
+          <Route path="actions" element={<Suspense fallback={<Loading />}><Actions /></Suspense>} />
+          <Route path="brief" element={<Suspense fallback={<Loading />}><Brief /></Suspense>} />
+          <Route path="evidence" element={<Suspense fallback={<Loading />}><Evidence /></Suspense>} />
           <Route path="*" element={<Story />} />
         </Route>
       </Routes>

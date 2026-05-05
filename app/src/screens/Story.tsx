@@ -53,11 +53,11 @@ export function Story() {
               </span>
             </div>
 
-            <h1 className="display mt-4 text-[44px] leading-[0.92] text-ink lg:text-[68px] lg:mt-6">
+            <h2 className="display mt-4 text-[44px] leading-[0.92] text-ink lg:text-[68px] lg:mt-6">
               Climate risk is a
               <span className="italic"> structural driver </span>
               of expected loss in <span className="italic">South-East Asia</span>.
-            </h1>
+            </h2>
 
             <Hairline className="mt-5 lg:mt-8" strong />
 

@@ -1,8 +1,9 @@
 import { useEffect, useRef, useState } from 'react';
 import { Card, Eyebrow, Hairline, StatBig } from '../components/Card';
 import { Ticker } from '../components/Ticker';
+import { useFocusTrap } from '../lib/useFocusTrap';
 import {
-  predict, getMeta, type Trace, type Mode, type PipelineMeta,
+  predict, getMeta, getLastApiError, type Trace, type Mode, type PipelineMeta,
 } from '../lib/pipeline';
 import { DRIVERS } from '../data/keyNumbers';
 import { SECTOR_RESIDUAL_PCT, SECTORS } from '../data/cedent';
@@ -19,6 +20,19 @@ const PRETTY_FEATURE: Record<string, string> = {
   forest_area_pct: 'Forest area %',
   CO2_intensity_GDP: 'CO₂ intensity / GDP',
   GDP_per_capita_2015USD: 'GDP / capita',
+};
+
+const FEATURE_UNIT: Record<string, string> = {
+  log_GDP: 'log USD constant',
+  log_pop: 'log persons',
+  log_GHG_lag1: 'log megatonnes CO₂e (one-year lag)',
+  log_GHG_lag2: 'log megatonnes CO₂e (two-year lag)',
+  renewable_energy_pct: 'percent',
+  urban_pop_pct: 'percent',
+  industry_pct_GDP: 'percent',
+  forest_area_pct: 'percent',
+  CO2_intensity_GDP: 'kg CO₂ per USD GDP',
+  GDP_per_capita_2015USD: 'USD per capita',
 };
 
 type InspectKey = '01' | '02' | '03' | '04' | '05' | null;
@@ -42,22 +56,30 @@ export function Pipeline() {
     getMeta().then(setMeta);
   }, []);
 
-  // Debounced predict on input change
+  // Debounced predict on input change. AbortController is lifted to the effect
+  // so a newer drag value cancels the in-flight request and prevents stale
+  // responses from overwriting fresh ones (out-of-order race).
   const debouncer = useRef<number | null>(null);
+  const ctrlRef = useRef<AbortController | null>(null);
   useEffect(() => {
     if (!meta) return;
     if (debouncer.current) window.clearTimeout(debouncer.current);
     debouncer.current = window.setTimeout(async () => {
+      ctrlRef.current?.abort();
+      const ctrl = new AbortController();
+      ctrlRef.current = ctrl;
       setBusy(true);
       try {
         const next = await predict({
           mode, country, scenario,
           elasticity, gwp_usdm: gwp, base_lr: baseLr,
           feature_overrides: overrides,
-        });
-        setTrace(next);
+        }, ctrl.signal);
+        if (!ctrl.signal.aborted) setTrace(next);
+      } catch {
+        // aborted — caller raced ahead; do nothing
       } finally {
-        setBusy(false);
+        if (!ctrl.signal.aborted) setBusy(false);
       }
     }, 200);
     return () => {
@@ -69,16 +91,24 @@ export function Pipeline() {
 
   return (
     <div className="space-y-5 lg:grid lg:grid-cols-[320px_1fr] lg:gap-6 lg:space-y-0">
+      {/* Off-screen live region — announces fresh predictions to screen readers */}
+      <div role="status" aria-live="polite" className="sr-only">
+        {trace && !busy
+          ? `Predicted ${trace.stage_3_xgb.ghg_pred_Mt.toFixed(1)} megatonnes; loss ratio ${(trace.stage_5_loss.lr * 100).toFixed(1)} percent; expected loss USD ${trace.stage_5_loss.loss_USDm.toFixed(0)} million.`
+          : ''}
+      </div>
+
       {/* Inputs panel */}
       <aside className="space-y-4 lg:sticky lg:top-[140px] lg:max-h-[calc(100vh-160px)] lg:overflow-y-auto lg:pr-2">
         <section className="border border-rule bg-paper px-5 py-5">
-          <Eyebrow>Mode</Eyebrow>
-          <div className="mt-2 grid grid-cols-2 border border-rule">
+          <p id="mode-label" className="eyebrow text-muted">Mode</p>
+          <div role="radiogroup" aria-labelledby="mode-label" className="mt-2 grid grid-cols-2 border border-rule">
             {(['hindcast', 'forward'] as Mode[]).map((m) => (
               <button
                 key={m}
+                role="radio"
+                aria-checked={mode === m}
                 onClick={() => setMode(m)}
-                aria-pressed={mode === m}
                 className={[
                   'min-h-[40px] px-3 text-[11px] font-semibold uppercase tracking-eyebrow transition',
                   mode === m ? 'bg-ink text-paper' : 'bg-paper text-ink',
@@ -90,11 +120,12 @@ export function Pipeline() {
           </div>
 
           <div className="mt-4">
-            <Eyebrow>Country</Eyebrow>
+            <label htmlFor="country-select" className="eyebrow text-muted">Country</label>
             <select
+              id="country-select"
               value={country}
               onChange={(e) => setCountry(e.target.value)}
-              className="mt-2 w-full border border-rule bg-paper px-3 py-2 text-[13px] text-ink focus:outline-none"
+              className="mt-2 w-full border border-rule bg-paper px-3 py-2 text-[13px] text-ink"
             >
               {(meta?.countries ?? ['Vietnam']).map((c) => (
                 <option key={c} value={c}>{c}</option>
@@ -104,11 +135,12 @@ export function Pipeline() {
 
           {mode === 'forward' && (
             <div className="mt-4">
-              <Eyebrow>NGFS scenario</Eyebrow>
+              <label htmlFor="scenario-select" className="eyebrow text-muted">NGFS scenario</label>
               <select
+                id="scenario-select"
                 value={scenario}
                 onChange={(e) => setScenario(e.target.value)}
-                className="mt-2 w-full border border-rule bg-paper px-3 py-2 text-[13px] text-ink focus:outline-none"
+                className="mt-2 w-full border border-rule bg-paper px-3 py-2 text-[13px] text-ink"
               >
                 {Object.keys(meta?.ngfs_scenarios ?? { 'Net Zero 2050': 0 }).map((s) => (
                   <option key={s} value={s}>{s}</option>
@@ -138,26 +170,39 @@ export function Pipeline() {
               const live = overrides[f] ?? baseVal;
               const isOverridden = overrides[f] !== undefined;
               const step = (range.max - range.min) / 200;
+              const prettyName = PRETTY_FEATURE[f] ?? f;
+              const unit = FEATURE_UNIT[f] ?? '';
+              const decimals = f.startsWith('log') || f.includes('intensity') ? 3 : 1;
               return (
                 <div key={f}>
                   <div className="flex items-baseline justify-between">
                     <label htmlFor={`f-${f}`} className="text-[11px] text-ink">
-                      {PRETTY_FEATURE[f] ?? f}
+                      {prettyName}
                     </label>
                     <span className="flex items-center gap-2">
-                      <span className={['font-mono text-[11px] tab-num', isOverridden ? 'text-amber font-semibold' : 'text-muted'].join(' ')}>
-                        {live.toFixed(f.startsWith('log') || f.includes('intensity') ? 3 : 1)}
+                      <span
+                        className={[
+                          'font-mono text-[11px] tab-num',
+                          isOverridden ? 'text-amber font-semibold italic' : 'text-muted',
+                        ].join(' ')}
+                        aria-label={isOverridden ? 'overridden value' : undefined}
+                      >
+                        {isOverridden && <span aria-hidden="true">● </span>}
+                        {live.toFixed(decimals)}
                       </span>
                       {isOverridden && (
                         <button
+                          aria-label={`Reset ${prettyName} to baseline`}
                           onClick={() => {
-                            const next = { ...overrides };
-                            delete next[f];
-                            setOverrides(next);
+                            setOverrides((prev) => {
+                              const next = { ...prev };
+                              delete next[f];
+                              return next;
+                            });
                           }}
                           className="font-mono text-[9px] uppercase tracking-eyebrow text-sea hover:underline"
                         >
-                          ↺
+                          <span aria-hidden="true">↺</span>
                         </button>
                       )}
                     </span>
@@ -169,7 +214,11 @@ export function Pipeline() {
                     max={range.max}
                     step={step}
                     value={live}
-                    onChange={(e) => setOverrides({ ...overrides, [f]: Number(e.target.value) })}
+                    aria-valuetext={`${live.toFixed(decimals)}${unit ? ' ' + unit : ''}`}
+                    onChange={(e) => {
+                      const v = Number(e.target.value);
+                      setOverrides((prev) => ({ ...prev, [f]: v }));
+                    }}
                     className="rule-slider"
                   />
                 </div>
@@ -181,9 +230,9 @@ export function Pipeline() {
         <section className="border border-rule bg-paper px-5 py-5">
           <Eyebrow>Loss mapping</Eyebrow>
           <Hairline className="mt-3" />
-          <SliderRow label="ε elasticity" value={elasticity} min={0.3} max={1.2} step={0.01} format={(v) => v.toFixed(2)} onChange={setElasticity} />
-          <SliderRow label="GWP USDm" value={gwp} min={500} max={3000} step={50} format={(v) => v.toFixed(0)} onChange={setGwp} />
-          <SliderRow label="Base LR" value={baseLr} min={0.40} max={0.85} step={0.01} format={(v) => v.toFixed(2)} onChange={setBaseLr} />
+          <SliderRow id="elasticity" label="ε elasticity" unit="elasticity coefficient" value={elasticity} min={0.3} max={1.2} step={0.01} format={(v) => v.toFixed(2)} onChange={setElasticity} />
+          <SliderRow id="gwp" label="GWP USDm" unit="USD millions" value={gwp} min={500} max={3000} step={50} format={(v) => v.toFixed(0)} onChange={setGwp} />
+          <SliderRow id="base-lr" label="Base LR" unit="base loss ratio" value={baseLr} min={0.40} max={0.85} step={0.01} format={(v) => v.toFixed(2)} onChange={setBaseLr} />
         </section>
       </aside>
 
@@ -192,13 +241,18 @@ export function Pipeline() {
         {/* Hero strip */}
         <section className={['border px-5 py-4 transition', cached ? 'border-amber/50 bg-amber/[0.06]' : 'border-rule bg-paper'].join(' ')}>
           <div className="flex items-center justify-between gap-3">
-            <div>
+            <div className="min-w-0 flex-1">
               <Eyebrow>{cached ? 'Cached mode · API offline' : 'Live · FastAPI'}</Eyebrow>
               <p className="mt-1 font-mono text-[11px] tab-num text-ink">
                 {trace?.trace_meta.served_by === 'fastapi'
                   ? `POST /predict · ${trace.trace_meta.total_latency_ms?.toFixed(1) ?? '—'} ms · seed ${trace.trace_meta.seed}`
                   : 'Numbers from key_numbers_python.json + parametric overlay. Set VITE_PIPELINE_API to wire the real model.'}
               </p>
+              {cached && getLastApiError() && (
+                <p className="mt-1 truncate font-mono text-[10px] text-amber">
+                  reason: {getLastApiError()}
+                </p>
+              )}
             </div>
             <Ticker code={busy ? '••' : 'OK'} tone={busy ? 'amber' : cached ? 'amber' : 'sage'} size="md" />
           </div>
@@ -368,14 +422,15 @@ function Stage({
       <div className="flex items-baseline justify-between gap-3">
         <div>
           <Eyebrow>Stage {code}</Eyebrow>
-          <h3 className="display mt-0.5 text-[20px] leading-tight text-ink lg:text-[26px]">{title}</h3>
+          <h2 className="display mt-0.5 text-[20px] leading-tight text-ink lg:text-[26px]">{title}</h2>
           {subtitle && <p className="mt-1 text-[11px] text-muted">{subtitle}</p>}
         </div>
         <button
           onClick={onInspect}
+          aria-label={`Inspect stage ${code}: ${title}`}
           className="shrink-0 border border-rule px-2 py-1 font-mono text-[9px] uppercase tracking-eyebrow text-sea hover:bg-sea/5"
         >
-          inspect →
+          inspect <span aria-hidden="true">→</span>
         </button>
       </div>
       <Hairline className="mt-3" />
@@ -393,22 +448,25 @@ function Arrow() {
 }
 
 function SliderRow({
-  label, value, min, max, step, format, onChange,
+  id, label, unit, value, min, max, step, format, onChange,
 }: {
-  label: string; value: number; min: number; max: number; step: number; format: (v: number) => string; onChange: (v: number) => void;
+  id: string; label: string; unit: string; value: number; min: number; max: number; step: number; format: (v: number) => string; onChange: (v: number) => void;
 }) {
+  const inputId = `slider-${id}`;
   return (
     <div className="mt-3">
       <div className="flex items-baseline justify-between">
-        <label className="text-[11px] text-ink">{label}</label>
+        <label htmlFor={inputId} className="text-[11px] text-ink">{label}</label>
         <span className="font-mono text-[11px] tab-num text-ink">{format(value)}</span>
       </div>
       <input
+        id={inputId}
         type="range"
         min={min}
         max={max}
         step={step}
         value={value}
+        aria-valuetext={`${format(value)} ${unit}`}
         onChange={(e) => onChange(Number(e.target.value))}
         className="rule-slider"
       />
@@ -421,50 +479,56 @@ function InspectSheet({
 }: {
   kind: InspectKey; trace: Trace | null; country: string; onClose: () => void;
 }) {
-  useEffect(() => {
-    if (!kind) return;
-    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
-    window.addEventListener('keydown', onKey);
-    document.body.style.overflow = 'hidden';
-    return () => {
-      window.removeEventListener('keydown', onKey);
-      document.body.style.overflow = '';
-    };
-  }, [kind, onClose]);
-
+  const dialogRef = useFocusTrap<HTMLDivElement>(!!kind, onClose);
   if (!kind || !trace) return null;
 
+  const titleId = `inspect-${kind}-title`;
+
   return (
-    <div role="dialog" aria-modal="true" className="fixed inset-0 z-50 flex items-end justify-center">
-      <button aria-label="Close" onClick={onClose} className="absolute inset-0 bg-ink/45 backdrop-blur-[2px]" />
+    <div
+      ref={dialogRef}
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby={titleId}
+      className="fixed inset-0 z-50 flex items-end justify-center"
+    >
+      <div
+        aria-hidden="true"
+        onClick={onClose}
+        className="absolute inset-0 cursor-pointer bg-ink/45 backdrop-blur-[2px]"
+      />
       <article
         className="relative mx-auto w-full max-w-canvas max-h-[88vh] overflow-y-auto rounded-t-[18px] border-t border-rule bg-paper px-5 pb-8 pt-5 shadow-plate lg:rounded-[18px] lg:border lg:my-auto"
         style={{ paddingBottom: 'calc(2rem + env(safe-area-inset-bottom, 0))' }}
       >
-        <div className="mx-auto mb-3 h-1 w-10 rounded-full bg-ink/15" />
+        <div aria-hidden="true" className="mx-auto mb-3 h-1 w-10 rounded-full bg-ink/15" />
         <div className="flex items-baseline justify-between">
           <Eyebrow>Stage {kind} · inspect</Eyebrow>
-          <button onClick={onClose} className="font-mono text-[11px] uppercase tracking-eyebrow text-muted hover:text-ink">
-            Close ✕
+          <button
+            onClick={onClose}
+            aria-label="Close inspect dialog"
+            className="font-mono text-[11px] uppercase tracking-eyebrow text-muted hover:text-ink"
+          >
+            Close <span aria-hidden="true">✕</span>
           </button>
         </div>
 
         <div className="mt-3">
-          {kind === '01' && <Inspect01 trace={trace} />}
-          {kind === '02' && <Inspect02 trace={trace} />}
-          {kind === '03' && <Inspect03 trace={trace} />}
-          {kind === '04' && <Inspect04 trace={trace} country={country} />}
-          {kind === '05' && <Inspect05 trace={trace} />}
+          {kind === '01' && <Inspect01 trace={trace} titleId={titleId} />}
+          {kind === '02' && <Inspect02 trace={trace} titleId={titleId} />}
+          {kind === '03' && <Inspect03 trace={trace} titleId={titleId} />}
+          {kind === '04' && <Inspect04 trace={trace} country={country} titleId={titleId} />}
+          {kind === '05' && <Inspect05 trace={trace} titleId={titleId} />}
         </div>
       </article>
     </div>
   );
 }
 
-function Inspect01({ trace }: { trace: Trace }) {
+function Inspect01({ trace, titleId }: { trace: Trace; titleId: string }) {
   return (
     <>
-      <h2 className="display text-[28px] leading-tight text-ink">Raw input vector</h2>
+      <h2 id={titleId} className="display text-[28px] leading-tight text-ink">Raw input vector</h2>
       <p className="mt-1 text-[12px] text-muted">Pulled from sea_panel row · {trace.stage_1_inputs.country} · base year {trace.stage_1_inputs.mode === 'hindcast' ? 2023 : 2024}.</p>
       <Hairline className="mt-3" />
       <table className="mt-3 w-full text-[12px]">
@@ -492,10 +556,10 @@ function Inspect01({ trace }: { trace: Trace }) {
   );
 }
 
-function Inspect02({ trace }: { trace: Trace }) {
+function Inspect02({ trace, titleId }: { trace: Trace; titleId: string }) {
   return (
     <>
-      <h2 className="display text-[28px] leading-tight text-ink">Feature vector X</h2>
+      <h2 id={titleId} className="display text-[28px] leading-tight text-ink">Feature vector X</h2>
       <p className="mt-1 text-[12px] text-muted">log() applied to {trace.stage_2_features.log_transformed_keys.join(', ')}. Order matches m3a_features in meta.json.</p>
       <Hairline className="mt-3" />
       <pre className="mt-3 overflow-x-auto bg-ink p-3 font-mono text-[11px] text-paper">
@@ -507,10 +571,10 @@ ${trace.stage_2_features.feature_order.map((f, i) => `  ${(trace.stage_2_feature
   );
 }
 
-function Inspect03({ trace }: { trace: Trace }) {
+function Inspect03({ trace, titleId }: { trace: Trace; titleId: string }) {
   return (
     <>
-      <h2 className="display text-[28px] leading-tight text-ink">XGBoost inference</h2>
+      <h2 id={titleId} className="display text-[28px] leading-tight text-ink">XGBoost inference</h2>
       <p className="mt-1 text-[12px] text-muted">M3a panel model · seed 2026 · trained 1990–2023 SEA panel.</p>
       <Hairline className="mt-3" />
 
@@ -565,11 +629,11 @@ function Inspect03({ trace }: { trace: Trace }) {
   );
 }
 
-function Inspect04({ trace, country }: { trace: Trace; country: string }) {
+function Inspect04({ trace, country, titleId }: { trace: Trace; country: string; titleId: string }) {
   const row = SECTOR_RESIDUAL_PCT[country];
   return (
     <>
-      <h2 className="display text-[28px] leading-tight text-ink">Scenario overlay</h2>
+      <h2 id={titleId} className="display text-[28px] leading-tight text-ink">Scenario overlay</h2>
       <p className="mt-1 text-[12px] text-muted">{trace.stage_4_scenario.scenario} · {(trace.stage_4_scenario.growth_rate_pa * 100).toFixed(1)}% p.a. compound · {trace.stage_4_scenario.years_compounded} years.</p>
       <Hairline className="mt-3" />
       <pre className="mt-3 overflow-x-auto bg-ink p-3 font-mono text-[11px] text-paper">
@@ -601,10 +665,10 @@ function Inspect04({ trace, country }: { trace: Trace; country: string }) {
   );
 }
 
-function Inspect05({ trace }: { trace: Trace }) {
+function Inspect05({ trace, titleId }: { trace: Trace; titleId: string }) {
   return (
     <>
-      <h2 className="display text-[28px] leading-tight text-ink">Loss-ratio mapping</h2>
+      <h2 id={titleId} className="display text-[28px] leading-tight text-ink">Loss-ratio mapping</h2>
       <p className="mt-1 text-[12px] text-muted">Swiss Re sigma 1/2024 elasticity convention. BNM CRST 2024 §6.3 capital implication.</p>
       <Hairline className="mt-3" />
       <pre className="mt-3 overflow-x-auto bg-ink p-3 font-mono text-[11px] text-paper">

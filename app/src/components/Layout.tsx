@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { Sidebar } from './Sidebar';
 
@@ -23,6 +23,13 @@ export function Layout() {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const meta = META[loc.pathname] ?? { code: '—', title: 'R-Ignite', eyebrow: '' };
   const showBack = loc.pathname !== '/';
+  const headingRef = useRef<HTMLHeadingElement>(null);
+
+  // Per-route document.title and SR focus on heading after navigation.
+  useEffect(() => {
+    document.title = `${meta.title} — R-Ignite · SEA Climate Risk`;
+    headingRef.current?.focus();
+  }, [loc.pathname, meta.title]);
 
   return (
     <div className="mx-auto min-h-full max-w-shell lg:grid lg:grid-cols-shell">
@@ -65,7 +72,7 @@ export function Layout() {
                 <p className="font-mono text-[10px] uppercase tracking-eyebrow text-muted">
                   {meta.code} · {meta.eyebrow}
                 </p>
-                <h1 className="display text-[22px] leading-none text-ink lg:text-[28px]">
+                <h1 ref={headingRef} tabIndex={-1} className="display text-[22px] leading-none text-ink lg:text-[28px] focus:outline-none">
                   {meta.title}
                 </h1>
               </div>

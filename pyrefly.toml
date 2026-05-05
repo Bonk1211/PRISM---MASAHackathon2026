@@ -1,0 +1,3 @@
+python-interpreter = "/Library/Frameworks/Python.framework/Versions/3.10/bin/python3"
+project-includes = ["serve/**/*.py", "data/external/*.py"]
+project-excludes = ["**/.venv/**", "**/node_modules/**", "**/__pycache__/**"]

@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
+import { useFocusTrap } from '../lib/useFocusTrap';
 
 type Tab = { to: string; code: string; label: string; tag?: string };
 type Section = { name: string; tabs: Tab[]; dim?: boolean };
@@ -60,31 +61,26 @@ export function Sidebar({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [loc.pathname]);
 
-  // Esc closes drawer
-  useEffect(() => {
-    if (!isDrawerOpen) return;
-    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onCloseDrawer?.(); };
-    window.addEventListener('keydown', onKey);
-    document.body.style.overflow = 'hidden';
-    return () => {
-      window.removeEventListener('keydown', onKey);
-      document.body.style.overflow = '';
-    };
-  }, [isDrawerOpen, onCloseDrawer]);
+  // Focus-trap is only active for the mobile drawer (when isDrawerOpen). On
+  // desktop the sidebar is part of the layout and shouldn't trap.
+  const trapRef = useFocusTrap<HTMLElement>(isDrawerOpen, onCloseDrawer);
 
   return (
     <>
       {/* Mobile drawer scrim */}
       {isDrawerOpen && (
-        <button
-          aria-label="Close navigation"
+        <div
+          aria-hidden="true"
           onClick={onCloseDrawer}
-          className="fixed inset-0 z-30 bg-ink/45 backdrop-blur-[2px] lg:hidden"
+          className="fixed inset-0 z-30 cursor-pointer bg-ink/45 backdrop-blur-[2px] lg:hidden"
         />
       )}
 
       <aside
+        ref={trapRef as React.RefObject<HTMLElement>}
         aria-label="Sections"
+        role={isDrawerOpen ? 'dialog' : undefined}
+        aria-modal={isDrawerOpen || undefined}
         className={[
           // Mobile: slide-out drawer
           'fixed inset-y-0 left-0 z-40 w-[280px] flex-col border-r border-rule bg-paper px-5 py-7 transition-transform',

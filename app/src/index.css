@@ -39,6 +39,8 @@ button:focus-visible,
 a:focus-visible,
 [role="button"]:focus-visible,
 input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
 [tabindex]:focus-visible {
   outline: 1.5px solid #0E7C86;
   outline-offset: 3px;
@@ -111,13 +113,16 @@ input:focus-visible,
   border-color: rgba(14, 124, 134, 0.5);
 }
 
-/* Editorial slider — full-width hairline track */
+/* Editorial slider — full-width hairline track. 28-px tall hit-target satisfies
+   WCAG 2.2 AA 2.5.8 even though the visual thumb is the editorial 6×22 band. */
 input[type='range'].rule-slider {
   -webkit-appearance: none;
   appearance: none;
   background: transparent;
   height: 28px;
   width: 100%;
+  cursor: ew-resize;
+  padding: 4px 0;
 }
 input[type='range'].rule-slider::-webkit-slider-runnable-track {
   height: 1px;

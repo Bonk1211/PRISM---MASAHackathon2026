@@ -54,22 +54,29 @@ install-web: ## Install frontend npm deps + seed .env.local.
 # ---------------------------------------------------------------------------
 
 .PHONY: models
-models: $(MODELS_DIR)/m3a.json ## Re-execute notebook to (re)build serve/models/.
-
-$(MODELS_DIR)/m3a.json: $(NOTEBOOK)
-	@echo "==> Re-executing $(NOTEBOOK) to regenerate model artefacts"
-	jupyter nbconvert --to notebook --execute $(NOTEBOOK) --output /tmp/exec.ipynb
-	cp /tmp/exec.ipynb $(NOTEBOOK)
-	@ls -la $(MODELS_DIR)
+models: ## Re-execute notebook to (re)build serve/models/. Always runs (avoids stale-after-checkout).
+	@if [ -f $(MODELS_DIR)/m3a.json ] && [ $(MODELS_DIR)/m3a.json -nt $(NOTEBOOK) ]; then \
+	  echo "==> models up-to-date (m3a.json newer than notebook). Use 'make clean-models && make models' to force."; \
+	else \
+	  echo "==> Re-executing $(NOTEBOOK) to regenerate model artefacts"; \
+	  jupyter nbconvert --to notebook --execute $(NOTEBOOK) --output /tmp/exec.ipynb; \
+	  cp /tmp/exec.ipynb $(NOTEBOOK); \
+	  ls -la $(MODELS_DIR); \
+	fi
 
 # ---------------------------------------------------------------------------
 # run
 # ---------------------------------------------------------------------------
 
 .PHONY: api
-api: ## Start FastAPI on :8000 in the foreground.
-	@echo "==> API on http://$(API_HOST):$(API_PORT)"
+api: ## Start FastAPI on :8000 in the foreground (with --reload for dev).
+	@echo "==> API on http://$(API_HOST):$(API_PORT) (dev · reload on)"
 	uvicorn serve.main:app --host $(API_HOST) --port $(API_PORT) --reload
+
+.PHONY: api-prod
+api-prod: ## Start FastAPI without --reload (use for ngrok / live demo).
+	@echo "==> API on http://$(API_HOST):$(API_PORT) (prod · no reload)"
+	uvicorn serve.main:app --host $(API_HOST) --port $(API_PORT) --workers 1
 
 .PHONY: web
 web: ## Start Vite dev server on :5173 in the foreground.
@@ -109,16 +116,32 @@ preview: build ## Preview the production build on :4173.
 # ---------------------------------------------------------------------------
 
 .PHONY: smoke
-smoke: ## Curl /healthz and /predict (Vietnam hindcast). Requires `make api` running.
+smoke: ## Curl /healthz + 2× /predict and assert expected ranges. Requires `make api` running.
 	@echo "==> /healthz"
 	@curl -s http://localhost:$(API_PORT)/healthz || { echo "API not reachable on :$(API_PORT)"; exit 1; }
 	@echo
-	@echo "==> /predict Vietnam hindcast"
+	@echo "==> /predict Vietnam hindcast (assert err_pct ∈ [-5,-3]%)"
 	@curl -s -X POST http://localhost:$(API_PORT)/predict \
 	  -H 'content-type: application/json' \
 	  -d '{"country":"Vietnam","mode":"hindcast"}' \
 	  | $(PYTHON) -c "import sys,json; d=json.load(sys.stdin); s=d['stage_3_xgb']; \
-	    print(f'  pred {s[\"ghg_pred_Mt\"]:.2f} Mt · actual {s[\"actual_Mt\"]:.2f} Mt · err {s[\"err_pct\"]:+.2f}% · {s[\"inference_ms\"]:.2f} ms')"
+	    print(f'  pred {s[\"ghg_pred_Mt\"]:.2f} Mt · actual {s[\"actual_Mt\"]:.2f} Mt · err {s[\"err_pct\"]:+.2f}% · {s[\"inference_ms\"]:.2f} ms'); \
+	    assert -5.0 < s['err_pct'] < -3.0, f'VN err_pct drift: {s[\"err_pct\"]}'; \
+	    assert 540 < s['ghg_pred_Mt'] < 580, f'VN pred drift: {s[\"ghg_pred_Mt\"]}'"
+	@echo "==> /predict Vietnam forward Net Zero 2050 (assert lr_pp_vs_base < 0)"
+	@curl -s -X POST http://localhost:$(API_PORT)/predict \
+	  -H 'content-type: application/json' \
+	  -d '{"country":"Vietnam","mode":"forward","scenario":"Net Zero 2050","target_year":2030}' \
+	  | $(PYTHON) -c "import sys,json; d=json.load(sys.stdin); s4=d['stage_4_scenario']; l=d['stage_5_loss']; \
+	    print(f'  delta {s4[\"delta_pct\"]*100:+.2f}% · lr-pp {l[\"lr_pp_vs_base\"]:+.2f}pp · loss USD {l[\"loss_USDm\"]:.0f}m · swing {l[\"loss_swing_vs_hothouse_USDm\"]:+.0f}m'); \
+	    assert s4['delta_pct'] < 0, f'Net Zero delta should be negative, got {s4[\"delta_pct\"]}'; \
+	    assert l['lr_pp_vs_base'] < 0, f'Net Zero lr_pp should be negative, got {l[\"lr_pp_vs_base\"]}'; \
+	    assert l['loss_swing_vs_hothouse_USDm'] < 0, f'Net Zero swing should be negative, got {l[\"loss_swing_vs_hothouse_USDm\"]}'"
+	@echo "  smoke OK"
+
+.PHONY: test
+test: ## Run pytest regression anchors against canon JSON. Requires models built.
+	cd serve && $(PYTHON) -m pytest -q tests/
 
 # ---------------------------------------------------------------------------
 # stop / clean

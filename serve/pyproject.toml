@@ -15,7 +15,13 @@ dependencies = [
 [tool.uv]
 dev-dependencies = [
     "httpx>=0.27",
+    "pytest>=8",
 ]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = "test_*.py"
+addopts = "-q"
 
 [build-system]
 requires = ["hatchling"]
