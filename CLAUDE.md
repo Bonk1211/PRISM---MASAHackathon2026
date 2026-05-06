@@ -1,6 +1,6 @@
 # CLAUDE.md
 
-This file guide Claude Code (claude.ai/code) when work in this repo.
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
 ## Project context
 
@@ -15,32 +15,49 @@ Read `README.md` and `PROJECT.md` for full overview. Submission body in `deliver
 ## Common commands
 
 ```bash
+# Full demo stack (install deps + build models + API + web in parallel)
+make demo
+make dev          # API + web only (assumes deps installed)
+make stop         # kill uvicorn + vite
+make smoke        # curl /healthz + 2× /predict, assert expected ranges
+make test         # pytest 19 regression anchors against canon JSON
+
 # Primary pipeline (Python notebook — 41 cells, ~3 min on raw WDI)
 jupyter nbconvert --to notebook --execute analysis/python/analysis.ipynb --output /tmp/exec.ipynb
 cp /tmp/exec.ipynb analysis/python/analysis.ipynb   # save outputs back to source
 
-# Mobile interactive app (PWA — installable from any phone)
+# Mobile interactive PWA (Vite 7 + React 19)
 cd app && npm run dev          # http://localhost:5173 + LAN URL for phone
 cd app && npm run build        # production bundle to app/dist/
 cd app && npm run preview      # serve build at http://localhost:4173
+cd app && npm run lint         # eslint
+
+# FastAPI backend (live /predict for Pipeline screen)
+uvicorn serve.main:app --host 0.0.0.0 --port 8000 --reload
+cd serve && pytest             # regression anchors only
 
 # Legacy R Shiny dashboard (kept for reference; not on critical path)
 Rscript -e "shiny::runApp('analysis/shiny/app.R', launch.browser = TRUE)"
 ```
 
-PWA run `npm run sync-data` auto as `predev`/`prebuild` — copy `exhibits/results/key_numbers_python.json` into `app/src/data/` so React imports reflect latest pipeline run. Re-execute notebook → JSON regen → next `npm run dev` pick up. No hand-port.
+PWA `npm run sync-data` runs auto as `predev`/`prebuild` — copies `exhibits/results/key_numbers_python.json` AND `serve/models/meta.json` into `app/src/data/` so React imports reflect latest pipeline run + backend feature ranges. Re-execute notebook → JSON regen → next `npm run dev` picks up. No hand-port.
 
-## Required data setup
+## Required setup
 
-Raw WDI download (`data/WB_WDI_WIDEF.csv`, ~243 MB) **not committed** but **required** for cell 4 to do real cleaning. Source URL (pinned, verified): `https://data360files.worldbank.org/data360-data/data/WB_WDI/WB_WDI_WIDEF.csv`.
-
-Cell 4 has fallback: if raw absent, load committed `data/global_panel_clean.csv` and skip curate/reshape (cell 6). Identical downstream behaviour, but cleaning step not exercised.
+**Raw WDI download** (`data/WB_WDI_WIDEF.csv`, ~243 MB) **not committed** but **required** for cell 4 to do real cleaning. Source URL (pinned, verified): `https://data360files.worldbank.org/data360-data/data/WB_WDI/WB_WDI_WIDEF.csv`. Cell 4 has fallback: if raw absent, loads committed `data/global_panel_clean.csv` and skips curate/reshape (cell 6).
 
 **External datasets** at `data/external/` (EM-DAT + ND-GAIN) committed and joined into panel by cell 8. Refresh via `data/external/build_external_panel.py`.
 
+**macOS libomp prerequisite.** XGBoost on macOS dynamically links `libomp.dylib`, not shipped with system Python. Without it `import xgboost` raises `XGBoostError: libxgboost.dylib could not be loaded` and the API will not start.
+```bash
+brew install libomp
+```
+
+**Backend env vars.** `CORS_ALLOW_ORIGINS` (comma-sep) for non-default frontends. Frontend `VITE_PIPELINE_API` (default `http://localhost:8000`) — `make install-web` seeds `app/.env.local`.
+
 ## Architecture — analytical pipeline
 
-Python notebook (`analysis/python/analysis.ipynb`, 41 cells) implement full pipeline end-to-end and emit canonical JSON.
+Python notebook (`analysis/python/analysis.ipynb`, 41 cells) implements full pipeline end-to-end and emits canonical JSON.
 
 ```
 data/WB_WDI_WIDEF.csv (raw, 243 MB, not committed)
@@ -67,10 +84,13 @@ NGFS Phase V scenario perturbation × Swiss Re elasticity 0.7 × GWP USD 1.2 bn
 2030 loss-ratio impact (Hot House 62.0 % → Net Zero 50.7 %; USD 135 m swing)
     ▼
 exhibits/results/key_numbers_python.json (single source of truth)
+serve/models/{m3a.json, m3b.json, meta.json} (cell 42 — FastAPI loads at boot)
     │
     ├──→ app/src/data/key_numbers_python.json (auto-copied by npm sync-data)
+    ├──→ app/src/data/pipeline_meta.json     (auto-copied; backend feature ranges)
     │         ↓
-    │    PWA renders Story · Model · HotSpots · Stress · Cedent · Actions
+    │    PWA renders Story · Model · HotSpots · Stress · Cedent · Pipeline · …
+    │    Pipeline screen calls FastAPI /predict live (offline fallback to JSON)
     │
     ├──→ deliverables/*.md (manual prose; numbers must agree)
     │
@@ -79,33 +99,45 @@ exhibits/results/key_numbers_python.json (single source of truth)
 
 **Two non-obvious design decisions** must preserve:
 
-1. **Two XGBoost specs, not one.** M3a (with lag-1/lag-2 emissions) win on forecast accuracy. M3b (no lags) win on driver attribution because lags would dominate gain. Reinsurance committee need both. Don't collapse.
+1. **Two XGBoost specs, not one.** M3a (with lag-1/lag-2 emissions) wins on forecast accuracy. M3b (no lags) wins on driver attribution because lags would dominate gain. Reinsurance committee needs both. Don't collapse.
 2. **Pairwise vs partial correlations reported side-by-side.** Three indicators (forest area, industry share, energy use per capita) flip sign once log-GDP and log-population partialled out. Diagnostic itself is headline finding (§3.2 of report) — don't drop pairwise column for "tidiness".
+
+## Architecture — demo stack (FastAPI + PWA)
+
+Two services for live judging demo, orchestrated by root `Makefile`:
+
+- **`serve/`** — FastAPI backend. `main.py` exposes `/`, `/healthz`, `/meta`, `POST /predict`. `pipeline.py` loads M3a/M3b at boot from `serve/models/`, builds 5-stage trace, validates input via Pydantic. CORS locked to `localhost:5173/4173/127.0.0.1:5173` by default. Also hosts **scoping workflow** (`scoping.py` + `supabase_client.py` + `migrations/`) — Supabase-backed multi-phase consulting flow consumed by PWA `Phase1Scoping`–`Phase6Strategy`.
+- **`app/`** — React 19 + Vite 7 + TypeScript + Tailwind. **21 routes** (not 6): Landing · Story · Model · HotSpots · Stress · Sectoral · Compare · Brief · Cedent · Diagnostic · Evidence · Pipeline · Report · Pricing · Actions · Phase1–6 scoping. Pipeline screen drags feature sliders and hits `/predict` live; offline fallback synthesises trace from `key_numbers_python.json` and shows "Cached mode" banner. Bundle is route-split: ~103 KB gzip initial, Recharts (106 KB) lazy-loads on first chart visit.
+
+**Regression anchors.** `serve/tests/test_regression_anchors.py` — 19 pytest cases pin every SEA hindcast + scenario sign-direction + validation surface to canon `key_numbers_python.json` within 0.5 pp. Run via `make test`. Cell 42 of notebook re-emits the model artefacts these tests pin against — so notebook re-execution must precede backend test run.
 
 ## Repository structure conventions
 
-- **`deliverables/`** — what judges read. Files prefixed `00`–`12` indicate reading order. Cedent-screening framework (`05_`), policy crosswalk (`06_`), Q&A briefing (`07_`), cedent visit scorecard (`08_`), executive memo (`09_`), VN cedent contacts (`10_`), Indonesia counterfactual (`11_`), stress refresh playbook (`12_`) are productised companions to main report (`01_`); change analysis means propagate to all.
-- **`analysis/python/analysis.ipynb`** — primary pipeline, 41 cells. **Re-execute via `jupyter nbconvert --execute`** then copy /tmp output back to source. Don't hand-write notebooks via heredoc — use `nbformat` / `json.dump` on cell dict.
+- **`deliverables/`** — what judges read. Files prefixed `00`–`12` indicate reading order. Cedent-screening framework (`05_`), policy crosswalk (`06_`), Q&A briefing (`07_`), cedent visit scorecard (`08_`), executive memo (`09_`), VN cedent contacts (`10_`), Indonesia counterfactual (`11_`), stress refresh playbook (`12_`) are productised companions to main report (`01_`); changing analysis means propagating to all.
+- **`analysis/python/analysis.ipynb`** — primary pipeline, 41 cells. Cell 42 exports `serve/models/{m3a,m3b,meta}.json` for live inference. **Re-execute via `jupyter nbconvert --execute`** then copy /tmp output back to source. Don't hand-write notebooks via heredoc — use `nbformat` / `json.dump` on cell dict.
 - **`analysis/R/analysis.Rmd`** — legacy R companion. Numerical agreement desirable but no longer enforced; XGBoost stochastic init differs across xgb 3.x. Stress-test, ARIMA, log-linear MAPE all bit-exact between R and Python.
-- **`analysis/shiny/app.R`** — legacy R Shiny. Superseded by PWA for interactive-app criterion. Kept for reference.
-- **`app/`** — installable PWA (Vite 7 + React 19 + TypeScript + Tailwind + vite-plugin-pwa). 6 mobile-first screens. Import `key_numbers_python.json` at build time — never hand-edit data file.
-- **`exhibits/results/key_numbers_python.json`** — Python-emitted canonical JSON (15 top-level keys: mape_summary, m1/m2/m3a/m3b per country, feature_importance_m3a/m3b, stress_test_2030_aggregate, headline, stirpat, sectoral_residuals_pct, partial_correlations, two_way_fe, vn_vs_ph). **Single source of truth for every number quoted in deliverables and PWA.**
+- **`analysis/shiny/app.R`** — legacy R Shiny. Superseded by PWA. Kept for reference.
+- **`serve/`** — FastAPI backend (see Architecture — demo stack). Models in `serve/models/` are notebook artefacts — don't hand-edit.
+- **`app/`** — installable PWA. Imports `key_numbers_python.json` + `pipeline_meta.json` at build time — never hand-edit data files.
+- **`exhibits/results/key_numbers_python.json`** — Python-emitted canonical JSON (15 top-level keys: mape_summary, m1/m2/m3a/m3b per country, feature_importance_m3a/m3b, stress_test_2030_aggregate, headline, stirpat, sectoral_residuals_pct, partial_correlations, two_way_fe, vn_vs_ph). **Single source of truth for every number quoted in deliverables, PWA, and regression tests.**
 - **`exhibits/results/key_numbers.json`** — older R-emitted JSON. Retained for cross-check only; don't write to it from Python.
 - **`exhibits/figures/fig*.png`** — 13 publication-quality figures, numbered to match report references.
+- **`Makefile`** — root-level demo orchestration. `make` with no args lists targets.
 - **`docs/brief/`** — original organiser problem statement and rules. Read before any structural change to submission.
 - **`docs/app_prd.md`** — PWA product requirements doc.
 
 ## Numerical-consistency invariant
 
-Every number in `deliverables/` trace back to `exhibits/results/key_numbers_python.json` or CSV in `data/`. When analysis change:
+Every number in `deliverables/` traces back to `exhibits/results/key_numbers_python.json` or CSV in `data/`. When analysis changes:
 
 1. Re-execute `analysis/python/analysis.ipynb` (raw WDI must be at `data/WB_WDI_WIDEF.csv`).
-2. Verify `exhibits/results/key_numbers_python.json` regen (timestamp in `_meta.generated`).
-3. Run `cd app && npm run sync-data && npm run build` — confirm PWA pick up new numbers.
-4. Update prose in `deliverables/00_executive_one_pager.md`, `01_report.md` §3/§5/§6, `04_vietnam_vs_philippines_deep_dive.md`, `02_pitch_deck_outline.md` Slide 9, `09_hannover_re_executive_memo.md`, and `PROJECT.md` § Headline Findings.
-5. If Shiny app kept for any reason: re-sync hard-coded constants in `analysis/shiny/app.R`.
+2. Verify `exhibits/results/key_numbers_python.json` regen (timestamp in `_meta.generated`) AND `serve/models/{m3a,m3b,meta}.json` regen (cell 42).
+3. Run `make test` — 19 regression anchors must still pass against new canon.
+4. Run `cd app && npm run sync-data && npm run build` — confirm PWA picks up new numbers.
+5. Update prose in `deliverables/00_executive_one_pager.md`, `01_report.md` §3/§5/§6, `04_vietnam_vs_philippines_deep_dive.md`, `02_pitch_deck_outline.md` Slide 9, `09_hannover_re_executive_memo.md`, and `PROJECT.md` § Headline Findings.
+6. If Shiny app kept for any reason: re-sync hard-coded constants in `analysis/shiny/app.R`.
 
-Headline number (USD 135 m / +11 pp loss-ratio swing) computed from three inputs that must stay aligned across docs: **GWP USD 1.2 bn, base loss ratio 0.62, elasticity 0.7**. Live in notebook's `CONSTANTS` block (cell 2) and propagate through `key_numbers_python.json`.
+Headline number (USD 135 m / +11 pp loss-ratio swing) computed from three inputs that must stay aligned across docs: **GWP USD 1.2 bn, base loss ratio 0.62, elasticity 0.7**. Lives in notebook's `CONSTANTS` block (cell 2) and propagates through `key_numbers_python.json`.
 
 ## Submission constraints (from `docs/brief/`)
 
@@ -113,31 +145,35 @@ Headline number (USD 135 m / +11 pp loss-ratio swing) computed from three inputs
 - Final entry = report PDF + source code + ≤ 3 supporting files + AI usage disclosure (`deliverables/ai_usage.md`).
 - Each file ≤ 100 MB.
 - Source code must include comments; README must explain setup and replication.
-- **Modelling must use R or Python only** (interactive-app deliverable exempt — PWA fine).
+- **Modelling must use R or Python only** (interactive-app deliverable exempt — PWA + FastAPI fine).
 
 ## When extending the analysis
 
-- **Adding indicators.** Update `KEY_INDICATORS` in cell 5. Update `data/README.md` schema. Re-execute notebook (cleaning regen panels in-memory).
-- **Adding scenarios.** Update `scenarios` dict in cell 23 (NGFS perturbation). Re-export JSON. PWA `STRESS_2030` array reflects auto.
-- **Changing portfolio assumptions** (GWP, base LR, elasticity). Edit cell 2 `CONSTANTS` block only — JSON regen with new values; PWA pick up; only deliverable prose need hand-update.
+- **Adding indicators.** Update `KEY_INDICATORS` in cell 5. Update `data/README.md` schema. Re-execute notebook (cleaning regenerates panels in-memory).
+- **Adding scenarios.** Update `scenarios` dict in cell 23 (NGFS perturbation). Re-export JSON. PWA `STRESS_2030` array reflects automatically.
+- **Changing portfolio assumptions** (GWP, base LR, elasticity). Edit cell 2 `CONSTANTS` block only — JSON regen with new values; PWA picks up; only deliverable prose needs hand-update.
+- **Changing model features.** Bump `serve/models/meta.json` `feature_ranges` via cell 42, or `make test` will reject inputs the API used to clamp. PWA pipeline sliders read this file.
 
 ## Notebook authorship rules
 
-- **Never write `.ipynb` via Bash heredoc or `Write` tool with raw JSON strings** — silent empty-file failures occur. Patch via Python script that loads JSON, mutate `nb['cells']`, write back. After patching, **re-execute via `jupyter nbconvert --execute`** and confirm cell outputs populated before declaring success.
+- **Never write `.ipynb` via Bash heredoc or `Write` tool with raw JSON strings** — silent empty-file failures occur. Patch via Python script that loads JSON, mutates `nb['cells']`, writes back. After patching, **re-execute via `jupyter nbconvert --execute`** and confirm cell outputs populated before declaring success.
 - After execution, **save executed `.ipynb` back over source** so committed notebook ships with cell outputs visible (judges may not re-run).
 
 ## Environment constraints (macOS)
 
 - No sudo. Prefer `pip3 install --user` or `brew install` for system tooling.
-- For input simulation use `pynput`, not `keyboard` (require root on macOS).
-- R install (`brew install --cask r`) need sudo for `installer -pkg` — block on user; don't attempt.
-- PyTorch ≥ 2.6 require `weights_only=False` for legacy pickle loads.
+- `brew install libomp` required before `make demo` (XGBoost runtime — see Required setup).
+- For input simulation use `pynput`, not `keyboard` (requires root on macOS).
+- R install (`brew install --cask r`) needs sudo for `installer -pkg` — block on user; don't attempt.
+- PyTorch ≥ 2.6 requires `weights_only=False` for legacy pickle loads.
 
 ## What not to do
 
 - Don't introduce randomness without `RANDOM_STATE = 2026` — seed-2026 reproducibility claim is credibility anchor.
-- Don't let any 2024 info leak into training set. Specifically: keep `interpolate(limit_direction='forward')` — `'both'` back-fills 2024 into 2023, break hold-out hygiene.
+- Don't let any 2024 info leak into training set. Specifically: keep `interpolate(limit_direction='forward')` — `'both'` back-fills 2024 into 2023, breaking hold-out hygiene.
 - Don't delete structural (M3b) XGBoost variant in favour of autoregressive one — dual spec is methodological differentiator.
 - Don't commit `data/WB_WDI_WIDEF.csv` (243 MB).
-- Don't hand-edit `app/src/data/key_numbers_python.json` — build artefact of `npm run sync-data`. Edit upstream in notebook + re-execute.
-- Don't write to `exhibits/results/key_numbers.json` from Python — R-canonical, kept for cross-check. Python write to `key_numbers_python.json`.
+- Don't hand-edit `app/src/data/key_numbers_python.json` or `app/src/data/pipeline_meta.json` — both are build artefacts of `npm run sync-data`. Edit upstream in notebook + re-execute.
+- Don't hand-edit `serve/models/*.json` — notebook cell 42 artefacts.
+- Don't write to `exhibits/results/key_numbers.json` from Python — R-canonical, kept for cross-check. Python writes to `key_numbers_python.json`.
+- Don't loosen CORS in `serve/main.py` for ad-hoc testing — set `CORS_ALLOW_ORIGINS` env var instead.
