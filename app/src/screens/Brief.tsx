@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Card, Eyebrow, Hairline } from '../components/Card';
 import { Ticker } from '../components/Ticker';
 import { HEADLINE, PORTFOLIO, RECOMMENDATIONS } from '../data/keyNumbers';
@@ -12,22 +12,20 @@ const STORAGE_KEY = 'r-ignite.savedCedents.v1';
 
 type SavedCedent = { name: string; country: string; comp: string; loading: number; savedAt: string };
 
-function loadSaved(): SavedCedent[] {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    return raw ? JSON.parse(raw) : [];
-  } catch {
-    return [];
-  }
-}
-
 export function Brief() {
-  const [saved] = useState<SavedCedent[]>(loadSaved);
+  const [saved, setSaved] = useState<SavedCedent[]>([]);
   const [scenario] = useState('Mitigation (proposed)');
   const [picked, setPicked] = useState<Record<string, boolean>>({
     parametric: true, 'esg-screen': true, 'cat-bond': false, 'capital-buffer': true,
   });
   const [copied, setCopied] = useState(false);
+
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (raw) setSaved(JSON.parse(raw));
+    } catch (_) {}
+  }, []);
 
   const featured = saved[0];
   const selected = RECOMMENDATIONS.filter((r) => picked[r.id]);
@@ -39,7 +37,7 @@ export function Brief() {
       await navigator.clipboard.writeText(memoText);
       setCopied(true);
       setTimeout(() => setCopied(false), 2200);
-    } catch { /* clipboard unavailable */ }
+    } catch (_) {}
   };
 
   const printPdf = () => window.print();

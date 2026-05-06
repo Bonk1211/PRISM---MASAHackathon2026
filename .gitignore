@@ -1,3 +1,7 @@
 data/WB_WDI_WIDEF.csv
 serve/.venv/
+serve/.env
 app/.env.local
+app/.env
+.env
+.env.local

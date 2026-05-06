@@ -9,10 +9,11 @@ Expose via ngrok for the live demo:
 """
 from __future__ import annotations
 
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse
 
+from serve.agent import AgentRequest, AgentResponse, handle_agent, rate_limit_ok
 from serve.pipeline import META, PredictRequest, run_pipeline
 
 app = FastAPI(title="R-Ignite Pipeline", version="1.0")
@@ -93,3 +94,11 @@ def meta() -> dict:
 @app.post("/predict")
 def predict(req: PredictRequest) -> dict:
     return run_pipeline(req)
+
+
+@app.post("/agent", response_model=AgentResponse)
+def agent(req: AgentRequest, request: Request) -> AgentResponse:
+    ip = request.client.host if request.client else "unknown"
+    if not rate_limit_ok(ip):
+        raise HTTPException(status_code=429, detail="rate_limited")
+    return handle_agent(req)

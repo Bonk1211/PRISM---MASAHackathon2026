@@ -1,4 +1,5 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+import { AgentPanel } from '../components/AgentPanel';
 import { Card, Eyebrow, Hairline, StatBig } from '../components/Card';
 import { Ticker } from '../components/Ticker';
 import {
@@ -24,23 +25,22 @@ function normalise(mix: Partial<Mix>): Mix {
   return SECTORS.reduce((a, k) => ((a[k] = ((mix[k] ?? 0) / sum) * 100), a), {} as Mix);
 }
 
-function loadSaved(): SavedCedent[] {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    return raw ? JSON.parse(raw) : [];
-  } catch {
-    return [];
-  }
-}
-
 export function Cedent() {
   const [preset, setPreset] = useState<CedentPreset | null>(CEDENT_PRESETS[0]);
   const [country, setCountry] = useState(preset?.country ?? 'Vietnam');
   const [mix, setMix] = useState<Mix>(() => normalise(preset?.mix ?? {}));
   const [ndcPlanFiled, setNdcPlanFiled] = useState(preset?.ndcPlanFiled ?? true);
   const [energyMixPct, setEnergyMixPct] = useState(preset?.energyMixPct ?? 40);
-  const [saved, setSaved] = useState<SavedCedent[]>(loadSaved);
+  const [saved, setSaved] = useState<SavedCedent[]>([]);
   const [savedToast, setSavedToast] = useState<string | null>(null);
+
+  // Load saved profiles on mount
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (raw) setSaved(JSON.parse(raw));
+    } catch (_) { /* localStorage unavailable */ }
+  }, []);
 
   const result = useMemo(() => {
     const ct = COUNTRY_TIER[country].tier;
@@ -67,6 +67,22 @@ export function Cedent() {
     setEnergyMixPct(p.energyMixPct);
   };
 
+  const applyAgentUpdates = (p: Record<string, unknown>) => {
+    if (typeof p.country === 'string' && p.country in COUNTRY_TIER) {
+      setCountry(p.country);
+    }
+    if (p.mix && typeof p.mix === 'object' && !Array.isArray(p.mix)) {
+      const partial = p.mix as Partial<Mix>;
+      setMix((prev) => normalise({ ...prev, ...partial }));
+    }
+    if (typeof p.ndc_plan_filed === 'boolean') {
+      setNdcPlanFiled(p.ndc_plan_filed);
+    }
+    if (typeof p.energy_mix_pct === 'number') {
+      setEnergyMixPct(Math.max(0, Math.min(100, p.energy_mix_pct)));
+    }
+  };
+
   const saveProfile = () => {
     const name = preset?.fullName ?? `${country} cedent`;
     const entry: SavedCedent = {
@@ -85,10 +101,11 @@ export function Cedent() {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
       setSavedToast(`Saved · ${name}`);
       setTimeout(() => setSavedToast(null), 2400);
-    } catch { /* localStorage unavailable */ }
+    } catch (_) { /* ignore */ }
   };
 
   return (
+    <div className="lg:grid lg:grid-cols-[1fr_320px] lg:gap-6 lg:items-start">
     <div className="space-y-5">
       <section className="border border-ink bg-ink px-5 py-6 text-paper lg:px-10 lg:py-10">
         <Eyebrow tone="paper">Productised · 05_cedent_screening_framework.md</Eyebrow>
@@ -300,6 +317,12 @@ export function Cedent() {
           {savedToast}
         </div>
       )}
+    </div>
+    <AgentPanel
+      screen="cedent"
+      currentState={{ country, mix, ndcPlanFiled, energyMixPct }}
+      onUpdate={applyAgentUpdates}
+    />
     </div>
   );
 }
