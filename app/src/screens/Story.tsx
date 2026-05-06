@@ -14,7 +14,7 @@ function ShareLink() {
       await navigator.clipboard.writeText(url);
       setCopied(true);
       setTimeout(() => setCopied(false), 1800);
-    } catch (_) { /* ignore */ }
+    } catch { /* clipboard unavailable */ }
   };
   return (
     <section className="grid grid-cols-[1fr_auto] items-center gap-4 border border-rule bg-paper px-5 py-4">

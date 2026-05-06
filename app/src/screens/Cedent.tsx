@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Card, Eyebrow, Hairline, StatBig } from '../components/Card';
 import { Ticker } from '../components/Ticker';
 import {
@@ -24,22 +24,23 @@ function normalise(mix: Partial<Mix>): Mix {
   return SECTORS.reduce((a, k) => ((a[k] = ((mix[k] ?? 0) / sum) * 100), a), {} as Mix);
 }
 
+function loadSaved(): SavedCedent[] {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    return raw ? JSON.parse(raw) : [];
+  } catch {
+    return [];
+  }
+}
+
 export function Cedent() {
   const [preset, setPreset] = useState<CedentPreset | null>(CEDENT_PRESETS[0]);
   const [country, setCountry] = useState(preset?.country ?? 'Vietnam');
   const [mix, setMix] = useState<Mix>(() => normalise(preset?.mix ?? {}));
   const [ndcPlanFiled, setNdcPlanFiled] = useState(preset?.ndcPlanFiled ?? true);
   const [energyMixPct, setEnergyMixPct] = useState(preset?.energyMixPct ?? 40);
-  const [saved, setSaved] = useState<SavedCedent[]>([]);
+  const [saved, setSaved] = useState<SavedCedent[]>(loadSaved);
   const [savedToast, setSavedToast] = useState<string | null>(null);
-
-  // Load saved profiles on mount
-  useEffect(() => {
-    try {
-      const raw = localStorage.getItem(STORAGE_KEY);
-      if (raw) setSaved(JSON.parse(raw));
-    } catch (_) { /* localStorage unavailable */ }
-  }, []);
 
   const result = useMemo(() => {
     const ct = COUNTRY_TIER[country].tier;
@@ -84,7 +85,7 @@ export function Cedent() {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
       setSavedToast(`Saved · ${name}`);
       setTimeout(() => setSavedToast(null), 2400);
-    } catch (_) { /* ignore */ }
+    } catch { /* localStorage unavailable */ }
   };
 
   return (
