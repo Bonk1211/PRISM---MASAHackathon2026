@@ -3,21 +3,47 @@ import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { TopNav } from './TopNav';
 
 const META: Record<string, { code: string; title: string; eyebrow: string }> = {
-  '/':           { code: '00', title: 'PRISM',      eyebrow: 'Home' },
-  '/pipeline':   { code: '01', title: 'Pipeline',   eyebrow: 'Method' },
-  '/pricing':    { code: '02', title: 'Pricing',    eyebrow: 'Simulator' },
-  '/report':     { code: '03', title: 'Report',     eyebrow: 'Delivery' },
-  '/story':      { code: 'a', title: 'Story',      eyebrow: 'Appendix' },
-  '/stress':     { code: 'b', title: 'Stress',     eyebrow: 'Appendix' },
-  '/cedent':     { code: 'c', title: 'Cedent',     eyebrow: 'Appendix' },
-  '/brief':      { code: 'd', title: 'Brief',      eyebrow: 'Appendix' },
-  '/model':      { code: 'e', title: 'Model',      eyebrow: 'Appendix' },
-  '/diagnostic': { code: 'f', title: 'Diagnostic', eyebrow: 'Appendix' },
-  '/hotspots':   { code: 'g', title: 'Hot Spots',  eyebrow: 'Appendix' },
-  '/sectoral':   { code: 'h', title: 'Sectoral',   eyebrow: 'Appendix' },
-  '/compare':    { code: 'i', title: 'Compare',    eyebrow: 'Appendix' },
-  '/actions':    { code: 'j', title: 'Actions',    eyebrow: 'Appendix' },
-  '/evidence':   { code: 'k', title: 'Evidence',   eyebrow: 'Appendix' },
+  '/':         { code: '00', title: 'PRISM',      eyebrow: 'Home' },
+
+  // Engagement (Phase 1–6) — primary navigation.
+  '/phase1':   { code: '01', title: 'Scoping',    eyebrow: 'Engagement · Phase 1' },
+  '/phase2':   { code: '02', title: 'Risk Taxonomy', eyebrow: 'Engagement · Phase 2' },
+  '/phase3':   { code: '03', title: 'Indicator Mapping', eyebrow: 'Engagement · Phase 3' },
+  '/phase4':   { code: '04', title: 'Data Pipeline', eyebrow: 'Engagement · Phase 4' },
+  '/phase5':   { code: '05', title: 'Modeling',   eyebrow: 'Engagement · Phase 5' },
+  '/phase6':   { code: '06', title: 'Strategy',   eyebrow: 'Engagement · Phase 6' },
+
+  // Appendix — the 14 legacy chart-driven screens.
+  '/appendix/story':      { code: 'a1',  title: 'Story',      eyebrow: 'Appendix' },
+  '/appendix/pipeline':   { code: 'a2',  title: 'Pipeline',   eyebrow: 'Appendix' },
+  '/appendix/pricing':    { code: 'a3',  title: 'Pricing',    eyebrow: 'Appendix' },
+  '/appendix/report':     { code: 'a4',  title: 'Report',     eyebrow: 'Appendix' },
+  '/appendix/stress':     { code: 'a5',  title: 'Stress',     eyebrow: 'Appendix' },
+  '/appendix/cedent':     { code: 'a6',  title: 'Cedent',     eyebrow: 'Appendix' },
+  '/appendix/brief':      { code: 'a7',  title: 'Brief',      eyebrow: 'Appendix' },
+  '/appendix/model':      { code: 'a8',  title: 'Model',      eyebrow: 'Appendix' },
+  '/appendix/diagnostic': { code: 'a9',  title: 'Diagnostic', eyebrow: 'Appendix' },
+  '/appendix/hotspots':   { code: 'a10', title: 'Hot Spots',  eyebrow: 'Appendix' },
+  '/appendix/sectoral':   { code: 'a11', title: 'Sectoral',   eyebrow: 'Appendix' },
+  '/appendix/compare':    { code: 'a12', title: 'Compare',    eyebrow: 'Appendix' },
+  '/appendix/actions':    { code: 'a13', title: 'Actions',    eyebrow: 'Appendix' },
+  '/appendix/evidence':   { code: 'a14', title: 'Evidence',   eyebrow: 'Appendix' },
+
+  // Legacy top-level paths — kept for deep-link survival; same eyebrow as appendix.
+  '/pipeline':   { code: 'a2',  title: 'Pipeline',   eyebrow: 'Appendix' },
+  '/pricing':    { code: 'a3',  title: 'Pricing',    eyebrow: 'Appendix' },
+  '/report':     { code: 'a4',  title: 'Report',     eyebrow: 'Appendix' },
+  '/story':      { code: 'a1',  title: 'Story',      eyebrow: 'Appendix' },
+  '/stress':     { code: 'a5',  title: 'Stress',     eyebrow: 'Appendix' },
+  '/cedent':     { code: 'a6',  title: 'Cedent',     eyebrow: 'Appendix' },
+  '/brief':      { code: 'a7',  title: 'Brief',      eyebrow: 'Appendix' },
+  '/model':      { code: 'a8',  title: 'Model',      eyebrow: 'Appendix' },
+  '/diagnostic': { code: 'a9',  title: 'Diagnostic', eyebrow: 'Appendix' },
+  '/hotspots':   { code: 'a10', title: 'Hot Spots',  eyebrow: 'Appendix' },
+  '/sectoral':   { code: 'a11', title: 'Sectoral',   eyebrow: 'Appendix' },
+  '/compare':    { code: 'a12', title: 'Compare',    eyebrow: 'Appendix' },
+  '/actions':    { code: 'a13', title: 'Actions',    eyebrow: 'Appendix' },
+  '/evidence':   { code: 'a14', title: 'Evidence',   eyebrow: 'Appendix' },
 };
 
 export function Layout() {
@@ -28,7 +54,14 @@ export function Layout() {
   const isLanding = loc.pathname === '/';
   // Wide screens — drop the canvas constraint so the 5-card pipeline row +
   // pricing simulator can use the full viewport.
-  const isFullBleed = isLanding || loc.pathname === '/pipeline' || loc.pathname === '/pricing';
+  const isFullBleed =
+    isLanding ||
+    loc.pathname === '/pipeline' ||
+    loc.pathname === '/pricing' ||
+    loc.pathname === '/appendix/pipeline' ||
+    loc.pathname === '/appendix/pricing' ||
+    loc.pathname === '/phase1' ||
+    loc.pathname === '/phase4';
 
   useEffect(() => {
     document.title = `${meta.title} — PRISM · SEA Climate Risk`;

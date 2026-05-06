@@ -5,25 +5,33 @@ import { useFocusTrap } from '../lib/useFocusTrap';
 
 type Tab = { to: string; code: string; label: string; tag?: string };
 
+// PRIMARY = the 6-phase consulting engagement.
 const PRIMARY: Tab[] = [
   { to: '/',         code: '00', label: 'Home' },
-  { to: '/pipeline', code: '01', label: 'Pipeline' },
-  { to: '/pricing',  code: '02', label: 'Pricing' },
-  { to: '/report',   code: '03', label: 'Report' },
+  { to: '/phase1',   code: '01', label: 'Scoping',    tag: 'Phase 1' },
+  { to: '/phase2',   code: '02', label: 'Taxonomy',   tag: 'Phase 2' },
+  { to: '/phase3',   code: '03', label: 'Indicators', tag: 'Phase 3' },
+  { to: '/phase4',   code: '04', label: 'Pipeline',   tag: 'Phase 4' },
+  { to: '/phase5',   code: '05', label: 'Modeling',   tag: 'Phase 5' },
+  { to: '/phase6',   code: '06', label: 'Strategy',   tag: 'Phase 6' },
 ];
 
+// APPENDIX = the 14 legacy chart-driven screens, now demoted under /appendix/*.
 const APPENDIX: Tab[] = [
-  { to: '/story',      code: 'a', label: 'Story',      tag: 'Front page' },
-  { to: '/stress',     code: 'b', label: 'Stress',     tag: 'NGFS standalone' },
-  { to: '/cedent',     code: 'c', label: 'Cedent',     tag: 'Tier standalone' },
-  { to: '/brief',      code: 'd', label: 'Brief',      tag: 'Memo export' },
-  { to: '/model',      code: 'e', label: 'Model',      tag: 'Forecast' },
-  { to: '/diagnostic', code: 'f', label: 'Diagnostic', tag: 'Sign-flips' },
-  { to: '/hotspots',   code: 'g', label: 'Hot Spots',  tag: 'VN vs PH' },
-  { to: '/sectoral',   code: 'h', label: 'Sectoral',   tag: 'Heatmap' },
-  { to: '/compare',    code: 'i', label: 'Compare',    tag: 'Side-by-side' },
-  { to: '/actions',    code: 'j', label: 'Actions',    tag: 'Recs' },
-  { to: '/evidence',   code: 'k', label: 'Evidence',   tag: 'Trace-back' },
+  { to: '/appendix/story',      code: 'a1',  label: 'Story',      tag: 'Front page' },
+  { to: '/appendix/pipeline',   code: 'a2',  label: 'Pipeline',   tag: 'Live data' },
+  { to: '/appendix/pricing',    code: 'a3',  label: 'Pricing',    tag: 'Simulator' },
+  { to: '/appendix/report',     code: 'a4',  label: 'Report',     tag: 'Delivery' },
+  { to: '/appendix/stress',     code: 'a5',  label: 'Stress',     tag: 'NGFS standalone' },
+  { to: '/appendix/cedent',     code: 'a6',  label: 'Cedent',     tag: 'Tier standalone' },
+  { to: '/appendix/brief',      code: 'a7',  label: 'Brief',      tag: 'Memo export' },
+  { to: '/appendix/model',      code: 'a8',  label: 'Model',      tag: 'Forecast' },
+  { to: '/appendix/diagnostic', code: 'a9',  label: 'Diagnostic', tag: 'Sign-flips' },
+  { to: '/appendix/hotspots',   code: 'a10', label: 'Hot Spots',  tag: 'VN vs PH' },
+  { to: '/appendix/sectoral',   code: 'a11', label: 'Sectoral',   tag: 'Heatmap' },
+  { to: '/appendix/compare',    code: 'a12', label: 'Compare',    tag: 'Side-by-side' },
+  { to: '/appendix/actions',    code: 'a13', label: 'Actions',    tag: 'Recs' },
+  { to: '/appendix/evidence',   code: 'a14', label: 'Evidence',   tag: 'Trace-back' },
 ];
 
 export function TopNav() {
@@ -103,7 +111,7 @@ export function TopNav() {
                 moreOpen ? 'bg-ink/[0.06] text-ink' : 'text-ink hover:bg-ink/[0.04]',
               ].join(' ')}
             >
-              <span className="text-[13px]">More</span>
+              <span className="text-[13px]">Appendix</span>
               <span aria-hidden="true" className="font-mono text-[10px]">▾</span>
             </button>
             {moreOpen && (
@@ -111,7 +119,7 @@ export function TopNav() {
                 role="menu"
                 className="absolute right-0 top-full mt-1 w-[300px] border border-rule bg-paper shadow-plate"
               >
-                <p className="eyebrow border-b border-rule px-3 py-2 text-muted">Appendix</p>
+                <p className="eyebrow border-b border-rule px-3 py-2 text-muted">Appendix · 14 legacy screens</p>
                 <ul className="max-h-[60vh] overflow-y-auto">
                   {APPENDIX.map((t) => (
                     <li key={t.to}>
@@ -120,7 +128,7 @@ export function TopNav() {
                         role="menuitem"
                         className={({ isActive }) =>
                           [
-                            'grid grid-cols-[28px_1fr] items-baseline gap-2 px-3 py-2',
+                            'grid grid-cols-[34px_1fr] items-baseline gap-2 px-3 py-2',
                             isActive ? 'bg-ink text-paper' : 'text-ink hover:bg-ink/[0.04]',
                           ].join(' ')
                         }
@@ -186,7 +194,7 @@ export function TopNav() {
             className="fixed inset-y-0 right-0 z-50 w-[300px] overflow-y-auto border-l border-rule bg-paper px-5 py-7 lg:hidden"
           >
             <div className="flex items-center justify-between">
-              <p className="eyebrow text-muted">Sections</p>
+              <p className="eyebrow text-muted">Engagement</p>
               <button
                 onClick={() => setDrawerOpen(false)}
                 aria-label="Close"
@@ -205,7 +213,7 @@ export function TopNav() {
                       end={t.to === '/'}
                       className={({ isActive }) =>
                         [
-                          'grid grid-cols-[28px_1fr] items-baseline gap-2 px-2 py-2',
+                          'grid grid-cols-[34px_1fr] items-baseline gap-2 px-2 py-2',
                           isActive ? 'bg-ink text-paper' : 'text-ink hover:bg-ink/[0.04]',
                         ].join(' ')
                       }
@@ -220,7 +228,19 @@ export function TopNav() {
                           >
                             {t.code}
                           </span>
-                          <span className="text-[13px]">{t.label}</span>
+                          <span className="flex flex-col leading-tight">
+                            <span className="text-[13px]">{t.label}</span>
+                            {t.tag && (
+                              <span
+                                className={[
+                                  'mt-0.5 text-[10px]',
+                                  isActive ? 'text-paper/60' : 'text-muted',
+                                ].join(' ')}
+                              >
+                                {t.tag}
+                              </span>
+                            )}
+                          </span>
                         </>
                       )}
                     </NavLink>
@@ -229,7 +249,7 @@ export function TopNav() {
               </ul>
 
               <div className="mt-5 border-t border-rule pt-4 opacity-80">
-                <p className="eyebrow text-muted">Appendix</p>
+                <p className="eyebrow text-muted">Appendix · legacy screens</p>
                 <ul className="mt-2 space-y-px">
                   {APPENDIX.map((t) => (
                     <li key={t.to}>
@@ -237,7 +257,7 @@ export function TopNav() {
                         to={t.to}
                         className={({ isActive }) =>
                           [
-                            'grid grid-cols-[28px_1fr] items-baseline gap-2 px-2 py-1.5',
+                            'grid grid-cols-[34px_1fr] items-baseline gap-2 px-2 py-1.5',
                             isActive ? 'bg-ink text-paper' : 'text-ink hover:bg-ink/[0.04]',
                           ].join(' ')
                         }

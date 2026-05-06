@@ -230,7 +230,7 @@ export function Landing() {
             glyph="II"
             eyebrow="Act II · Pricing"
             title="Run a pricing simulation"
-            blurb="Natural-language scenario via Gemini. Slide elasticity, swap NGFS pathway, see the loss ratio move in real time."
+            blurb="Natural-language scenario via ILMU. Slide elasticity, swap NGFS pathway, see the loss ratio move in real time."
             to="/pricing"
             cta="Price a cedent"
           />
@@ -266,8 +266,8 @@ export function Landing() {
             pillLabel={`Live · ${climateTraceAsOf}`}
           />
           <FeedRow
-            name="Google Gemini"
-            endpoint="gemini-2.5-flash"
+            name="YTL ILMU"
+            endpoint="ilmu-nemo-nano"
             description="Natural-language scenario input on the Pricing screen — type a memo, get a stressed loss ratio."
             status="live"
             pillLabel="Live"

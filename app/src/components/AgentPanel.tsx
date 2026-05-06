@@ -90,7 +90,7 @@ export function AgentPanel({
       className="border border-rule bg-paper px-4 py-4 lg:sticky lg:top-20"
     >
       <div className="flex items-baseline justify-between">
-        <Eyebrow>AI input · Gemini Flash</Eyebrow>
+        <Eyebrow>AI input · ILMU Nano</Eyebrow>
         <span className="font-mono text-[9px] uppercase tracking-eyebrow text-muted">
           Beta
         </span>

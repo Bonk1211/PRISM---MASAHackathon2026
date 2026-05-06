@@ -9,6 +9,16 @@ Expose via ngrok for the live demo:
 """
 from __future__ import annotations
 
+from pathlib import Path
+
+# Load serve/.env before any module reads os.environ. uvicorn does not auto-load
+# .env files, so ILMU_API_KEY / SUPABASE_* would be missing without this.
+try:
+    from dotenv import load_dotenv
+    load_dotenv(Path(__file__).resolve().parent / ".env")
+except ImportError:
+    pass
+
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse

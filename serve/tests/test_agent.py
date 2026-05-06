@@ -1,10 +1,11 @@
-"""Agent endpoint tests — Gemini calls fully mocked.
+"""Agent endpoint tests — ILMU calls fully mocked.
 
 Validates: tool-arg validation, clamp/reject paths, stress recompute mirrors
 Stress.tsx, narrator template fallback when LLM raises.
 """
 from __future__ import annotations
 
+import json
 from types import SimpleNamespace
 from unittest.mock import patch
 
@@ -77,47 +78,45 @@ def test_stress_compute_unknown_scenario_returns_empty():
     assert stress_compute(scenario="Apocalypse", elasticity=0.7, gwp_usdm=1200.0) == {}
 
 
-# --- handle_agent integration (Gemini fully mocked) -------------------------
+# --- handle_agent integration (ILMU fully mocked) ---------------------------
 
-def _fake_function_call_response(name: str, args: dict):
-    fc = SimpleNamespace(name=name, args=args)
-    part = SimpleNamespace(function_call=fc)
-    content = SimpleNamespace(parts=[part])
-    cand = SimpleNamespace(content=content)
-    return SimpleNamespace(candidates=[cand], text="")
+def _fake_tool_call_response(name: str, args: dict):
+    """OpenAI-shaped chat completion with one tool call."""
+    fn = SimpleNamespace(name=name, arguments=json.dumps(args))
+    tc = SimpleNamespace(function=fn, id="call-1", type="function")
+    msg = SimpleNamespace(content=None, tool_calls=[tc])
+    choice = SimpleNamespace(message=msg, finish_reason="tool_calls")
+    return SimpleNamespace(choices=[choice])
 
 
 def _fake_text_response(text: str):
-    content = SimpleNamespace(parts=[])
-    cand = SimpleNamespace(content=content)
-    return SimpleNamespace(candidates=[cand], text=text)
+    """OpenAI-shaped chat completion with plain text content (no tool call)."""
+    msg = SimpleNamespace(content=text, tool_calls=None)
+    choice = SimpleNamespace(message=msg, finish_reason="stop")
+    return SimpleNamespace(choices=[choice])
 
 
 class _FakeClient:
     def __init__(self, responses):
         self._responses = list(responses)
-        self.models = self
         self.calls: list[dict] = []
+        self.chat = SimpleNamespace(
+            completions=SimpleNamespace(create=self._create)
+        )
 
-    def generate_content(self, **kwargs):
+    def _create(self, **kwargs):
         self.calls.append(kwargs)
         return self._responses.pop(0)
 
 
 def _patch_get_client(responses):
     fake = _FakeClient(responses)
-    fake_types = SimpleNamespace(
-        Tool=lambda function_declarations: SimpleNamespace(function_declarations=function_declarations),
-        ToolConfig=lambda function_calling_config: function_calling_config,
-        FunctionCallingConfig=lambda mode: SimpleNamespace(mode=mode),
-        GenerateContentConfig=lambda **kw: SimpleNamespace(**kw),
-    )
-    return patch("serve.agent._get_client", return_value=(fake, fake_types)), fake
+    return patch("serve.agent._get_client", return_value=fake), fake
 
 
 def test_handle_agent_stress_happy_path():
     responses = [
-        _fake_function_call_response(
+        _fake_tool_call_response(
             "set_stress_inputs", {"scenario": "Net Zero 2050", "elasticity": 0.9}
         ),
         _fake_text_response('{"narration": "LR resolves to 50.7% on USD 608m."}'),
@@ -139,7 +138,7 @@ def test_handle_agent_stress_happy_path():
 
 def test_handle_agent_template_fallback_when_narrator_raises():
     responses = [
-        _fake_function_call_response(
+        _fake_tool_call_response(
             "set_stress_inputs", {"scenario": "Net Zero 2050", "elasticity": 0.9}
         ),
         _fake_text_response("not valid json"),
@@ -156,7 +155,7 @@ def test_handle_agent_template_fallback_when_narrator_raises():
 
 
 def test_handle_agent_invalid_country_returns_error():
-    responses = [_fake_function_call_response("set_cedent_inputs", {"country": "France"})]
+    responses = [_fake_tool_call_response("set_cedent_inputs", {"country": "France"})]
     p, _ = _patch_get_client(responses)
     with p:
         resp = handle_agent(AgentRequest(
@@ -169,7 +168,10 @@ def test_handle_agent_invalid_country_returns_error():
 
 
 def test_handle_agent_no_tool_call_returns_parse_error():
-    responses = [SimpleNamespace(candidates=[], text="")]
+    # Empty choices → _extract raises → handle_agent returns parse_failed.
+    responses = [SimpleNamespace(choices=[
+        SimpleNamespace(message=SimpleNamespace(content="hi", tool_calls=None), finish_reason="stop")
+    ])]
     p, _ = _patch_get_client(responses)
     with p:
         resp = handle_agent(AgentRequest(

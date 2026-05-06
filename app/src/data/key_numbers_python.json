@@ -2,7 +2,7 @@
   "_meta": {
     "pipeline": "python",
     "seed": 2026,
-    "generated": "2026-05-05T16:25:26.834428+00:00",
+    "generated": "2026-05-06T12:48:30.442510+00:00",
     "pandas": "2.3.3",
     "xgboost": "3.2.0",
     "numpy": "2.3.5"
@@ -520,5 +520,186 @@
       "EM-DAT deaths 2018-23": 2008.0,
       "ND-GAIN 2023": 45.61
     }
+  },
+  "phase_2_taxonomy": {
+    "physical": {
+      "acute": [
+        "tropical_cyclone",
+        "flood",
+        "heatwave"
+      ],
+      "chronic": [
+        "sea_level_rise",
+        "precipitation_shift",
+        "temperature_trend"
+      ],
+      "covered": true,
+      "severity": "H"
+    },
+    "transition": {
+      "drivers": [
+        "carbon_pricing",
+        "stranded_assets",
+        "tech_substitution"
+      ],
+      "covered": true,
+      "severity": "M"
+    },
+    "liability": {
+      "drivers": [
+        "climate_litigation_d_and_o"
+      ],
+      "covered": false,
+      "severity": "L"
+    }
+  },
+  "phase_3_indicator_map": {
+    "WB_WDI_EN_GHG_ALL_MT_CE_AR5": {
+      "label": "GHG_total_MtCO2e",
+      "risk_axis": "transition",
+      "rationale": "Aggregate emissions footprint - direct exposure to carbon pricing and reputational risk.",
+      "correlation_partial": null,
+      "correlation_pairwise": null
+    },
+    "WB_WDI_EN_GHG_ALL_PC_CE_AR5": {
+      "label": "GHG_per_capita_tCO2e",
+      "risk_axis": "transition",
+      "rationale": "Per-capita emissions - intensity benchmark for cedent decarbonisation pace.",
+      "correlation_partial": null,
+      "correlation_pairwise": null
+    },
+    "WB_WDI_EN_GHG_CO2_PC_CE_AR5": {
+      "label": "CO2_per_capita_tCO2e",
+      "risk_axis": "transition",
+      "rationale": "CO2 share of per-capita emissions - tracks energy-system transition.",
+      "correlation_partial": null,
+      "correlation_pairwise": null
+    },
+    "WB_WDI_EN_GHG_CO2_RT_GDP_KD": {
+      "label": "CO2_intensity_GDP",
+      "risk_axis": "transition",
+      "rationale": "Emissions per dollar of GDP - lead indicator for stranded-asset exposure.",
+      "correlation_partial": 0.744,
+      "correlation_pairwise": 0.444
+    },
+    "WB_WDI_EG_FEC_RNEW_ZS": {
+      "label": "renewable_energy_pct",
+      "risk_axis": "transition",
+      "rationale": "Renewable share of final energy consumption - decarbonisation progress.",
+      "correlation_partial": -0.402,
+      "correlation_pairwise": -0.077
+    },
+    "WB_WDI_EG_ELC_RNEW_ZS": {
+      "label": "renewable_elec_pct",
+      "risk_axis": "transition",
+      "rationale": "Renewable share of electricity - power-sector transition signal.",
+      "correlation_partial": null,
+      "correlation_pairwise": null
+    },
+    "WB_WDI_EG_USE_PCAP_KG_OE": {
+      "label": "energy_use_pc",
+      "risk_axis": "transition",
+      "rationale": "Per-capita energy use - structural intensity (sign flips after partialling scale).",
+      "correlation_partial": 0.456,
+      "correlation_pairwise": -0.484
+    },
+    "WB_WDI_AG_LND_FRST_ZS": {
+      "label": "forest_area_pct",
+      "risk_axis": "physical_vulnerability",
+      "rationale": "Forest cover - buffer against floods/heat; sign flips after partialling out scale.",
+      "correlation_partial": 0.564,
+      "correlation_pairwise": -0.466
+    },
+    "WB_WDI_AG_LND_AGRI_ZS": {
+      "label": "agri_land_pct",
+      "risk_axis": "physical_vulnerability",
+      "rationale": "Agricultural land share - drought / heat-stress exposure.",
+      "correlation_partial": 0.051,
+      "correlation_pairwise": 0.668
+    },
+    "WB_WDI_NY_GDP_MKTP_KD": {
+      "label": "GDP_constant_2015USD",
+      "risk_axis": "adaptive_capacity",
+      "rationale": "Real GDP - fiscal headroom for adaptation investment.",
+      "correlation_partial": null,
+      "correlation_pairwise": null
+    },
+    "WB_WDI_NY_GDP_PCAP_KD": {
+      "label": "GDP_per_capita_2015USD",
+      "risk_axis": "adaptive_capacity",
+      "rationale": "GDP per capita - household resilience proxy.",
+      "correlation_partial": null,
+      "correlation_pairwise": null
+    },
+    "WB_WDI_SP_POP_TOTL": {
+      "label": "population",
+      "risk_axis": "exposure_base",
+      "rationale": "Total population - denominator for life/health insurance exposure.",
+      "correlation_partial": null,
+      "correlation_pairwise": null
+    },
+    "WB_WDI_SP_URB_TOTL_IN_ZS": {
+      "label": "urban_pop_pct",
+      "risk_axis": "adaptive_capacity",
+      "rationale": "Urbanisation - dual-edge: concentrates exposure but raises adaptive infra capacity.",
+      "correlation_partial": -0.175,
+      "correlation_pairwise": -0.109
+    },
+    "WB_WDI_NV_IND_TOTL_ZS": {
+      "label": "industry_pct_GDP",
+      "risk_axis": "transition",
+      "rationale": "Industry share of GDP - exposure to hard-to-abate sectors (sign flips after partialling).",
+      "correlation_partial": 0.44,
+      "correlation_pairwise": -0.148
+    },
+    "WB_WDI_NV_AGR_TOTL_ZS": {
+      "label": "agriculture_pct_GDP",
+      "risk_axis": "physical_vulnerability",
+      "rationale": "Agriculture share of GDP - economic sensitivity to physical climate shocks.",
+      "correlation_partial": null,
+      "correlation_pairwise": null
+    },
+    "WB_WDI_ER_H2O_FWTL_ZS": {
+      "label": "freshwater_withdrawal_pct",
+      "risk_axis": "physical_vulnerability",
+      "rationale": "Freshwater withdrawal vs internal resources - water-stress proxy.",
+      "correlation_partial": null,
+      "correlation_pairwise": null
+    }
+  },
+  "phase_4_panel_quality": {
+    "n_economies": 10,
+    "n_years": 35,
+    "year_min": 1990,
+    "year_max": 2024,
+    "total_cells": 8750,
+    "missing_pct_by_indicator": {
+      "CO2_intensity_GDP": 0.0,
+      "CO2_per_capita_tCO2e": 0.0,
+      "GDP_constant_2015USD": 0.0,
+      "GDP_per_capita_2015USD": 0.0,
+      "GHG_per_capita_tCO2e": 0.0,
+      "GHG_total_MtCO2e": 0.0,
+      "agri_land_pct": 0.0,
+      "agriculture_pct_GDP": 2.0,
+      "energy_use_pc": 2.57,
+      "forest_area_pct": 0.0,
+      "freshwater_withdrawal_pct": 14.86,
+      "industry_pct_GDP": 2.0,
+      "population": 0.0,
+      "renewable_elec_pct": 3.71,
+      "renewable_energy_pct": 0.57,
+      "urban_pop_pct": 0.0,
+      "ndgain_index": 17.14,
+      "ndgain_vulnerability": 17.14,
+      "ndgain_readiness": 17.14,
+      "disaster_events": 47.71,
+      "disaster_affected": 47.71,
+      "disaster_deaths": 47.71,
+      "disaster_damage_usd_2024": 47.71
+    },
+    "interp_method": "forward_only",
+    "interp_max_run": 3,
+    "row_complete_pct": 46.57
   }
 }

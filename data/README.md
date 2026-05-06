@@ -91,3 +91,34 @@ Both pipelines produce identical CSVs (to the same byte length); R writes column
 ---
 
 *Cross-references: `analysis/R/analysis.Rmd` data-loading section, `analysis/python/analysis.ipynb` cell 2, `docs/code_documentation.md` §4 (`data_loader.py`), `01_report.md` §2.1 (data section).*
+
+---
+
+## Phase exports — `exhibits/results/key_numbers_python.json`
+
+The notebook emits three top-level keys consumed by the PWA's six-phase narrative (`/phase2`–`/phase4`). Sourced from cells 38–40 of `analysis/python/analysis.ipynb`; no new compute, just relabelling of existing in-memory objects.
+
+### `phase_2_taxonomy` — Risk taxonomy (Phase 2)
+
+Static map of climate-risk categories with engagement-coverage flag and qualitative severity. Three buckets per the TCFD / ISSB IFRS S2 framework: `physical` (`acute` + `chronic` subtypes), `transition` (`drivers` list), and `liability` (`drivers` list). Each bucket carries `covered: bool` and `severity ∈ {"H","M","L"}`. Drives the Phase 2 three-bucket grid in the PWA. Source of truth for which risks the engagement scopes in.
+
+### `phase_3_indicator_map` — Indicator → risk-axis map (Phase 3)
+
+Dict keyed by full WDI code (e.g. `WB_WDI_EN_GHG_ALL_MT_CE_AR5`). Each entry: `{label, risk_axis, rationale, correlation_partial, correlation_pairwise}`. `risk_axis` ∈ `{"transition", "physical_vulnerability", "adaptive_capacity", "exposure_base"}`. The two correlation columns are pulled directly from `corr_df` (cell 12) — preserves the CLAUDE.md-mandated **pairwise vs partial side-by-side** invariant (three indicators flip sign once log-GDP and log-population are partialled out: `forest_area_pct`, `industry_pct_GDP`, `energy_use_pc`). Sectoral GHG components (`sec_*`) are excluded from this map. 16 entries.
+
+### `phase_4_panel_quality` — Panel data-quality summary (Phase 4)
+
+Coverage / missingness / interpolation hygiene of the SEA modelling frame (`sea_panel`):
+
+| Field | Meaning |
+|---|---|
+| `n_economies` | distinct countries (10 for SEA) |
+| `n_years` | distinct years |
+| `year_min` / `year_max` | panel year range (1990 / 2024) |
+| `total_cells` | `sea_panel.size` (rows × cols) |
+| `missing_pct_by_indicator` | dict `{column → pct}` of pre-interp NaN share, per numeric indicator |
+| `interp_method` | `"forward_only"` — guards 2024 hold-out hygiene per CLAUDE.md (never `'both'`) |
+| `interp_max_run` | `3` — max consecutive years filled by linear interpolation |
+| `row_complete_pct` | share of rows with no NaN across all indicator columns, post-interp |
+
+Drives the Phase 4 panel-quality strip; the headline numbers `n_economies=10, year_max=2024` are the regression anchors A5 verifies.

@@ -1,4 +1,4 @@
-"""PRISM agent endpoint — Gemini Flash NL parser + result narrator.
+"""PRISM agent endpoint — ILMU (YTL AI Labs) NL parser + result narrator.
 
 User types free-form prose on the Cedent or Stress screen. Two-turn pattern:
   1. Forced tool-call extraction (T=0) → set_cedent_inputs / set_stress_inputs.
@@ -10,6 +10,9 @@ exact formula in app/src/screens/Stress.tsx (reads STRESS_2030 aggregate from
 key_numbers_python.json) so narration matches the on-screen StatBig values.
 For Cedent, no compute step — the React tier helpers in app/src/data/cedent.ts
 re-derive the composite once the form state changes.
+
+ILMU is OpenAI-compatible. Base URL: https://api.ilmu.ai/v1.
+Cheapest model with full tool-calling + JSON mode = ilmu-nemo-nano.
 """
 from __future__ import annotations
 
@@ -24,7 +27,8 @@ from pydantic import BaseModel, Field
 
 from serve.pipeline import META
 
-GEMINI_MODEL = "gemini-2.5-flash"
+ILMU_MODEL = "ilmu-nemo-nano"
+ILMU_BASE_URL = "https://api.ilmu.ai/v1"
 EXTRACTION_MAX_TOKENS = 400
 NARRATOR_MAX_TOKENS = 300
 RATE_LIMIT_PER_MIN = 30
@@ -45,30 +49,28 @@ except FileNotFoundError:
 _STRESS_AGG = {s["scenario"]: s for s in _KN.get("stress_test_2030_aggregate", [])}
 _HEADLINE = _KN.get("headline", {})
 
-# Lazy SDK import — server stays bootable when google-genai not yet installed.
-_GENAI_CLIENT: Any = None
-_GENAI_TYPES: Any = None
+# Lazy SDK import — server stays bootable when openai not yet installed.
+_OPENAI_CLIENT: Any = None
 
 
-def _get_client() -> tuple[Any, Any]:
-    global _GENAI_CLIENT, _GENAI_TYPES
-    if _GENAI_CLIENT is None:
-        from google import genai
-        from google.genai import types
-        api_key = os.environ.get("GEMINI_API_KEY")
+def _get_client() -> Any:
+    global _OPENAI_CLIENT
+    if _OPENAI_CLIENT is None:
+        from openai import OpenAI
+        api_key = os.environ.get("ILMU_API_KEY")
         if not api_key:
-            raise RuntimeError("GEMINI_API_KEY missing — set in serve/.env")
-        _GENAI_CLIENT = genai.Client(api_key=api_key)
-        _GENAI_TYPES = types
-    return _GENAI_CLIENT, _GENAI_TYPES
+            raise RuntimeError("ILMU_API_KEY missing — set in serve/.env")
+        _OPENAI_CLIENT = OpenAI(api_key=api_key, base_url=ILMU_BASE_URL)
+    return _OPENAI_CLIENT
 
 
 # --- request / response models --------------------------------------------
 
 class AgentRequest(BaseModel):
     message: str = Field(..., min_length=1, max_length=2000)
-    screen: Literal["cedent", "stress"]
+    screen: Literal["cedent", "stress", "scoping"]
     current_state: dict[str, Any] = Field(default_factory=dict, max_length=20)
+    session_id: str | None = Field(default=None, max_length=64)
 
 
 class AgentResponse(BaseModel):
@@ -77,64 +79,74 @@ class AgentResponse(BaseModel):
     model_output: dict[str, Any] | None = None
     tool_called: str | None = None
     error: str | None = None
+    # Phase 1 only — partial or complete five-axis scoping profile.
+    scoping_profile: dict[str, Any] | None = None
+    complete: bool = False
+    session_id: str | None = None
 
 
-# --- tool schemas (dict-style; google-genai accepts either Schema or dict) ---
+# --- tool schemas (OpenAI function-calling format) ------------------------
 
-SET_CEDENT = {
-    "name": "set_cedent_inputs",
-    "description": (
-        "Update Cedent screen sliders for one Southeast-Asian reinsurance cedent. "
-        "Provide ONLY the fields the user explicitly mentioned; omitted fields stay unchanged."
-    ),
-    "parameters": {
-        "type": "OBJECT",
-        "properties": {
-            "country": {
-                "type": "STRING",
-                "description": "Cedent country of domicile.",
-                "enum": list(_ALLOWED_COUNTRIES),
-            },
-            "mix": {
-                "type": "OBJECT",
-                "description": (
-                    "Sector → percentage of GWP book (0–100). Keys MUST be from the canonical "
-                    "sector list. Partial updates supported — frontend re-normalises."
-                ),
-                "properties": {s: {"type": "NUMBER"} for s in _SECTORS},
-            },
-            "ndc_plan_filed": {
-                "type": "BOOLEAN",
-                "description": "True if cedent has filed a credible NDC-aligned transition plan.",
-            },
-            "energy_mix_pct": {
-                "type": "NUMBER",
-                "description": "Coal % + 0.5 × Gas % override (0–100). ≥50 forces sector tier ≥ C.",
+SET_CEDENT_TOOL = {
+    "type": "function",
+    "function": {
+        "name": "set_cedent_inputs",
+        "description": (
+            "Update Cedent screen sliders for one Southeast-Asian reinsurance cedent. "
+            "Provide ONLY the fields the user explicitly mentioned; omitted fields stay unchanged."
+        ),
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "country": {
+                    "type": "string",
+                    "description": "Cedent country of domicile.",
+                    "enum": list(_ALLOWED_COUNTRIES),
+                },
+                "mix": {
+                    "type": "object",
+                    "description": (
+                        "Sector → percentage of GWP book (0–100). Keys MUST be from the canonical "
+                        "sector list. Partial updates supported — frontend re-normalises."
+                    ),
+                    "properties": {s: {"type": "number"} for s in _SECTORS},
+                },
+                "ndc_plan_filed": {
+                    "type": "boolean",
+                    "description": "True if cedent has filed a credible NDC-aligned transition plan.",
+                },
+                "energy_mix_pct": {
+                    "type": "number",
+                    "description": "Coal % + 0.5 × Gas % override (0–100). ≥50 forces sector tier ≥ C.",
+                },
             },
         },
     },
 }
 
-SET_STRESS = {
-    "name": "set_stress_inputs",
-    "description": (
-        "Update Stress screen NGFS scenario, loss-ratio elasticity, or notional GWP."
-    ),
-    "parameters": {
-        "type": "OBJECT",
-        "properties": {
-            "scenario": {
-                "type": "STRING",
-                "description": "NGFS Phase V scenario.",
-                "enum": list(_ALLOWED_SCENARIOS),
-            },
-            "elasticity": {
-                "type": "NUMBER",
-                "description": "Loss-ratio elasticity 0.30–1.20 (Sigma 1/2024 base = 0.70).",
-            },
-            "gwp_usdm": {
-                "type": "NUMBER",
-                "description": "Gross written premium in USD millions (default 1200).",
+SET_STRESS_TOOL = {
+    "type": "function",
+    "function": {
+        "name": "set_stress_inputs",
+        "description": (
+            "Update Stress screen NGFS scenario, loss-ratio elasticity, or notional GWP."
+        ),
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "scenario": {
+                    "type": "string",
+                    "description": "NGFS Phase V scenario.",
+                    "enum": list(_ALLOWED_SCENARIOS),
+                },
+                "elasticity": {
+                    "type": "number",
+                    "description": "Loss-ratio elasticity 0.30–1.20 (Sigma 1/2024 base = 0.70).",
+                },
+                "gwp_usdm": {
+                    "type": "number",
+                    "description": "Gross written premium in USD millions (default 1200).",
+                },
             },
         },
     },
@@ -208,14 +220,16 @@ def stress_compute(scenario: str, elasticity: float, gwp_usdm: float) -> dict[st
 
 
 # --- rate limit (per-IP, in-memory) ---------------------------------------
+SCOPING_RATE_LIMIT_PER_MIN = 60
 
 _BUCKET: dict[str, list[float]] = defaultdict(list)
 
 
-def rate_limit_ok(ip: str) -> bool:
+def rate_limit_ok(ip: str, screen: str | None = None) -> bool:
+    cap = SCOPING_RATE_LIMIT_PER_MIN if screen == "scoping" else RATE_LIMIT_PER_MIN
     now = time.monotonic()
     hits = [t for t in _BUCKET[ip] if now - t < 60.0]
-    if len(hits) >= RATE_LIMIT_PER_MIN:
+    if len(hits) >= cap:
         _BUCKET[ip] = hits
         return False
     hits.append(now)
@@ -264,47 +278,52 @@ def _narration_prompt(screen: str, message: str, updates: dict, model_output: di
 # --- handler --------------------------------------------------------------
 
 def _extract(req: AgentRequest) -> tuple[str, dict[str, Any]]:
-    client, types = _get_client()
-    schema = SET_CEDENT if req.screen == "cedent" else SET_STRESS
-    response = client.models.generate_content(
-        model=GEMINI_MODEL,
-        contents=req.message,
-        config=types.GenerateContentConfig(
-            system_instruction=_extraction_prompt(req.screen, req.current_state),
-            tools=[types.Tool(function_declarations=[schema])],
-            tool_config=types.ToolConfig(
-                function_calling_config=types.FunctionCallingConfig(mode="ANY"),
-            ),
-            temperature=0.0,
-            max_output_tokens=EXTRACTION_MAX_TOKENS,
-        ),
+    client = _get_client()
+    tool = SET_CEDENT_TOOL if req.screen == "cedent" else SET_STRESS_TOOL
+    response = client.chat.completions.create(
+        model=ILMU_MODEL,
+        messages=[
+            {"role": "system", "content": _extraction_prompt(req.screen, req.current_state)},
+            {"role": "user", "content": req.message},
+        ],
+        tools=[tool],
+        # ILMU nemo-nano does not honor tool_choice="required" reliably — it
+        # thrashes to max_tokens with no tool_calls. Use "auto" + a system
+        # prompt that hard-forces the call.
+        tool_choice="auto",
+        temperature=0.0,
+        max_tokens=EXTRACTION_MAX_TOKENS,
     )
-    cand = response.candidates[0] if getattr(response, "candidates", None) else None
-    parts = (cand.content.parts if cand and cand.content else []) or []
-    for p in parts:
-        fc = getattr(p, "function_call", None)
-        if fc and getattr(fc, "name", None):
-            args = dict(fc.args) if fc.args else {}
-            return fc.name, args
+    msg = response.choices[0].message
+    tool_calls = getattr(msg, "tool_calls", None) or []
+    for tc in tool_calls:
+        fn = getattr(tc, "function", None)
+        if fn and getattr(fn, "name", None):
+            args_raw = getattr(fn, "arguments", "") or "{}"
+            try:
+                args = json.loads(args_raw) if isinstance(args_raw, str) else dict(args_raw)
+            except (TypeError, json.JSONDecodeError):
+                args = {}
+            return fn.name, args
     raise ValueError("no function call returned")
 
 
 def _narrate_llm(prompt: str) -> str:
-    client, types = _get_client()
-    response = client.models.generate_content(
-        model=GEMINI_MODEL,
-        contents=prompt,
-        config=types.GenerateContentConfig(
-            system_instruction=(
+    client = _get_client()
+    response = client.chat.completions.create(
+        model=ILMU_MODEL,
+        messages=[
+            {"role": "system", "content": (
                 "You write tight underwriter prose. Numbers MUST come from the payload. "
                 "Output JSON {\"narration\": str}."
-            ),
-            response_mime_type="application/json",
-            temperature=0.2,
-            max_output_tokens=NARRATOR_MAX_TOKENS,
-        ),
+            )},
+            {"role": "user", "content": prompt},
+        ],
+        response_format={"type": "json_object"},
+        temperature=0.2,
+        max_tokens=NARRATOR_MAX_TOKENS,
     )
-    text = (getattr(response, "text", "") or "").strip()
+    text = (response.choices[0].message.content or "").strip()
     parsed = json.loads(text)
     return str(parsed.get("narration") or "").strip()
 
@@ -325,7 +344,41 @@ def _narrate_template(updates: dict, model_output: dict | None, screen: str) -> 
     return "Updates applied."
 
 
+def _handle_scoping(req: AgentRequest) -> AgentResponse:
+    """Phase 1 dispatch — keeps the cedent/stress two-stage path untouched."""
+    from serve.scoping import handle_scoping
+    from serve.supabase_client import get_client as get_supabase
+
+    try:
+        client = _get_client()
+    except Exception as e:
+        return AgentResponse(
+            error=f"llm_init_failed: {str(e)[:160]}",
+            session_id=req.session_id,
+        )
+    supabase = get_supabase()
+    try:
+        result = handle_scoping(req, supabase, client)
+    except Exception as e:
+        msg = str(e)[:200] or type(e).__name__
+        return AgentResponse(
+            error=f"scoping_failed: {msg}",
+            session_id=req.session_id,
+        )
+    return AgentResponse(
+        updates=result.get("updates") or {},
+        narration=result.get("narration") or "",
+        tool_called=result.get("tool_called"),
+        error=result.get("error"),
+        scoping_profile=result.get("scoping_profile"),
+        complete=bool(result.get("complete", False)),
+        session_id=result.get("session_id"),
+    )
+
+
 def handle_agent(req: AgentRequest) -> AgentResponse:
+    if req.screen == "scoping":
+        return _handle_scoping(req)
     try:
         tool_name, raw_args = _extract(req)
     except Exception as e:

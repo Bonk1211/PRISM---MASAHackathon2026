@@ -171,6 +171,63 @@ export type Recommendation = {
   kpi: string;
 };
 
+// === Phase-shell exports — sourced from key_numbers_python.json ===
+// (Inserted by notebook cells 37b/37c/37d; consumed by Phase 2-4 screens.)
+
+export type RiskBucketSeverity = 'H' | 'M' | 'L';
+
+export type PhysicalBucket = {
+  acute: string[];
+  chronic: string[];
+  covered: boolean;
+  severity: RiskBucketSeverity;
+};
+export type DriverBucket = {
+  drivers: string[];
+  covered: boolean;
+  severity: RiskBucketSeverity;
+};
+export type RiskTaxonomy = {
+  physical: PhysicalBucket;
+  transition: DriverBucket;
+  liability: DriverBucket;
+};
+
+export const PHASE_2_TAXONOMY = canon.phase_2_taxonomy as RiskTaxonomy;
+
+export type RiskAxis =
+  | 'transition'
+  | 'physical_vulnerability'
+  | 'adaptive_capacity'
+  | 'exposure_base';
+
+export type IndicatorMapEntry = {
+  label: string;
+  risk_axis: RiskAxis;
+  rationale: string;
+  correlation_partial: number | null;
+  correlation_pairwise: number | null;
+};
+
+export const PHASE_3_INDICATOR_MAP = canon.phase_3_indicator_map as Record<
+  string,
+  IndicatorMapEntry
+>;
+
+export type PanelQuality = {
+  n_economies: number;
+  n_years: number;
+  year_min: number;
+  year_max: number;
+  total_cells: number;
+  missing_pct_by_indicator: Record<string, number>;
+  interp_method: string;
+  interp_max_run: number;
+  row_complete_pct: number;
+};
+
+export const PHASE_4_PANEL_QUALITY = canon.phase_4_panel_quality as PanelQuality;
+
 export const RECOMMENDATIONS: Recommendation[] = [
   {
     id: 'parametric',

@@ -139,3 +139,79 @@ def test_override_clamped_to_feature_range():
     applied = trace["stage_1_inputs"]["applied_overrides"]
     assert "renewable_energy_pct" in applied
     assert applied["renewable_energy_pct"] < 100.0  # bounded by 95th percentile
+
+
+# === Headline-constants anchors =========================================
+# GWP USD 1.2 bn, base LR 0.62, elasticity 0.7 — the three inputs the
+# USD 135 m / +11 pp swing is computed from (cell 2 CONSTANTS).
+
+def test_canon_headline_gwp_usdm():
+    assert CANON["headline"]["gwp_usdm"] == 1200
+
+
+def test_canon_headline_base_lr():
+    assert CANON["headline"]["base_lr"] == 0.62
+
+
+def test_canon_headline_elasticity():
+    assert CANON["headline"]["elasticity"] == 0.7
+
+
+# === Stress-test scenario anchors =======================================
+
+def _stress_row(scenario: str) -> dict:
+    rows = [r for r in CANON["stress_test_2030_aggregate"] if r["scenario"] == scenario]
+    assert rows, f"scenario '{scenario}' missing from stress_test_2030_aggregate"
+    return rows[0]
+
+
+def test_canon_hot_house_loss_ratio():
+    """Hot House (Current Policies) baseline LR must match base_lr (0.62)."""
+    row = _stress_row("Current Policies")
+    assert abs(row["lr"] - 0.62) < 1e-3
+
+
+def test_canon_net_zero_loss_ratio():
+    """Net Zero 2050 LR must be ~0.507 (Hot House -> Net Zero swing of ~11 pp)."""
+    row = _stress_row("Net Zero 2050")
+    assert abs(row["lr"] - 0.507) < 1e-3
+
+
+# === MAPE anchor ========================================================
+
+def test_canon_mape_m3a_in_band():
+    """M3a MAPE must stay in the 2.4-3.0 % band (XGBoost stochastic-init drift)."""
+    mape_m3a = CANON["mape_summary"]["XGBoost_M3a"]
+    # Stored in percent units (e.g. 2.43); accept either percent or fractional form.
+    if mape_m3a < 1.0:
+        assert 0.024 <= mape_m3a <= 0.030, f"M3a MAPE drift: {mape_m3a}"
+    else:
+        assert 2.4 <= mape_m3a <= 3.0, f"M3a MAPE drift: {mape_m3a}"
+
+
+# === Phase-shell key presence (added by notebook cells 37b/c/d) =========
+
+def test_canon_phase_2_taxonomy_present():
+    assert "phase_2_taxonomy" in CANON
+    tax = CANON["phase_2_taxonomy"]
+    assert {"physical", "transition", "liability"}.issubset(tax.keys())
+
+
+def test_canon_phase_3_indicator_map_present():
+    assert "phase_3_indicator_map" in CANON
+    assert isinstance(CANON["phase_3_indicator_map"], dict)
+    assert len(CANON["phase_3_indicator_map"]) > 0
+
+
+def test_canon_phase_4_panel_quality_present():
+    assert "phase_4_panel_quality" in CANON
+
+
+def test_canon_phase_4_n_economies():
+    """SEA panel must have exactly 10 economies."""
+    assert CANON["phase_4_panel_quality"]["n_economies"] == 10
+
+
+def test_canon_phase_4_year_max():
+    """Hold-out year is 2024 — pin year_max so back-fill regressions are caught."""
+    assert CANON["phase_4_panel_quality"]["year_max"] == 2024
