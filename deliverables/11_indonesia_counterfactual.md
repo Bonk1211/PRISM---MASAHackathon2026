@@ -1,4 +1,4 @@
-# Indonesia — Counterfactual Application of the R-Ignite Framework
+# Indonesia — Counterfactual Application of the PRISM Framework
 
 *Counterfactual to `04_vietnam_vs_philippines_deep_dive.md`. Proves the cedent-screening + loss-ratio methodology generalises beyond a two-country case study. Every number traces to a source file cited inline. Portfolio assumptions (GWP USD 1.2 bn, base LR 0.62, elasticity 0.7) = `keyNumbers.ts:PORTFOLIO`.*
 

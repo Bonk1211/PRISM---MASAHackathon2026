@@ -1,5 +1,5 @@
 ---
-title: "MASA Hackathon 2026: R-Ignite — Climate Risk Assessment for a Multinational Reinsurer"
+title: "MASA Hackathon 2026 — PRISM: Portfolio Risk via Identified Scenario Modeling"
 subtitle: "Strategic Analysis for Hannover Re using World Bank WDI Indicators"
 author: "Team [TEAM_NAME] | [University 1, University 2]"
 date: "`r format(Sys.Date(), '%B %d, %Y')`"

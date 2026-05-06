@@ -1,6 +1,6 @@
-# Product Requirements Document — R-Ignite SEA Climate Risk PWA
+# Product Requirements Document — PRISM SEA Climate Risk PWA
 
-**Version** 2.0 (Champion) · **Date** 2026-05-05 · **Owner** R-Ignite team · **Status** Implementation spec for Grand Final
+**Version** 2.0 (Champion) · **Date** 2026-05-05 · **Owner** PRISM team · **Status** Implementation spec for Grand Final
 
 > **What changed from v1.0.** Five new screens (Diagnostic, Sectoral, Compare, Brief, Evidence). One scripted "wow moment" choreographed for the live demo. QR-code install affordance so judges leave the room with the app on their phone. Trace-back layer that shows the source of every number. Explicit mapping of every screen to the MASA judging rubric so we capture the full 10% bonus weighting plus reinforce the four core 20% pillars.
 
@@ -214,13 +214,13 @@ Champion teams choreograph their demo to the second. This is the script for slid
 
 ## 8. The QR-install path (judge keeps the app)
 
-The Story screen renders a QR code that resolves to the production hosted URL (e.g., `https://r-ignite.vercel.app`). On any judge's phone:
+The Story screen renders a QR code that resolves to the production hosted URL (e.g., `https://prism-sea.vercel.app`). On any judge's phone:
 
 1. Judge points camera at QR code → URL detected
 2. Tap "Open in Safari" / "Open in Chrome"
 3. PWA loads (offline-capable already after first load due to service worker)
 4. iOS: Safari shows the share-sheet hint; Android: Chrome shows install banner
-5. Judge taps "Add to Home Screen" → R-Ignite icon appears
+5. Judge taps "Add to Home Screen" → PRISM icon appears
 6. Total time: 5–8 seconds
 
 **Engineering**: the QR code is generated client-side using `qrcode.react` (~3 KB gzip) so we don't depend on a third-party service that might be blocked at the venue.

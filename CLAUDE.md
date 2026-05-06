@@ -4,7 +4,7 @@ This file guide Claude Code (claude.ai/code) when work in this repo.
 
 ## Project context
 
-Submission to **MASA Hackathon 2026: R-Ignite** — climate-risk consulting engagement for multinational reinsurer (Strategic Partner: **Hannover Re**). Convert World Bank WDI data into 2024 GHG forecast, 2030 NGFS-scenario stress test, quantified loss-ratio impact (USD 135 m / +11 pp on USD 1.2 bn notional SEA portfolio).
+Submission **PRISM** (Portfolio Risk via Identified Scenario Modeling) to **MASA Hackathon 2026: R-Ignite** (R-Ignite = hackathon theme set by organiser, PRISM = our project name). Climate-risk consulting engagement for multinational reinsurer (Strategic Partner: **Hannover Re**). Convert World Bank WDI data into 2024 GHG forecast, 2030 NGFS-scenario stress test, quantified loss-ratio impact (USD 135 m / +11 pp on USD 1.2 bn notional SEA portfolio).
 
 Read `README.md` and `PROJECT.md` for full overview. Submission body in `deliverables/` (numbered `00`–`12` for reading order).
 

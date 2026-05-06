@@ -1,5 +1,5 @@
 # =============================================================================
-# MASA Hackathon 2026: R-Ignite — Interactive Climate Risk Dashboard
+# MASA Hackathon 2026 — PRISM Interactive Climate Risk Dashboard
 # =============================================================================
 # Run with:  shiny::runApp("shiny_app")
 #
@@ -83,7 +83,7 @@ sectoral_resid$residual_capped <- pmin(pmax(sectoral_resid$residual_pct, -200), 
 # -----------------------------------------------------------------------------
 ui <- dashboardPage(
   skin = "black",
-  dashboardHeader(title = "R-Ignite: SEA Climate Risk Dashboard", titleWidth = 380),
+  dashboardHeader(title = "PRISM: SEA Climate Risk Dashboard", titleWidth = 380),
   dashboardSidebar(
     width = 250,
     sidebarMenu(

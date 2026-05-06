@@ -1,4 +1,6 @@
-# R-Ignite
+# PRISM
+
+***P**ortfolio **R**isk via **I**dentified **S**cenario **M**odeling*
 
 **Climate Risk Assessment for a Multinational Reinsurer using World Bank WDI Indicators**
 
@@ -8,7 +10,7 @@
 
 ## Overview
 
-R-Ignite is a quantitative climate-risk assessment that converts open World Bank development data into actionable underwriting decisions for a multinational reinsurer with material Southeast Asia (SEA) exposure. Working from a 16-indicator panel covering 10 SEA economies over 1990–2024, we identify the dominant drivers of regional GHG emissions, build a forecasting model that achieves **2.18 % MAPE on a 2024 hold-out**, stress-test a 2030 mitigation strategy under NGFS Phase V scenarios, and translate the result into a quantified financial impact: an **11 percentage-point loss-ratio swing (USD ~135 m)** on a notional USD 1.2 bn SEA gross written premium portfolio.
+PRISM is a quantitative climate-risk assessment that converts open World Bank development data into actionable underwriting decisions for a multinational reinsurer with material Southeast Asia (SEA) exposure. Working from a 16-indicator panel covering 10 SEA economies over 1990–2024, we identify the dominant drivers of regional GHG emissions, build a forecasting model that achieves **2.18 % MAPE on a 2024 hold-out**, stress-test a 2030 mitigation strategy under NGFS Phase V scenarios, and translate the result into a quantified financial impact: an **11 percentage-point loss-ratio swing (USD ~135 m)** on a notional USD 1.2 bn SEA gross written premium portfolio.
 
 The submission comprises an R Markdown analysis, a parallel Python notebook with SHAP interpretability, an interactive R Shiny dashboard, a 10-page report, and a Grand Final pitch deck — all reproducibly anchored to the **STIRPAT framework**, **NGFS scenarios**, **Bank Negara Malaysia's CRST 2024 Methodology**, **IFRS S2 Climate-related Disclosures**, and the **Paris Agreement Article 2.1(c)** finance-flow alignment objective.
 
@@ -167,7 +169,7 @@ The analysis supports four concrete actions for the client:
     │   ├── 03_rules_and_regulations.md
     │   └── 04_judging_and_submission.md
     ├── code_documentation.md              ← module-by-module Python codebase walkthrough
-    └── app_prd.md                         ← R-Ignite PWA product requirements
+    └── app_prd.md                         ← PRISM PWA product requirements
 ```
 
 The raw WDI download (`WB_WDI_WIDEF.csv`, ~243 MB) is **not committed**; download it from <https://data360.worldbank.org/en/dataset/WB_WDI> and place it in `data/` to re-run the cleaning step. See `data/README.md`.

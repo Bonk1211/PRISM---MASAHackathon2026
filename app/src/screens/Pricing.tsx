@@ -3,7 +3,7 @@
 // box-selection cards (counterparty, sector mix, adaptive context, scenario,
 // capital), then click "Run Simulation" to open a live-progress modal that
 // walks through 9 stages and ends with a saved cedent profile that flows into
-// the Brief screen via localStorage key `r-ignite.savedCedents.v1`.
+// the Brief screen via localStorage key `prism.savedCedents.v1`.
 
 import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
@@ -33,7 +33,7 @@ const SECTOR_HUE: Record<(typeof SECTORS)[number], string> = {
 type Mix = Record<(typeof SECTORS)[number], number>;
 
 const COUNTRIES = Object.keys(COUNTRY_TIER);
-const STORAGE_KEY = 'r-ignite.savedCedents.v1';
+const STORAGE_KEY = 'prism.savedCedents.v1';
 const ALLOWED_SCENARIOS = STRESS_2030.map((s) => s.scenario);
 
 const SCENARIO_COLOURS: Record<string, string> = {

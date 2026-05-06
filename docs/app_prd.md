@@ -1,6 +1,6 @@
-# Product Requirements Document — R-Ignite SEA Climate Risk PWA
+# Product Requirements Document — PRISM SEA Climate Risk PWA
 
-**Version** 1.0 · **Date** 2026-05-02 · **Owner** R-Ignite team · **Status** Built, ready for demo
+**Version** 1.0 · **Date** 2026-05-02 · **Owner** PRISM team · **Status** Built, ready for demo
 
 ## 1. Background & Problem
 
@@ -138,7 +138,7 @@ app/
 │   ├── data/                  keyNumbers.ts, cedent.ts
 │   └── screens/               Story, Model, HotSpots, Stress, Cedent, Actions
 ├── vite.config.ts             VitePWA manifest + Workbox config
-└── tailwind.config.js         R-Ignite palette
+└── tailwind.config.js         PRISM palette
 ```
 
 State is local-only via `useState` + `useMemo`. No global store needed — every screen is independently rehydratable from its data module.

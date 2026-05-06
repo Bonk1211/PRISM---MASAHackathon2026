@@ -1,4 +1,4 @@
-# R-Ignite — demo Makefile
+# PRISM — demo Makefile
 # Use: `make` (lists targets) · `make demo` (runs everything end to end).
 
 SHELL := /bin/bash
@@ -18,7 +18,7 @@ ENV_LOCAL   := app/.env.local
 
 .PHONY: help
 help: ## Show this help.
-	@printf "\n  R-Ignite — demo runner\n\n"
+	@printf "\n  PRISM — demo runner\n\n"
 	@printf "  Common:\n"
 	@printf "    make demo        Install + start API + start web in parallel.\n"
 	@printf "    make dev         Start API + web in parallel (assumes installed).\n"

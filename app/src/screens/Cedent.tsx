@@ -16,7 +16,7 @@ const TIER_BG: Record<string, string> = {
   A: '#3F8A66', B: '#0E7C86', C: '#B8761C', D: '#8B2E1F', E: '#0A1A2A',
 };
 
-const STORAGE_KEY = 'r-ignite.savedCedents.v1';
+const STORAGE_KEY = 'prism.savedCedents.v1';
 
 type SavedCedent = { name: string; country: string; mix: Mix; ndcPlanFiled: boolean; energyMixPct: number; comp: string; loading: number; savedAt: string };
 

@@ -20,7 +20,7 @@ Total speaking time: 14:30. Buffer for transitions: 0:30. Total slot: 15:00.
 
 ## Slide 1 — Cover (00:00 → 00:15)
 
-**[P4]** Good morning. We are Team [TEAM_NAME] from [University]. Our submission is **R-Ignite** — *Climate Risk Assessment for a Multinational Reinsurer*. The line that anchors everything we are about to show you is on the screen: *climate is now a structural driver of Southeast Asia reinsurance loss — and here is how Hannover Re wins it.*
+**[P4]** Good morning. We are Team [TEAM_NAME] from [University]. Our submission is **PRISM** — *Portfolio Risk via Identified Scenario Modeling* — a climate-risk assessment for a multinational reinsurer. The line that anchors everything we are about to show you is on the screen: *climate is now a structural driver of Southeast Asia reinsurance loss — and here is how Hannover Re wins it.*
 
 *[Pause 1 sec.]*
 

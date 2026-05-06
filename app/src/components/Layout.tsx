@@ -3,7 +3,7 @@ import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { TopNav } from './TopNav';
 
 const META: Record<string, { code: string; title: string; eyebrow: string }> = {
-  '/':           { code: '00', title: 'R-Ignite',   eyebrow: 'Home' },
+  '/':           { code: '00', title: 'PRISM',      eyebrow: 'Home' },
   '/pipeline':   { code: '01', title: 'Pipeline',   eyebrow: 'Method' },
   '/pricing':    { code: '02', title: 'Pricing',    eyebrow: 'Simulator' },
   '/report':     { code: '03', title: 'Report',     eyebrow: 'Delivery' },
@@ -23,7 +23,7 @@ const META: Record<string, { code: string; title: string; eyebrow: string }> = {
 export function Layout() {
   const loc = useLocation();
   const nav = useNavigate();
-  const meta = META[loc.pathname] ?? { code: '—', title: 'R-Ignite', eyebrow: '' };
+  const meta = META[loc.pathname] ?? { code: '—', title: 'PRISM', eyebrow: '' };
   const headingRef = useRef<HTMLHeadingElement>(null);
   const isLanding = loc.pathname === '/';
   // Wide screens — drop the canvas constraint so the 5-card pipeline row +
@@ -31,7 +31,7 @@ export function Layout() {
   const isFullBleed = isLanding || loc.pathname === '/pipeline' || loc.pathname === '/pricing';
 
   useEffect(() => {
-    document.title = `${meta.title} — R-Ignite · SEA Climate Risk`;
+    document.title = `${meta.title} — PRISM · SEA Climate Risk`;
     headingRef.current?.focus();
   }, [loc.pathname, meta.title]);
 
@@ -81,7 +81,7 @@ export function Layout() {
 
       <footer className="border-t border-rule px-5 py-4 lg:px-10 print:hidden">
         <div className="mx-auto flex max-w-shell items-baseline justify-between font-mono text-[10px] uppercase tracking-eyebrow text-muted">
-          <span>R·Ignite · MASA Hackathon 2026</span>
+          <span>PRISM · MASA Hackathon 2026</span>
           <span className="tab-num">Pipeline v1.0 · Seed 2026</span>
         </div>
       </footer>

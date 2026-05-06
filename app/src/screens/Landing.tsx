@@ -4,7 +4,7 @@ import { Card, Eyebrow, Hairline, StatBig } from '../components/Card';
 import { HEADLINE, PORTFOLIO } from '../data/keyNumbers';
 import { getMeta } from '../lib/pipeline';
 
-// Landing — SaaS-style cover for R-Ignite. Editorial broadsheet aesthetic
+// Landing — SaaS-style cover for PRISM. Editorial broadsheet aesthetic
 // (consultancy / Financial Times feel), not gradient tech-startup. Sells the
 // demo to a cold judge in 30 seconds: hero → demo arc → live data feeds.
 
@@ -129,7 +129,7 @@ export function Landing() {
           {/* Left: pitch */}
           <div className="px-5 pt-6 pb-6 lg:px-12 lg:pt-12 lg:pb-10 lg:border-r lg:border-rule">
             <div className="flex items-center justify-between">
-              <Eyebrow>R·Ignite — climate-risk underwriting platform</Eyebrow>
+              <Eyebrow>PRISM — Portfolio Risk via Identified Scenario Modeling</Eyebrow>
               <span className="font-mono text-[10px] uppercase tracking-eyebrow text-muted">
                 MASA 2026 · Folio 00
               </span>
@@ -151,7 +151,7 @@ export function Landing() {
             </p>
 
             <p className="mt-4 text-[12px] text-muted lg:mt-6 lg:text-[13px]">
-              R·Ignite turns World Bank, NGFS and Climate TRACE feeds into a hold-out-tested 2024 forecast,
+              PRISM turns World Bank, NGFS and Climate TRACE feeds into a hold-out-tested 2024 forecast,
               a 2030 NGFS stress test, and a Hannover Re-ready cedent screen. Built for the underwriter, not the data scientist.
             </p>
           </div>
@@ -313,7 +313,7 @@ export function Landing() {
           <div>
             <Eyebrow>Strategic partner</Eyebrow>
             <p className="mt-1 text-[13px] text-ink lg:text-[14px]">
-              Hannover Re · MASA Hackathon 2026 · R-Ignite team
+              Hannover Re · MASA Hackathon 2026 · PRISM team
             </p>
           </div>
           <p className="font-mono text-[10px] uppercase tracking-eyebrow text-muted lg:text-right">

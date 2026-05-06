@@ -1,10 +1,13 @@
-# Grand Final Pitch Deck — Outline (15-min slot)
+# Grand Final Pitch Deck — PRISM (15-min slot)
+
+***P**ortfolio **R**isk via **I**dentified **S**cenario **M**odeling*
 
 **Format guidance:** 13–15 slides; **message headers** (each title states the conclusion of that slide); "answer-first" pyramid principle structure. One slide = one idea. Build with Person 4 (Storyteller) leading; visuals from Person 3.
 
 ---
 
 ### Slide 1 — Cover
+- **PRISM** — Portfolio Risk via Identified Scenario Modeling
 - Team name, members, university, hackathon logo, date
 - One-line tagline: *"Climate is now a structural driver of SEA reinsurance loss — here's how Hannover Re wins."*
 

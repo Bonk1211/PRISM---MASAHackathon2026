@@ -1,4 +1,4 @@
-"""R-Ignite agent endpoint — Gemini Flash NL parser + result narrator.
+"""PRISM agent endpoint — Gemini Flash NL parser + result narrator.
 
 User types free-form prose on the Cedent or Stress screen. Two-turn pattern:
   1. Forced tool-call extraction (T=0) → set_cedent_inputs / set_stress_inputs.

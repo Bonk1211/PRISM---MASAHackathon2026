@@ -1,4 +1,6 @@
-# R-Ignite — Executive One-Pager
+# PRISM — Executive One-Pager
+
+***P**ortfolio **R**isk via **I**dentified **S**cenario **M**odeling*
 
 **Climate Risk Assessment for a Multinational Reinsurer · MASA Hackathon 2026**
 

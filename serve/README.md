@@ -1,4 +1,4 @@
-# R-Ignite Pipeline · FastAPI service
+# PRISM Pipeline · FastAPI service
 
 Serves the trained M3a (forecast) and M3b (structural) XGBoost models from `analysis/python/analysis.ipynb` to the PWA's Pipeline screen so judges see real model inference, not pre-computed JSON.
 

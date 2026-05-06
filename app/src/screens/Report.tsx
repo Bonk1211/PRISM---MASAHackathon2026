@@ -9,7 +9,7 @@ import { POLICY_BY_ID, POLICY_REFS } from '../data/policy';
 import { LOADING } from '../data/cedent';
 import canon from '../data/key_numbers_python.json';
 
-const STORAGE_KEY = 'r-ignite.savedCedents.v1';
+const STORAGE_KEY = 'prism.savedCedents.v1';
 const REPORT_ID = 'RI-2026-001';
 
 type SavedCedent = {
@@ -46,7 +46,7 @@ export function Report() {
     const nav = navigator as Navigator & { share?: (data: ShareData) => Promise<void> };
     if (nav.share) {
       nav.share({
-        title: 'R-Ignite — SEA Climate-Risk Underwriting Review',
+        title: 'PRISM — SEA Climate-Risk Underwriting Review',
         text: `Hot House → Net Zero swing: USD ${HEADLINE.lossSwingUsdM} m / +${HEADLINE.lrSwingPp} pp`,
         url: window.location.href,
       }).catch(() => {});
@@ -130,7 +130,7 @@ export function Report() {
       {/* §1 Document control */}
       <ReportSection eyebrow="Front matter" title="Document Control" number="1">
         <P>
-          This assessment is the principal deliverable of the R-Ignite engagement under the MASA Hackathon
+          This assessment is the principal deliverable of the PRISM engagement under the MASA Hackathon
           2026 Strategic Partner programme with Hannover Re. It compiles the analytical pipeline, the
           stress-test exhibit, the cedent-screening artefacts, and the regulatory crosswalk into a single
           underwriting record. Every numerical claim is traceable to the canonical pipeline output
@@ -144,7 +144,7 @@ export function Report() {
             ['Report identifier', <span className="font-mono">{REPORT_ID}</span>],
             ['Version', '1.0'],
             ['Date of issue', today],
-            ['Prepared by', 'R-Ignite Analytics — MASA Hackathon 2026'],
+            ['Prepared by', 'PRISM Analytics — MASA Hackathon 2026'],
             ['Reviewed by', 'Climate Quant Desk · APAC'],
             ['Approved by', 'APAC Chief Risk Officer'],
             ['Distribution', 'Hannover Re APAC P&C Underwriting · Group Capital · ILS Treasury'],
@@ -164,7 +164,7 @@ export function Report() {
       {/* §2 Executive summary */}
       <ReportSection eyebrow="Executive briefing" title="Executive Summary" number="2">
         <P>
-          The R-Ignite engagement quantifies how four NGFS Phase V transition pathways re-price
+          The PRISM engagement quantifies how four NGFS Phase V transition pathways re-price
           Hannover Re's notional <b>USD {(PORTFOLIO.gwpUsdM / 1000).toFixed(1)} bn</b> South-East Asia gross
           written premium book on a 2030 horizon. Holding the base loss ratio at <b>{(PORTFOLIO.baseLossRatio * 100).toFixed(0)} %</b> and
           applying the Swiss Re <i>sigma</i> 1/2024 emissions-loss elasticity (<span className="font-mono">ε = {PORTFOLIO.elasticity}</span>),
@@ -267,7 +267,7 @@ export function Report() {
 
         <ReportTable
           caption="Table 4.1 · 2030 stress-test exhibit · USD 1.2 bn notional book"
-          source="Source: NGFS Phase V via R-Ignite pipeline · key_numbers_python.json → stress_test_2030_aggregate"
+          source="Source: NGFS Phase V via PRISM pipeline · key_numbers_python.json → stress_test_2030_aggregate"
           headers={[
             'Scenario',
             'Family',
@@ -320,7 +320,7 @@ export function Report() {
         {saved.length > 0 ? (
           <ReportTable
             caption={`Table 5.1 · Saved cedent profiles · ${saved.length} record${saved.length === 1 ? '' : 's'}`}
-            source="Source: localStorage key r-ignite.savedCedents.v1 · written from /pricing"
+            source="Source: localStorage key prism.savedCedents.v1 · written from /pricing"
             headers={['Cedent', 'Country', 'Composite tier', 'Premium loading', 'Saved']}
             align={['left', 'left', 'center', 'right', 'right']}
             rows={saved.map((c) => {
@@ -371,7 +371,7 @@ export function Report() {
 
         <ReportTable
           caption="Table 6.1 · Compliance anchors · how the analysis satisfies each instrument"
-          headers={['Instrument', 'Jurisdiction', 'How R-Ignite satisfies it']}
+          headers={['Instrument', 'Jurisdiction', 'How PRISM satisfies it']}
           align={['left', 'left', 'left']}
           rows={POLICY_REFS.filter((p) =>
             ['bnm-crst-2024', 'ngfs-phaseV', 'paris-2-1c', 'sigma-1-2024'].includes(p.id),
@@ -474,7 +474,7 @@ export function Report() {
         </P>
 
         <div className="mt-6 grid grid-cols-1 gap-6 sm:grid-cols-3">
-          <SignatureLine role="Prepared by" detail="R-Ignite Analytics" />
+          <SignatureLine role="Prepared by" detail="PRISM Analytics" />
           <SignatureLine role="Reviewed by" detail="Climate Quant Desk · APAC" />
           <SignatureLine role="Approved by" detail="APAC Chief Risk Officer" />
         </div>
@@ -556,7 +556,7 @@ export function Report() {
             [
               'Saved cedent profiles (this run)',
               `${saved.length} record${saved.length === 1 ? '' : 's'}`,
-              <span className="font-mono text-[11px]">localStorage · r-ignite.savedCedents.v1</span>,
+              <span className="font-mono text-[11px]">localStorage · prism.savedCedents.v1</span>,
               'Live · /pricing',
             ],
           ]}

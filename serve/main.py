@@ -1,4 +1,4 @@
-"""R-Ignite Pipeline FastAPI service.
+"""PRISM Pipeline FastAPI service.
 
 Run locally:
     cd serve && uv sync
@@ -16,7 +16,7 @@ from fastapi.responses import HTMLResponse
 from serve.agent import AgentRequest, AgentResponse, handle_agent, rate_limit_ok
 from serve.pipeline import META, PredictRequest, run_pipeline
 
-app = FastAPI(title="R-Ignite Pipeline", version="1.0")
+app = FastAPI(title="PRISM Pipeline", version="1.0")
 
 import os
 
@@ -38,7 +38,7 @@ _INDEX_TEMPLATE = """<!doctype html>
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>R-Ignite Pipeline · API</title>
+  <title>PRISM Pipeline · API</title>
   <style>
     body {{ font-family: -apple-system, system-ui, sans-serif; background: #F4EFE3; color: #0A1A2A;
            max-width: 640px; margin: 4rem auto; padding: 0 1.5rem; line-height: 1.55; }}
@@ -53,7 +53,7 @@ _INDEX_TEMPLATE = """<!doctype html>
   </style>
 </head>
 <body>
-  <p class="eyebrow">R·Ignite · MASA Hackathon 2026</p>
+  <p class="eyebrow">PRISM · MASA Hackathon 2026</p>
   <h1>Pipeline <em>API</em></h1>
   <p class="muted">FastAPI service · serves M3a / M3b XGBoost models exported from analysis.ipynb cell 42.</p>
   <p class="muted">Base URL: <code>{base_url}</code></p>

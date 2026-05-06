@@ -1,6 +1,6 @@
-# MASA Hackathon 2026: R-Ignite
-## Climate Risk Assessment for a Multinational Reinsurer
-### Strategic Analysis using World Bank WDI Indicators
+# MASA Hackathon 2026: PRISM
+## Portfolio Risk via Identified Scenario Modeling
+### Climate Risk Assessment for a Multinational Reinsurer — Strategic Analysis using World Bank WDI Indicators
 
 **Team:** [TEAM_NAME]
 **Members:** [Member 1, University] · [Member 2, University] · [Member 3, University] · [Member 4, University]

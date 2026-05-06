@@ -1,4 +1,6 @@
-# R-Ignite — Climate Risk Assessment for a Multinational Reinsurer
+# PRISM — Climate Risk Assessment for a Multinational Reinsurer
+
+*PRISM — **P**ortfolio **R**isk via **I**dentified **S**cenario **M**odeling.*
 
 *Submission to **MASA Hackathon 2026** — organised by the Malaysian Actuarial Student Association in strategic partnership with **Hannover Re***
 
@@ -131,7 +133,7 @@ For the full module-by-module Python codebase walkthrough, see `docs/code_docume
 
 > **Quick path**: `make demo` from the repo root installs both stacks, regenerates the model artefacts, and starts the API + web in parallel. `Ctrl-C` stops both. Run `make` with no args for the full target list.
 
-R-Ignite ships with two runnable services for the live judging demo:
+PRISM ships with two runnable services for the live judging demo:
 
 - **Backend** (`serve/`) — FastAPI service that loads the trained M3a / M3b XGBoost models exported by the analysis notebook and exposes a `/predict` endpoint returning the full 5-stage pipeline trace.
 - **Frontend** (`app/`) — React + Vite single-page web app. Editorial reinsurance dashboard, 12 routes, calls the backend live.
@@ -259,7 +261,7 @@ For deployment, point any static host (Vercel / Netlify / Cloudflare Pages) at `
 **CORS** is locked to `localhost:5173`, `localhost:4173`, and `127.0.0.1:5173` by default. To expose the API to a deployed frontend, set `CORS_ALLOW_ORIGINS` (comma-separated) when starting `uvicorn`:
 
 ```bash
-CORS_ALLOW_ORIGINS="https://r-ignite.vercel.app" make api-prod
+CORS_ALLOW_ORIGINS="https://prism-sea.vercel.app" make api-prod
 ```
 
 ### File map for the demo stack

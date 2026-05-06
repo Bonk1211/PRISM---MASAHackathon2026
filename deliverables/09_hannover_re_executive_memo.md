@@ -2,7 +2,8 @@
 
 ```
 TO:      [APAC CRO Name], Hannover Re Asia-Pacific
-FROM:    R-Ignite Team — MASA Hackathon 2026
+FROM:    PRISM Team — MASA Hackathon 2026
+         (Portfolio Risk via Identified Scenario Modeling)
          [Team Lead Name], [University]
 CC:      [Hannover Re Hackathon Sponsor], [BNM Observer]
 DATE:    2026-05-07
@@ -25,7 +26,7 @@ Climate pathway alone moves a notional USD 1.2 bn SEA gross written premium book
 
 ## Recommendations
 
-1. **Adopt the R-Ignite cedent screening framework for SEA treaty renewals.** Owner: APAC Treaty Underwriting. KPI: 100 % of 2027 SEA renewals scored on the 5-tier composite. 90-day milestone: pilot scoring on three nominated cedents by Q3 2026.
+1. **Adopt the PRISM cedent screening framework for SEA treaty renewals.** Owner: APAC Treaty Underwriting. KPI: 100 % of 2027 SEA renewals scored on the 5-tier composite. 90-day milestone: pilot scoring on three nominated cedents by Q3 2026.
 2. **Hold an additional +8 % regional risk capital buffer under Hot House (BNM CRST 2024 §6.3).** Owner: Group Capital. KPI: buffer reflected in the Q3 2026 Solvency II ORSA submission. 90-day milestone: scenario re-run on Q2 2026 results, signed off by the APAC capital committee.
 3. **Time the SEA multi-peril cat bond issuance to the NGFS Disorderly path window in Q3 2027.** Owner: ILS Treasury. KPI: USD 250 m placed at a credit spread within 30 bp of investment-grade benchmark. 90-day milestone: structuring mandate awarded by Q1 2027.
 

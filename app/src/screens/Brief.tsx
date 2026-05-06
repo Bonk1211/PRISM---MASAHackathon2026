@@ -8,7 +8,7 @@ const TICKER_TONE: Record<string, 'sea' | 'sage' | 'amber' | 'rust'> = {
   PT: 'sea', ES: 'sage', CB: 'amber', CL: 'rust',
 };
 
-const STORAGE_KEY = 'r-ignite.savedCedents.v1';
+const STORAGE_KEY = 'prism.savedCedents.v1';
 
 type SavedCedent = { name: string; country: string; comp: string; loading: number; savedAt: string };
 
@@ -44,7 +44,7 @@ export function Brief() {
   const share = () => {
     if ((navigator as Navigator & { share?: (data: ShareData) => Promise<void> }).share) {
       (navigator as Navigator & { share: (data: ShareData) => Promise<void> }).share({
-        title: 'R-Ignite Executive Memo',
+        title: 'PRISM Executive Memo',
         text: memoText,
       }).catch(() => {});
     } else {
@@ -129,7 +129,7 @@ export function Brief() {
             Memorandum · Confidential
           </p>
           <p className="mt-1 font-mono text-[10px] tab-num text-muted">
-            From: R-Ignite Analytics &nbsp;·&nbsp; Date: {new Date().toISOString().slice(0, 10)}
+            From: PRISM Analytics &nbsp;·&nbsp; Date: {new Date().toISOString().slice(0, 10)}
           </p>
         </header>
 
@@ -230,7 +230,7 @@ function Row({ label, value }: { label: string; value: string }) {
 function buildMemo({ saved, scenario, recs }: { saved?: SavedCedent; scenario: string; recs: typeof RECOMMENDATIONS }) {
   const lines: string[] = [];
   lines.push('MEMORANDUM — Confidential');
-  lines.push('From: R-Ignite Analytics');
+  lines.push('From: PRISM Analytics');
   lines.push(`Date: ${new Date().toISOString().slice(0, 10)}`);
   lines.push('To: Hannover Re APAC P&C Underwriting');
   lines.push('');

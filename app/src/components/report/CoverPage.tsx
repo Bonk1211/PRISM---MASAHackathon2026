@@ -64,11 +64,11 @@ export function CoverPage({
             <p className="font-mono text-[10px] uppercase tracking-eyebrow text-muted">
               Folio
             </p>
-            <p className="mt-1 font-mono tab-num text-ink">RI / 2026 / 001</p>
+            <p className="mt-1 font-mono tab-num text-ink">PR / 2026 / 001</p>
           </div>
         </div>
         <p className="mt-6 text-center font-mono text-[9px] uppercase tracking-eyebrow text-muted">
-          R-Ignite · MASA Hackathon 2026
+          PRISM · MASA Hackathon 2026
         </p>
       </footer>
     </section>

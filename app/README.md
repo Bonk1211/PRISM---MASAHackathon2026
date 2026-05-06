@@ -1,4 +1,6 @@
-# R-Ignite — SEA Climate Risk PWA
+# PRISM — SEA Climate Risk PWA
+
+*Portfolio Risk via Identified Scenario Modeling*
 
 Mobile-first React PWA that walks a user through the MASA Hackathon 2026
 submission's analytical journey:

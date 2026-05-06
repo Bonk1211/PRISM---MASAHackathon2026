@@ -7,7 +7,7 @@
 
 ## 1. What this is
 
-A single, standing board-pack slide that re-prices the SEA reinsurance portfolio (USD 1.2 bn GWP, base loss ratio 0.62, emissions-loss elasticity 0.7) under four NGFS Phase V scenarios each quarter. Headline output: the Hot House to Net Zero spread (currently +11 pp / USD 135 m). It productises the R-Ignite pipeline (R + Python, seed 2026, 3-min runtime) into a recurring deliverable owned by the Climate Quant desk, signed off by the APAC CRO, and filed alongside the regulatory stack (BNM CRST, IFRS S2, Solvency II ORSA).
+A single, standing board-pack slide that re-prices the SEA reinsurance portfolio (USD 1.2 bn GWP, base loss ratio 0.62, emissions-loss elasticity 0.7) under four NGFS Phase V scenarios each quarter. Headline output: the Hot House to Net Zero spread (currently +11 pp / USD 135 m). It productises the PRISM pipeline (R + Python, seed 2026, 3-min runtime) into a recurring deliverable owned by the Climate Quant desk, signed off by the APAC CRO, and filed alongside the regulatory stack (BNM CRST, IFRS S2, Solvency II ORSA).
 
 ---
 

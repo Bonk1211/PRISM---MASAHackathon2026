@@ -1,7 +1,7 @@
 [project]
-name = "r-ignite-serve"
+name = "prism-serve"
 version = "1.0.0"
-description = "R-Ignite live-pipeline FastAPI — serves the M3a / M3b XGBoost models exported from the analysis notebook."
+description = "PRISM live-pipeline FastAPI — serves the M3a / M3b XGBoost models exported from the analysis notebook."
 requires-python = ">=3.11"
 dependencies = [
     "fastapi>=0.115",

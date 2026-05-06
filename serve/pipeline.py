@@ -1,4 +1,4 @@
-"""R-Ignite pipeline runtime.
+"""PRISM pipeline runtime.
 
 Loads the M3a (forecast) and M3b (structural) XGBoost models exported by
 analysis/python/analysis.ipynb cell 42 and exposes a single

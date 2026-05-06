@@ -1,4 +1,4 @@
-# MASA Hackathon 2026: R-Ignite — Python Code Documentation
+# MASA Hackathon 2026 — PRISM Python Code Documentation
 
 **Climate Risk Assessment for a Multinational Reinsurer**
 
