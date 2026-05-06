@@ -198,68 +198,7 @@ ASK_FOLLOWUP_TOOL = {
 
 # --- system prompt --------------------------------------------------------
 
-SYSTEM_PROMPT = """You are a senior climate-risk consultant on a paid engagement, sitting across the table from a Hannover Re cedent's chief underwriter.
-Your task is to scope the engagement before any modelling is done. You ARE NOT a chatbot, FAQ bot, or generic assistant — you are an interviewer with a specific deliverable: a fully populated scoping profile.
-
-Conduct a structured interview. Cover the following five axes IN ORDER:
-
-(1) LINE-OF-BUSINESS MIX. Ask what percentage of the book sits in each of:
-    - property_cat — natural-catastrophe property reinsurance (windstorm, flood, EQ, wildfire perils)
-    - agriculture — crop/livestock yield protection, parametric weather covers
-    - life — life and longevity exposure (mortality and persistence risk)
-    - casualty — liability lines (general, professional, D&O, motor)
-    - specialty — marine, aviation, energy, political risk, terrorism, cyber
-   Push back on vague answers. "Mostly cat" is not enough; you want approximate percentages.
-   Pin this axis with confidence ≥ 0.7 only when you have a numeric mix that roughly sums to 100.
-
-(2) GEOGRAPHIC CONCENTRATION. Where is the GWP written? Country names or regional tags ("ASEAN", "Greater China", "SEA ex-Singapore") are fine.
-    For PRISM the analytical sweet spot is Southeast Asia: VN, PH, ID, TH, MY, SG, KH, LA, MM, BN. Note explicitly if the cedent has material book outside that footprint — the model's calibration window is SEA-anchored.
-    Pin when you have at least one concrete location and a sense of dominant vs. tail.
-
-(3) TIME HORIZONS. Two horizons matter:
-    - uw_years — underwriting horizon for annual renewals (typically 1; multi-year deals up to 5)
-    - life_years — total economic horizon for liability-tail or transition-risk projection (typically 20–30)
-   Don't accept "long term" — get a number. Solvency II uses 30 years for transition-scenario propagation; ask if the cedent uses something different.
-
-(4) FRAMEWORKS. Which disclosure / capital framework does the cedent operate under? Allowed enum values:
-    - TCFD                — climate-related financial disclosures (legacy but widely held)
-    - ISSB_S2             — IFRS S2 climate-related disclosures, the TCFD successor
-    - Solvency_II_ORSA    — EU/Bermuda Own Risk & Solvency Assessment, scenario-driven
-    - NAIC                — US insurance-commissioner climate risk disclosure
-    - Internal_Capital    — proprietary internal capital model only
-    - Other               — local regulator regime not on this list
-   Multiple frameworks per cedent is normal. Ask explicitly if the cedent is preparing for ISSB transition.
-
-(5) DISCLOSURES. What does the cedent publicly publish? Allowed enum:
-    - TCFD                — full TCFD-aligned annual climate report
-    - ISSB_S2             — IFRS S2 disclosures in audited financials
-    - Regulatory_Stress_Test — supervisory stress-test results (BMA, EIOPA, Bank of Japan, etc.)
-    - Internal_Only       — no public climate disclosure beyond annual report risk factors
-   This shapes deliverables in Phase 6 — a TCFD-publishing cedent needs a different output template than an Internal_Only one.
-
-INTERVIEWING RULES:
-- Speak in second person ("you", "your book") — you are talking TO the underwriter, not ABOUT the cedent.
-- Ask ONE focused question per turn. No multi-part interrogations. No bullet lists in your prose.
-- After every user reply, decide: is the latest axis settled (confidence ≥ 0.7)?
-    - If YES — call set_scoping_axis(axis, value, confidence) AND in the same turn move to the NEXT axis with one question.
-    - If NO — call ask_followup(question, axis) with a sharper probe.
-- Confidence calibration:
-    - 0.9–1.0 — explicit, numeric, unambiguous answer.
-    - 0.7–0.9 — directionally clear, minor inference required.
-    - 0.4–0.7 — partial; needs follow-up. Use ask_followup, do not pin.
-    - < 0.4   — uninformative or evasive. Re-ask, perhaps differently.
-- DO NOT INVENT FACTS. If the user says "we're mostly property cat in Vietnam", do not fill in the time horizon based on what's typical. Only pin what was said.
-- DO NOT skip axes. The order matters because LOB choice constrains the disclosure regime.
-- When all five axes have been pinned at confidence ≥ 0.7, call set_scoping with the consolidated payload. This is the END of the interview. Don't add a sixth question.
-
-OUTPUT DISCIPLINE:
-- Every assistant turn MUST call exactly one of {set_scoping_axis, set_scoping, ask_followup}.
-- The function call IS the turn. Don't preface with "Great question" or recap what the user said.
-- Keep the question / narration concise (≤180 chars). Underwriters are time-poor.
-- Never quote NGFS scenarios, USD amounts, or model outputs in scoping turns — that's Phase 5 territory.
-
-You have access to the running transcript so you know what's already been asked and answered. Use it to avoid repetition.
-""".strip()
+SYSTEM_PROMPT = """You are a climate-risk consultant scoping a Hannover Re cedent. Pin axes in order: line_of_business, geography, time_horizon, frameworks, disclosures. Concrete answer → set_scoping_axis at confidence 0.9. Vague → ask_followup."""
 
 
 # --- validation -----------------------------------------------------------
@@ -563,21 +502,29 @@ def call_consultant(
     user-facing copy typically lives inside the ask_followup/set_scoping_axis
     tool args.
     """
-    profile_block = _profile_for_prompt(profile)
+    # Keep messages SHORT — nemo-nano thrashes past max_tokens when the
+    # context grows. Skip transcript replay; the pinned-axes summary in the
+    # system message is sufficient memory because the model's only job is to
+    # decide whether the latest user message pins an axis.
+    pinned_summary = ", ".join(a for a in _AXES if a in profile) or "none"
+    next_axis = next((a for a in _AXES if a not in profile), "disclosures")
     system_with_state = (
-        f"{SYSTEM_PROMPT}\n\n"
-        f"CURRENT PROFILE STATE (do not contradict pinned axes):\n{profile_block}"
+        f"{SYSTEM_PROMPT} Already pinned: {pinned_summary}. "
+        f"Next axis to probe: {next_axis}."
     )
     messages: list[dict[str, Any]] = [
-        {"role": "system", "content": system_with_state}
+        {"role": "system", "content": system_with_state},
+        {"role": "user", "content": user_message},
     ]
-    messages.extend(_transcript_to_messages(transcript))
-    messages.append({"role": "user", "content": user_message})
 
     response = client.chat.completions.create(
         model=model,
         messages=messages,
-        tools=[SET_SCOPING_AXIS_TOOL, SET_SCOPING_TOOL, ASK_FOLLOWUP_TOOL],
+        # set_scoping omitted — server auto-marks complete=True via
+        # is_profile_complete() once all five axes pin. Two tools keeps
+        # nemo-nano's tool selection reliable; with three tools it thrashes
+        # past max_tokens without emitting any call.
+        tools=[SET_SCOPING_AXIS_TOOL, ASK_FOLLOWUP_TOOL],
         # ILMU nemo-nano does not honor tool_choice="required" reliably.
         # The system prompt hard-forces the tool call instead.
         tool_choice="auto",
@@ -655,34 +602,30 @@ def handle_scoping(
         }
 
     if not tool_name:
-        # ILMU nemo-nano with tool_choice="auto" sometimes emits prose instead
-        # of a tool call. Treat that prose as an implicit ask_followup so the
-        # interview keeps moving instead of dead-ending on "no_tool_call".
-        if narration:
-            user_facing = narration.strip()[:240]
-            tool_name = "ask_followup"
-            tool_args = {"question": user_facing, "axis": "line_of_business"}
-            updates = {"axis": "line_of_business", "question": user_facing}
-            append_message(
-                supabase, sid, "assistant", user_facing,
-                tool_name=tool_name, tool_args=tool_args,
-            )
-            return {
-                "updates": updates,
-                "narration": user_facing,
-                "tool_called": tool_name,
-                "scoping_profile": profile,
-                "complete": bool(profile.get("complete", False)),
-                "session_id": sid,
-                "error": None,
-            }
+        # ILMU nemo-nano with tool_choice="auto" sometimes emits prose
+        # without calling a tool, or returns nothing. Either way, never
+        # dead-end the interview — synthesize an ask_followup so the user
+        # always gets a forward-moving response.
+        next_axis = next((a for a in _AXES if a not in profile), "line_of_business")
+        fallback_question = narration.strip()[:240] if narration else (
+            f"Could you say more about your {next_axis.replace('_', ' ')}? "
+            "A concrete answer helps me move forward."
+        )
+        tool_name = "ask_followup"
+        tool_args = {"question": fallback_question, "axis": next_axis}
+        updates = {"axis": next_axis, "question": fallback_question}
+        append_message(
+            supabase, sid, "assistant", fallback_question,
+            tool_name=tool_name, tool_args=tool_args,
+        )
         return {
-            "error": "no_tool_call",
-            "narration": narration,
-            "tool_called": None,
+            "updates": updates,
+            "narration": fallback_question,
+            "tool_called": tool_name,
             "scoping_profile": profile,
             "complete": bool(profile.get("complete", False)),
             "session_id": sid,
+            "error": None,
         }
 
     updates: dict[str, Any] = {}

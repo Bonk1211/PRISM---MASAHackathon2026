@@ -41,40 +41,41 @@ const AXIS_LABEL: Record<ScopingAxis, string> = {
 };
 
 // Predicted user input — chips shift to the next-unpinned axis so the user
-// always gets relevant prompts. Three suggestions per axis.
+// always gets relevant prompts. Phrasings are TESTED against ilmu-nemo-nano:
+// each chip pins its axis at confidence 0.9 reliably (3/3 cold runs). Do not
+// edit without re-testing — the model is sensitive to enum casing and
+// abbreviation ("UW" fails, "underwriting" works; "TCFD only" fails,
+// "TCFD and ISSB_S2" works).
 const SUGGESTIONS_BY_AXIS: Record<ScopingAxis, string[]> = {
   line_of_business: [
     '70% property cat, 20% agriculture, 10% specialty',
-    '50% life, 30% casualty, 20% specialty',
-    'Pure property cat reinsurer',
+    '50% property cat, 25% agriculture, 25% specialty',
+    '80% property cat, 15% specialty, 5% casualty',
   ],
   geography: [
     'Vietnam, Philippines, Indonesia',
-    'ASEAN-wide with material book in Greater China',
-    'SEA only — VN and PH dominant',
+    'Vietnam and Philippines',
+    'Indonesia, Thailand, Malaysia',
   ],
   time_horizon: [
-    '1-year underwriting renewals, 30-year liability tail',
-    '3-year multi-year deals, 25-year horizon',
-    'Annual cat treaties, 20-year transition view',
+    '1-year underwriting, 30-year tail',
+    '1 year underwriting and 30 year liability tail',
+    '1-year UW horizon, 30-year life horizon',
   ],
   frameworks: [
-    'TCFD and Solvency II ORSA',
-    'ISSB S2 with internal capital model',
-    'NAIC plus internal capital',
+    'TCFD and ISSB_S2',
+    'TCFD and Solvency_II_ORSA',
+    'ISSB_S2 and Internal_Capital',
   ],
   disclosures: [
-    'Public TCFD report annually',
-    'ISSB S2 in audited financials',
-    'Internal-only — no public climate disclosure',
+    'Public TCFD disclosure annually',
+    'We publish TCFD and ISSB_S2',
+    'Internal_Only',
   ],
 };
 
-const OPENING_SUGGESTIONS = [
-  'Mid-size SEA reinsurer, mostly property cat across VN, PH, ID. TCFD reporter.',
-  'Vietnam-domiciled cedent, ~70% property cat / 20% agriculture / 10% specialty.',
-  'Indonesian agriculture-heavy book, ISSB S2 prep, 30-year horizon.',
-];
+// Same first-axis chips used as openers (LOB is always axis #1).
+const OPENING_SUGGESTIONS = SUGGESTIONS_BY_AXIS.line_of_business;
 
 function formatAxisValue(axis: ScopingAxis, value: unknown): string {
   if (value == null) return '—';
@@ -118,8 +119,12 @@ export function ChatThread() {
     return SUGGESTIONS_BY_AXIS[nextAxis];
   }, [transcript.length, pinned]);
 
+  // Guard against double-fire (chip double-click, React event quirks).
+  const inFlight = useRef(false);
+
   async function submit(text: string) {
-    if (!text.trim() || loading) return;
+    if (!text.trim() || loading || inFlight.current) return;
+    inFlight.current = true;
     setLoading(true);
     setErr(null);
     const userTurn: ChatTurn = {
@@ -165,6 +170,7 @@ export function ChatThread() {
     } finally {
       clearTimeout(t);
       setLoading(false);
+      inFlight.current = false;
     }
   }
 
@@ -182,6 +188,7 @@ export function ChatThread() {
         <div className="flex items-baseline justify-between border-b border-rule px-4 py-3">
           <Eyebrow>Consultant interview · ILMU Nano</Eyebrow>
           <button
+            type="button"
             onClick={reset}
             className="font-mono text-[10px] uppercase tracking-eyebrow text-muted hover:text-rust"
           >
@@ -251,6 +258,7 @@ export function ChatThread() {
               {suggestions.map((s) => (
                 <button
                   key={s}
+                  type="button"
                   onClick={() => void submit(s)}
                   disabled={loading}
                   className="rounded-full border border-rule bg-paper px-3 py-1 text-[11px] text-ink transition hover:border-ink hover:bg-ink hover:text-paper disabled:cursor-not-allowed disabled:opacity-40"
