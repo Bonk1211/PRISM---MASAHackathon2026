@@ -451,6 +451,99 @@ def is_profile_complete(profile: dict[str, Any]) -> bool:
     return True
 
 
+# --- per-axis explanation builder ----------------------------------------
+# When the model emits a tool call without prose narration (frequent on
+# nemo-nano which prefers terse tool-only responses), we synthesize a brief
+# "captured + why + next question" reply so the user understands what just
+# happened and what's being asked next. Templated to keep server-side and
+# avoid an extra LLM round-trip.
+
+_NEXT_AXIS_QUESTION: dict[str, str] = {
+    "geography": "Where is this book written geographically — country tags or regional?",
+    "time_horizon": "What time horizons matter — annual underwriting and liability tail in years?",
+    "frameworks": "Which capital or disclosure frameworks does the cedent operate under (TCFD, ISSB_S2, Solvency_II_ORSA, NAIC)?",
+    "disclosures": "What does the cedent publicly disclose — TCFD, ISSB_S2, Regulatory_Stress_Test, or Internal_Only?",
+}
+
+
+def _explain_pin(
+    axis: str,
+    cleaned: dict[str, Any],
+    profile_after: dict[str, Any],
+) -> str:
+    """Echo the captured value + one-line context + next-axis question.
+
+    Pure function — no LLM call. Keeps the demo tight and predictable.
+    """
+    # Format the captured value nicely.
+    if axis == "line_of_business":
+        mix = cleaned.get("line_of_business") or {}
+        parts = [f"{int(round(v))}% {k.replace('_', ' ')}" for k, v in mix.items() if v > 0]
+        captured = ", ".join(parts) or "your line of business"
+        why = (
+            "property cat dominates → primary exposure is acute physical risk (windstorm, flood, EQ)"
+            if mix.get("property_cat", 0) >= 50
+            else "casualty/life exposure shifts the calibration toward transition + liability risk"
+            if (mix.get("life", 0) + mix.get("casualty", 0)) >= 50
+            else "diversified — climate exposure spans physical and transition channels"
+        )
+    elif axis == "geography":
+        geo = cleaned.get("geography") or []
+        captured = ", ".join(geo) if geo else "your geography"
+        why = (
+            "all in PRISM's SEA calibration window — model accuracy strongest here"
+            if all(any(s in g for s in ("Viet", "Philip", "Indo", "Thai", "Malay", "Singap", "Cambo", "Lao", "Myan", "Brun", "VN", "PH", "ID", "TH", "MY", "SG", "KH", "LA", "MM", "BN")) for g in geo)
+            else "noting any non-SEA exposure — model calibration may be weaker outside that footprint"
+        )
+    elif axis == "time_horizon":
+        th = cleaned.get("time_horizon") or {}
+        uw = th.get("uw_years", 1)
+        life = th.get("life_years", 30)
+        captured = f"{uw}-year underwriting / {life}-year liability tail"
+        why = (
+            "annual UW for cat treaties; 30-year horizon aligns with Solvency II transition-scenario propagation"
+            if uw <= 1 and life >= 25
+            else "multi-year UW and shorter tail — pricing locks in multi-period climate paths"
+        )
+    elif axis == "frameworks":
+        fws = cleaned.get("frameworks") or []
+        captured = ", ".join(fws) if fws else "your frameworks"
+        why_parts = []
+        if "TCFD" in fws:
+            why_parts.append("TCFD = legacy climate disclosure")
+        if "ISSB_S2" in fws:
+            why_parts.append("ISSB_S2 = the active TCFD successor")
+        if "Solvency_II_ORSA" in fws:
+            why_parts.append("Solvency II ORSA = scenario-driven capital requirement")
+        if "NAIC" in fws:
+            why_parts.append("NAIC = US insurance commissioner regime")
+        if "Internal_Capital" in fws:
+            why_parts.append("internal capital = proprietary model")
+        why = "; ".join(why_parts) or "noted"
+    elif axis == "disclosures":
+        ds = cleaned.get("disclosures") or []
+        captured = ", ".join(ds) if ds else "your disclosures"
+        why = (
+            "public-disclosing cedent → Phase 6 deliverable will follow TCFD/ISSB template"
+            if any(d in ds for d in ("TCFD", "ISSB_S2"))
+            else "regulator-only disclosure → Phase 6 leans on internal capital memo format"
+            if "Regulatory_Stress_Test" in ds
+            else "Internal_Only → minimal public surface; Phase 6 emphasises private board memo"
+        )
+    else:
+        captured = axis.replace("_", " ")
+        why = ""
+
+    # Next-axis question.
+    next_axis = next((a for a in _AXES if a not in profile_after), None)
+    if next_axis is None:
+        return f"Captured: {captured}. {why}. All five axes pinned — Phase 1 complete."
+    next_q = _NEXT_AXIS_QUESTION.get(next_axis, f"What about {next_axis.replace('_', ' ')}?")
+    if why:
+        return f"Captured: {captured}. {why}. Next: {next_q}"
+    return f"Captured: {captured}. Next: {next_q}"
+
+
 # --- ILMU call ------------------------------------------------------------
 
 def _transcript_to_messages(transcript: list[dict[str, Any]]) -> list[dict[str, Any]]:
@@ -640,7 +733,7 @@ def handle_scoping(
             profile = merge_axis_into_profile(profile, axis, cleaned, confidence)
             updates = {**cleaned, "axis": axis, "confidence": confidence}
             if not user_facing:
-                user_facing = f"Captured your {axis.replace('_', ' ')}. Moving on."
+                user_facing = _explain_pin(axis, cleaned, profile)
         elif tool_name == "set_scoping":
             cleaned_full = validate_full_scoping(tool_args)
             profile = merge_full_into_profile(profile, cleaned_full)

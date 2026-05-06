@@ -1,7 +1,6 @@
 import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts';
-import { AgentPanel } from '../components/AgentPanel';
 import { Card, Eyebrow, Hairline, StatBig } from '../components/Card';
 import { HEADLINE, PORTFOLIO, STRESS_2030 } from '../data/keyNumbers';
 import { EvidenceModal } from '../components/EvidenceModal';
@@ -14,21 +13,10 @@ const COLOURS: Record<string, string> = {
   'Current Policies':   '#8B2E1F',
 };
 
-const ALLOWED_SCENARIOS = STRESS_2030.map((s) => s.scenario);
-
 export function Stress() {
   const [scenario, setScenario] = useState('Current Policies');
   const [elasticity, setElasticity] = useState(PORTFOLIO.elasticity);
   const [evidenceId, setEvidenceId] = useState<string | null>(null);
-
-  const applyAgentUpdates = (p: Record<string, unknown>) => {
-    if (typeof p.scenario === 'string' && ALLOWED_SCENARIOS.includes(p.scenario)) {
-      setScenario(p.scenario);
-    }
-    if (typeof p.elasticity === 'number') {
-      setElasticity(Math.max(0.3, Math.min(1.2, p.elasticity)));
-    }
-  };
 
   const ref = STRESS_2030.find((s) => s.scenario === 'Current Policies')!;
 
@@ -56,7 +44,6 @@ export function Stress() {
   const entry = evidenceId ? EVIDENCE_BY_ID[evidenceId] ?? null : null;
 
   return (
-    <div className="lg:grid lg:grid-cols-[1fr_320px] lg:gap-6 lg:items-start">
     <div className="space-y-5">
       {/* Provenance banner — shows this screen reads pipeline outputs */}
       <section className="flex items-center justify-between border border-rule bg-paper/80 px-4 py-2.5">
@@ -259,12 +246,6 @@ export function Stress() {
       </p>
 
       <EvidenceModal entry={entry} onClose={() => setEvidenceId(null)} />
-    </div>
-    <AgentPanel
-      screen="stress"
-      currentState={{ scenario, elasticity, gwp_usdm: PORTFOLIO.gwpUsdM }}
-      onUpdate={applyAgentUpdates}
-    />
     </div>
   );
 }
