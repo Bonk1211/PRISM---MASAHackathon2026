@@ -29,6 +29,24 @@ m3b.load_model(str(ROOT / "m3b.json"))
 with open(ROOT / "meta.json") as f:
     META = json.load(f)
 
+# Live data overlay — Climate TRACE snapshot from data/external/live/latest/.
+# Additive: bundled META["actual_2024"] (WDI vintage) stays authoritative for
+# regression tests and notebook reproducibility; live values exposed under
+# "actual_2024_live" + freshness fields so the PWA can render a "data as of"
+# pill without breaking the seed=2026 invariant.
+_LIVE_DIR = Path(__file__).resolve().parents[1] / "data" / "external" / "live" / "latest"
+_LIVE_CT = _LIVE_DIR / "climate_trace.json"
+if _LIVE_CT.exists():
+    try:
+        _snap = json.loads(_LIVE_CT.read_text())
+        if isinstance(_snap.get("actual_2024_Mt"), dict):
+            META["actual_2024_live"] = _snap["actual_2024_Mt"]
+            META["data_as_of"] = _snap.get("fetched_at")
+            META["data_source"] = _snap.get("source")
+            META["data_url"] = _snap.get("url")
+    except (json.JSONDecodeError, OSError):
+        pass
+
 # Sanity check: model and meta must agree on input arity. Catches the worst
 # silent failure mode — re-running cell 42 after editing FEATURES without
 # retraining the M3a binary.

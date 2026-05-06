@@ -1,0 +1,20 @@
+{
+  "source": "Climate TRACE v7 /rankings/countries",
+  "url": "https://api.climatetrace.org/v7/rankings/countries?start=2024-01-01&end=2024-12-31",
+  "year": 2024,
+  "gas": "co2e_100yr",
+  "unit": "Mt",
+  "fetched_at": "2026-05-06T03:13:44.373722+00:00",
+  "actual_2024_Mt": {
+    "Indonesia": 1949.0802,
+    "Vietnam": 581.7216,
+    "Thailand": 556.0139,
+    "Malaysia": 521.976,
+    "Philippines": 291.8696,
+    "Myanmar": 264.7158,
+    "Lao PDR": 160.4587,
+    "Singapore": 115.5378,
+    "Cambodia": 87.438,
+    "Brunei Darussalam": 16.6871
+  }
+}

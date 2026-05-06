@@ -1,10 +1,13 @@
 import { Suspense, lazy } from 'react';
 import { HashRouter, Route, Routes } from 'react-router-dom';
 import { Layout } from './components/Layout';
-import { Story } from './screens/Story';
+import { Landing } from './screens/Landing';
 import { Pipeline } from './screens/Pipeline';
 
-// Chart-heavy screens lazy-loaded — keeps Recharts out of the initial bundle.
+// Chart-heavy / large screens lazy-loaded.
+const Pricing = lazy(() => import('./screens/Pricing').then((m) => ({ default: m.Pricing })));
+const Report = lazy(() => import('./screens/Report').then((m) => ({ default: m.Report })));
+const Story = lazy(() => import('./screens/Story').then((m) => ({ default: m.Story })));
 const Model = lazy(() => import('./screens/Model').then((m) => ({ default: m.Model })));
 const Diagnostic = lazy(() => import('./screens/Diagnostic').then((m) => ({ default: m.Diagnostic })));
 const HotSpots = lazy(() => import('./screens/HotSpots').then((m) => ({ default: m.HotSpots })));
@@ -29,8 +32,11 @@ export default function App() {
     <HashRouter>
       <Routes>
         <Route element={<Layout />}>
-          <Route index element={<Story />} />
+          <Route index element={<Landing />} />
           <Route path="pipeline" element={<Pipeline />} />
+          <Route path="pricing" element={<Suspense fallback={<Loading />}><Pricing /></Suspense>} />
+          <Route path="report" element={<Suspense fallback={<Loading />}><Report /></Suspense>} />
+          <Route path="story" element={<Suspense fallback={<Loading />}><Story /></Suspense>} />
           <Route path="model" element={<Suspense fallback={<Loading />}><Model /></Suspense>} />
           <Route path="diagnostic" element={<Suspense fallback={<Loading />}><Diagnostic /></Suspense>} />
           <Route path="hotspots" element={<Suspense fallback={<Loading />}><HotSpots /></Suspense>} />
@@ -41,7 +47,7 @@ export default function App() {
           <Route path="actions" element={<Suspense fallback={<Loading />}><Actions /></Suspense>} />
           <Route path="brief" element={<Suspense fallback={<Loading />}><Brief /></Suspense>} />
           <Route path="evidence" element={<Suspense fallback={<Loading />}><Evidence /></Suspense>} />
-          <Route path="*" element={<Story />} />
+          <Route path="*" element={<Landing />} />
         </Route>
       </Routes>
     </HashRouter>

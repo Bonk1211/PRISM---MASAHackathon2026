@@ -329,7 +329,8 @@ def handle_agent(req: AgentRequest) -> AgentResponse:
     try:
         tool_name, raw_args = _extract(req)
     except Exception as e:
-        return AgentResponse(error=f"parse_failed:{type(e).__name__}")
+        msg = str(e)[:200] or type(e).__name__
+        return AgentResponse(error=f"parse_failed: {msg}")
 
     try:
         updates = validate_updates(tool_name, raw_args, req.screen)

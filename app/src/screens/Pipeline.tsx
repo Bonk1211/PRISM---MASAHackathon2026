@@ -1,7 +1,10 @@
 import { useEffect, useRef, useState } from 'react';
 import { Card, Eyebrow, Hairline, StatBig } from '../components/Card';
-import { Ticker } from '../components/Ticker';
 import { useFocusTrap } from '../lib/useFocusTrap';
+import { AnimatedNumber } from '../components/pipeline/AnimatedNumber';
+import { Sparkbar } from '../components/pipeline/Sparkbar';
+import { StageCard, Connector } from '../components/pipeline/StageCard';
+import { FeatureOverridePanel } from '../components/pipeline/FeatureOverridePanel';
 import {
   predict, getMeta, getLastApiError, type Trace, type Mode, type PipelineMeta,
 } from '../lib/pipeline';
@@ -22,20 +25,11 @@ const PRETTY_FEATURE: Record<string, string> = {
   GDP_per_capita_2015USD: 'GDP / capita',
 };
 
-const FEATURE_UNIT: Record<string, string> = {
-  log_GDP: 'log USD constant',
-  log_pop: 'log persons',
-  log_GHG_lag1: 'log megatonnes CO₂e (one-year lag)',
-  log_GHG_lag2: 'log megatonnes CO₂e (two-year lag)',
-  renewable_energy_pct: 'percent',
-  urban_pop_pct: 'percent',
-  industry_pct_GDP: 'percent',
-  forest_area_pct: 'percent',
-  CO2_intensity_GDP: 'kg CO₂ per USD GDP',
-  GDP_per_capita_2015USD: 'USD per capita',
-};
-
 type InspectKey = '01' | '02' | '03' | '04' | '05' | null;
+
+const FRESH_MS = 1100;
+const LATENCY_HISTORY = 10;
+const PLAY_INTERVAL_MS = 1500;
 
 export function Pipeline() {
   const [meta, setMeta] = useState<PipelineMeta | null>(null);
@@ -51,7 +45,20 @@ export function Pipeline() {
   const [baseLr, setBaseLr] = useState(0.62);
   const [overrides, setOverrides] = useState<Record<string, number>>({});
 
-  // Load meta on mount
+  // Live latency log — for the sparkbar in Stage 03.
+  const [latencyLog, setLatencyLog] = useState<number[]>([]);
+
+  // Per-stage "fresh" ticks — flipped true when a new trace arrives, then
+  // back to false after FRESH_MS so the green status dot pulses momentarily.
+  const [updateTick, setUpdateTick] = useState(0);
+  const [freshUntil, setFreshUntil] = useState(0);
+  const [, forceTick] = useState(0);
+  const fresh = Date.now() < freshUntil;
+
+  // "Play" mode — auto-cycle through countries to demo live recompute.
+  const [playing, setPlaying] = useState(false);
+
+  // Load meta on mount.
   useEffect(() => {
     getMeta().then(setMeta);
   }, []);
@@ -69,13 +76,25 @@ export function Pipeline() {
       const ctrl = new AbortController();
       ctrlRef.current = ctrl;
       setBusy(true);
+      const t0 = performance.now();
       try {
         const next = await predict({
           mode, country, scenario,
           elasticity, gwp_usdm: gwp, base_lr: baseLr,
           feature_overrides: overrides,
         }, ctrl.signal);
-        if (!ctrl.signal.aborted) setTrace(next);
+        if (!ctrl.signal.aborted) {
+          setTrace(next);
+          // Server-reported inference_ms preferred; fall back to wall-clock.
+          const sample = next.stage_3_xgb.inference_ms
+            ?? Math.max(0.5, performance.now() - t0);
+          setLatencyLog((prev) => {
+            const out = [...prev, sample];
+            return out.length > LATENCY_HISTORY ? out.slice(out.length - LATENCY_HISTORY) : out;
+          });
+          setUpdateTick((n) => n + 1);
+          setFreshUntil(Date.now() + FRESH_MS);
+        }
       } catch {
         // aborted — caller raced ahead; do nothing
       } finally {
@@ -87,10 +106,37 @@ export function Pipeline() {
     };
   }, [meta, mode, country, scenario, elasticity, gwp, baseLr, overrides]);
 
+  // Re-render once after the freshness window expires so the StatusDot fades
+  // back to grey. Cheap — single timeout per fresh window.
+  useEffect(() => {
+    if (!freshUntil) return;
+    const wait = Math.max(0, freshUntil - Date.now()) + 50;
+    const id = window.setTimeout(() => forceTick((n) => n + 1), wait);
+    return () => window.clearTimeout(id);
+  }, [freshUntil]);
+
+  // Play mode — cycle country every PLAY_INTERVAL_MS while active.
+  useEffect(() => {
+    if (!playing || !meta) return;
+    const list = meta.countries;
+    const id = window.setInterval(() => {
+      setCountry((prev) => {
+        const i = list.indexOf(prev);
+        return list[(i + 1) % list.length];
+      });
+    }, PLAY_INTERVAL_MS);
+    return () => window.clearInterval(id);
+  }, [playing, meta]);
+
   const cached = trace?.trace_meta.served_by === 'cached';
+  const baseValues = trace?.stage_1_inputs.raw_features ?? {};
+  const featureRanges = meta?.feature_ranges ?? {};
+  const featureList = meta?.m3a_features ?? [];
+
+  const lastLatency = latencyLog[latencyLog.length - 1];
 
   return (
-    <div className="space-y-5 lg:grid lg:grid-cols-[320px_1fr] lg:gap-6 lg:space-y-0">
+    <div className="space-y-4">
       {/* Off-screen live region — announces fresh predictions to screen readers */}
       <div role="status" aria-live="polite" className="sr-only">
         {trace && !busy
@@ -98,296 +144,366 @@ export function Pipeline() {
           : ''}
       </div>
 
-      {/* Inputs panel */}
-      <aside className="space-y-4 lg:sticky lg:top-[140px] lg:max-h-[calc(100vh-160px)] lg:overflow-y-auto lg:pr-2">
-        <section className="border border-rule bg-paper px-5 py-5">
-          <p id="mode-label" className="eyebrow text-muted">Mode</p>
-          <div role="radiogroup" aria-labelledby="mode-label" className="mt-2 grid grid-cols-2 border border-rule">
-            {(['hindcast', 'forward'] as Mode[]).map((m) => (
-              <button
-                key={m}
-                role="radio"
-                aria-checked={mode === m}
-                onClick={() => setMode(m)}
-                className={[
-                  'min-h-[40px] px-3 text-[11px] font-semibold uppercase tracking-eyebrow transition',
-                  mode === m ? 'bg-ink text-paper' : 'bg-paper text-ink',
-                ].join(' ')}
-              >
-                {m === 'hindcast' ? 'Hindcast 2024' : 'Forward 2030'}
-              </button>
-            ))}
-          </div>
+      {/* === CONTROL BAR (sticky) === */}
+      <ControlBar
+        meta={meta}
+        mode={mode}
+        country={country}
+        scenario={scenario}
+        elasticity={elasticity}
+        gwp={gwp}
+        baseLr={baseLr}
+        playing={playing}
+        busy={busy}
+        cached={cached}
+        trace={trace}
+        onMode={setMode}
+        onCountry={setCountry}
+        onScenario={setScenario}
+        onElasticity={setElasticity}
+        onGwp={setGwp}
+        onBaseLr={setBaseLr}
+        onTogglePlay={() => setPlaying((p) => !p)}
+      />
 
-          <div className="mt-4">
-            <label htmlFor="country-select" className="eyebrow text-muted">Country</label>
-            <select
-              id="country-select"
-              value={country}
-              onChange={(e) => setCountry(e.target.value)}
-              className="mt-2 w-full border border-rule bg-paper px-3 py-2 text-[13px] text-ink"
-            >
-              {(meta?.countries ?? ['Vietnam']).map((c) => (
-                <option key={c} value={c}>{c}</option>
-              ))}
-            </select>
-          </div>
-
-          {mode === 'forward' && (
-            <div className="mt-4">
-              <label htmlFor="scenario-select" className="eyebrow text-muted">NGFS scenario</label>
-              <select
-                id="scenario-select"
-                value={scenario}
-                onChange={(e) => setScenario(e.target.value)}
-                className="mt-2 w-full border border-rule bg-paper px-3 py-2 text-[13px] text-ink"
-              >
-                {Object.keys(meta?.ngfs_scenarios ?? { 'Net Zero 2050': 0 }).map((s) => (
-                  <option key={s} value={s}>{s}</option>
-                ))}
-              </select>
-            </div>
-          )}
-        </section>
-
-        <section className="border border-rule bg-paper px-5 py-5">
-          <div className="flex items-baseline justify-between">
-            <Eyebrow>Feature overrides</Eyebrow>
-            <button
-              onClick={() => setOverrides({})}
-              className="font-mono text-[10px] uppercase tracking-eyebrow text-sea hover:underline"
-            >
-              reset all
-            </button>
-          </div>
-          <p className="mt-1 text-[11px] text-muted">Drag to perturb model inputs.</p>
-          <Hairline className="mt-3" />
-          <div className="mt-3 space-y-3">
-            {(meta?.m3a_features ?? []).map((f) => {
-              const range = meta?.feature_ranges[f] ?? { min: 0, max: 100 };
-              const baseVal =
-                trace?.stage_1_inputs.raw_features[f] ?? range.min;
-              const live = overrides[f] ?? baseVal;
-              const isOverridden = overrides[f] !== undefined;
-              const step = (range.max - range.min) / 200;
-              const prettyName = PRETTY_FEATURE[f] ?? f;
-              const unit = FEATURE_UNIT[f] ?? '';
-              const decimals = f.startsWith('log') || f.includes('intensity') ? 3 : 1;
-              return (
-                <div key={f}>
-                  <div className="flex items-baseline justify-between">
-                    <label htmlFor={`f-${f}`} className="text-[11px] text-ink">
-                      {prettyName}
-                    </label>
-                    <span className="flex items-center gap-2">
-                      <span
-                        className={[
-                          'font-mono text-[11px] tab-num',
-                          isOverridden ? 'text-amber font-semibold italic' : 'text-muted',
-                        ].join(' ')}
-                        aria-label={isOverridden ? 'overridden value' : undefined}
-                      >
-                        {isOverridden && <span aria-hidden="true">● </span>}
-                        {live.toFixed(decimals)}
-                      </span>
-                      {isOverridden && (
-                        <button
-                          aria-label={`Reset ${prettyName} to baseline`}
-                          onClick={() => {
-                            setOverrides((prev) => {
-                              const next = { ...prev };
-                              delete next[f];
-                              return next;
-                            });
-                          }}
-                          className="font-mono text-[9px] uppercase tracking-eyebrow text-sea hover:underline"
+      {trace ? (
+        <>
+          {/* === FLOW DIAGRAM === */}
+          <div className="flex flex-col gap-2 lg:flex-row lg:items-stretch [&>section]:lg:min-w-0 [&>section]:lg:flex-1">
+            {/* Stage 01 — Inputs */}
+            <StageCard
+              code="01"
+              title="Input vector"
+              accent="ink"
+              fresh={fresh}
+              subtitle={`${trace.stage_1_inputs.country} · base ${trace.stage_1_inputs.mode === 'hindcast' ? '2023' : '2024'}`}
+              onInspect={() => setInspect('01')}
+              hero={
+                <div className="space-y-3">
+                  <div className="flex flex-wrap items-center gap-1.5">
+                    <span className="border border-ink bg-ink px-2 py-0.5 font-mono text-[10px] uppercase tracking-eyebrow text-paper">
+                      {trace.stage_1_inputs.country}
+                    </span>
+                    <span className="font-mono text-[10px] tab-num text-muted">
+                      year {trace.stage_1_inputs.year}
+                    </span>
+                    <span className="font-mono text-[9px] uppercase tracking-eyebrow text-muted">
+                      · {trace.stage_1_inputs.mode}
+                    </span>
+                  </div>
+                  <ul className="space-y-0.5">
+                    {Object.entries(trace.stage_1_inputs.raw_features).slice(0, 8).map(([k, v]) => {
+                      const isOv = trace.stage_1_inputs.applied_overrides[k] !== undefined;
+                      return (
+                        <li
+                          key={k}
+                          className="flex items-baseline justify-between gap-2 border-b border-rule/40 py-0.5"
                         >
-                          <span aria-hidden="true">↺</span>
-                        </button>
-                      )}
+                          <span className="truncate text-[10px] text-muted">
+                            {PRETTY_FEATURE[k] ?? k}
+                          </span>
+                          <span
+                            className={[
+                              'shrink-0 font-mono text-[10px] tab-num',
+                              isOv ? 'font-semibold text-rust' : 'text-ink',
+                            ].join(' ')}
+                          >
+                            {isOv && <span aria-hidden="true">● </span>}
+                            {typeof v === 'number' ? v.toFixed(2) : String(v)}
+                          </span>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                  <p className="font-mono text-[9px] uppercase tracking-eyebrow text-muted">
+                    {Object.keys(trace.stage_1_inputs.raw_features).length} indicators ·{' '}
+                    <span className={Object.keys(trace.stage_1_inputs.applied_overrides).length > 0 ? 'text-rust' : ''}>
+                      {Object.keys(trace.stage_1_inputs.applied_overrides).length} overridden
                     </span>
-                  </div>
-                  <input
-                    id={`f-${f}`}
-                    type="range"
-                    min={range.min}
-                    max={range.max}
-                    step={step}
-                    value={live}
-                    aria-valuetext={`${live.toFixed(decimals)}${unit ? ' ' + unit : ''}`}
-                    onChange={(e) => {
-                      const v = Number(e.target.value);
-                      setOverrides((prev) => ({ ...prev, [f]: v }));
-                    }}
-                    className="rule-slider"
-                  />
+                  </p>
                 </div>
-              );
-            })}
-          </div>
-        </section>
+              }
+            />
 
-        <section className="border border-rule bg-paper px-5 py-5">
-          <Eyebrow>Loss mapping</Eyebrow>
-          <Hairline className="mt-3" />
-          <SliderRow id="elasticity" label="ε elasticity" unit="elasticity coefficient" value={elasticity} min={0.3} max={1.2} step={0.01} format={(v) => v.toFixed(2)} onChange={setElasticity} />
-          <SliderRow id="gwp" label="GWP USDm" unit="USD millions" value={gwp} min={500} max={3000} step={50} format={(v) => v.toFixed(0)} onChange={setGwp} />
-          <SliderRow id="base-lr" label="Base LR" unit="base loss ratio" value={baseLr} min={0.40} max={0.85} step={0.01} format={(v) => v.toFixed(2)} onChange={setBaseLr} />
-        </section>
-      </aside>
+            <div className="hidden lg:flex"><Connector /></div>
+            <div className="flex justify-center lg:hidden"><Connector /></div>
 
-      {/* Stages */}
-      <div className="space-y-3">
-        {/* Hero strip */}
-        <section className={['border px-5 py-4 transition', cached ? 'border-amber/50 bg-amber/[0.06]' : 'border-rule bg-paper'].join(' ')}>
-          <div className="flex items-center justify-between gap-3">
-            <div className="min-w-0 flex-1">
-              <Eyebrow>{cached ? 'Cached mode · API offline' : 'Live · FastAPI'}</Eyebrow>
-              <p className="mt-1 font-mono text-[11px] tab-num text-ink">
-                {trace?.trace_meta.served_by === 'fastapi'
-                  ? `POST /predict · ${trace.trace_meta.total_latency_ms?.toFixed(1) ?? '—'} ms · seed ${trace.trace_meta.seed}`
-                  : 'Numbers from key_numbers_python.json + parametric overlay. Set VITE_PIPELINE_API to wire the real model.'}
-              </p>
-              {cached && getLastApiError() && (
-                <p className="mt-1 truncate font-mono text-[10px] text-amber">
-                  reason: {getLastApiError()}
-                </p>
-              )}
-            </div>
-            <Ticker code={busy ? '••' : 'OK'} tone={busy ? 'amber' : cached ? 'amber' : 'sage'} size="md" />
-          </div>
-        </section>
-
-        {trace ? (
-          <>
-            <Stage code="01" title="Input vector" subtitle={`${trace.stage_1_inputs.country} · base year ${trace.stage_1_inputs.mode === 'hindcast' ? 2023 : 2024}`} onInspect={() => setInspect('01')} accent="ink">
-              <div className="grid grid-cols-2 gap-x-4 gap-y-1.5 lg:grid-cols-3">
-                {Object.entries(trace.stage_1_inputs.raw_features).slice(0, 9).map(([k, v]) => (
-                  <div key={k} className="flex items-baseline justify-between border-b border-rule/60 py-1">
-                    <span className="text-[10px] text-muted">{PRETTY_FEATURE[k] ?? k}</span>
-                    <span className={['font-mono text-[11px] tab-num', trace.stage_1_inputs.applied_overrides[k] !== undefined ? 'text-amber font-semibold' : 'text-ink'].join(' ')}>
-                      {typeof v === 'number' ? v.toFixed(2) : String(v)}
-                    </span>
+            {/* Stage 02 — Features (with override panel) */}
+            <StageCard
+              code="02"
+              title="Feature engineering"
+              accent="sea"
+              fresh={fresh}
+              subtitle={`X ∈ ℝ${trace.stage_2_features.feature_order.length} · log() on ${trace.stage_2_features.log_transformed_keys.length} keys`}
+              onInspect={() => setInspect('02')}
+              hero={
+                <div className="space-y-3">
+                  <div className="flex items-baseline justify-between">
+                    <div>
+                      <p className="eyebrow text-muted">Vector dim</p>
+                      <div className="display tab-num text-[36px] leading-none text-sea">
+                        {trace.stage_2_features.feature_order.length}
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <p className="eyebrow text-muted">log()</p>
+                      <div className="font-mono text-[16px] tab-num text-ink">
+                        {trace.stage_2_features.log_transformed_keys.length}
+                        <span className="text-[11px] text-muted">
+                          /{trace.stage_2_features.feature_order.length}
+                        </span>
+                      </div>
+                    </div>
                   </div>
-                ))}
-              </div>
-            </Stage>
-
-            <Arrow />
-
-            <Stage code="02" title="Feature engineering" subtitle={`X ∈ ℝ${trace.stage_2_features.feature_order.length} · log() applied to GDP, pop, GHG lags`} onInspect={() => setInspect('02')} accent="sea">
-              <div className="overflow-x-auto no-scrollbar">
-                <div className="flex gap-1 whitespace-nowrap font-mono text-[10px]">
-                  {trace.stage_2_features.X.map((x, i) => (
-                    <span key={i} className="border border-rule px-1.5 py-0.5 tab-num text-ink">
-                      {x.toFixed(2)}
-                    </span>
-                  ))}
+                  {(() => {
+                    const xs = trace.stage_2_features.X;
+                    const order = trace.stage_2_features.feature_order;
+                    const maxAbs = Math.max(...xs.map((v) => Math.abs(v)), 0.01);
+                    return (
+                      <ul className="space-y-1">
+                        {order.slice(0, 6).map((f, i) => {
+                          const v = xs[i] ?? 0;
+                          const w = Math.min(100, (Math.abs(v) / maxAbs) * 100);
+                          const isLog = trace.stage_2_features.log_transformed_keys.includes(f);
+                          return (
+                            <li key={f} className="flex items-center gap-2">
+                              <span className="w-20 shrink-0 truncate text-[10px] text-ink lg:w-24">
+                                {PRETTY_FEATURE[f] ?? f}
+                              </span>
+                              <div className="h-1.5 flex-1 bg-ink/10">
+                                <div
+                                  className={['h-full transition-[width] duration-300', isLog ? 'bg-sea' : 'bg-ink/40'].join(' ')}
+                                  style={{ width: `${w}%` }}
+                                />
+                              </div>
+                              <span className="w-10 shrink-0 text-right font-mono text-[9px] tab-num text-ink">
+                                {v.toFixed(1)}
+                              </span>
+                            </li>
+                          );
+                        })}
+                      </ul>
+                    );
+                  })()}
+                  <p className="font-mono text-[9px] uppercase tracking-eyebrow text-muted">
+                    <span className="inline-block h-2 w-2 bg-sea align-middle" /> log-transformed ·{' '}
+                    <span className="inline-block h-2 w-2 bg-ink/40 align-middle" /> raw
+                  </p>
                 </div>
-              </div>
-            </Stage>
+              }
+              details={
+                <FeatureOverridePanel
+                  features={featureList}
+                  ranges={featureRanges}
+                  baseValues={baseValues}
+                  overrides={overrides}
+                  onChange={(k, v) => {
+                    setOverrides((prev) => {
+                      if (v === undefined) {
+                        const next = { ...prev };
+                        delete next[k];
+                        return next;
+                      }
+                      return { ...prev, [k]: v };
+                    });
+                  }}
+                  onResetAll={() => setOverrides({})}
+                />
+              }
+              defaultOpen={Object.keys(overrides).length > 0}
+            />
 
-            <Arrow />
+            <div className="hidden lg:flex"><Connector /></div>
+            <div className="flex justify-center lg:hidden"><Connector /></div>
 
-            <Stage
+            {/* Stage 03 — XGBoost */}
+            <StageCard
               code="03"
               title="XGBoost inference"
-              subtitle={`M3a.predict(X) → exp(log_GHG) → Mt`}
-              onInspect={() => setInspect('03')}
               accent="rust"
-            >
-              <div className="grid grid-cols-3 gap-3">
-                <StatBig
-                  value={`${trace.stage_3_xgb.ghg_pred_Mt.toFixed(1)} Mt`}
-                  label="Predicted"
-                  accent="ink"
-                  size="md"
-                />
-                {trace.stage_3_xgb.actual_Mt !== null && (
-                  <StatBig
-                    value={`${trace.stage_3_xgb.actual_Mt.toFixed(1)} Mt`}
-                    label="Actual 2024"
-                    accent="sea"
-                    size="md"
-                  />
-                )}
-                {trace.stage_3_xgb.err_pct !== null && (
-                  <StatBig
-                    value={`${trace.stage_3_xgb.err_pct >= 0 ? '+' : ''}${trace.stage_3_xgb.err_pct.toFixed(2)}%`}
-                    label="Error"
-                    accent={Math.abs(trace.stage_3_xgb.err_pct) <= 5 ? 'sage' : 'amber'}
-                    size="md"
-                  />
-                )}
-              </div>
-              <Hairline className="mt-3" />
-              <div className="mt-2 flex items-baseline justify-between font-mono text-[10px] uppercase tracking-eyebrow text-muted">
-                <span>Inference</span>
-                <span className="tab-num text-ink">
-                  {trace.stage_3_xgb.inference_ms !== null
-                    ? `${trace.stage_3_xgb.inference_ms.toFixed(2)} ms · XGBoost ${trace.stage_3_xgb.model}`
-                    : '— ms · cached'}
-                </span>
-              </div>
-            </Stage>
+              fresh={fresh}
+              subtitle={`M3a · seed ${trace.trace_meta.seed} · ${trace.trace_meta.served_by === 'fastapi' ? 'live' : 'cached'}`}
+              onInspect={() => setInspect('03')}
+              hero={
+                <div>
+                  <p className="eyebrow text-muted">
+                    {trace.stage_1_inputs.mode === 'hindcast' ? 'Predicted 2024' : 'Anchor 2024'}
+                  </p>
+                  <div className="display tab-num text-[34px] leading-none text-ink">
+                    <AnimatedNumber
+                      value={trace.stage_3_xgb.ghg_pred_Mt}
+                      format={(v) => v.toFixed(1)}
+                    />
+                    <span className="ml-1 text-[16px] text-muted">Mt</span>
+                  </div>
+                  {trace.stage_3_xgb.actual_Mt !== null && (
+                    <div className="mt-1 flex items-baseline gap-2 font-mono text-[10px] tab-num">
+                      <span className="text-muted">actual {trace.stage_3_xgb.actual_Mt.toFixed(1)}</span>
+                      {trace.stage_3_xgb.err_pct !== null && (
+                        <span className={Math.abs(trace.stage_3_xgb.err_pct) <= 5 ? 'text-sage' : 'text-amber'}>
+                          {trace.stage_3_xgb.err_pct >= 0 ? '+' : ''}{trace.stage_3_xgb.err_pct.toFixed(2)}%
+                        </span>
+                      )}
+                    </div>
+                  )}
+                  <div className="mt-2 flex items-end justify-between gap-3">
+                    <div>
+                      <p className="font-mono text-[9px] uppercase tracking-eyebrow text-muted">
+                        Latency · last {latencyLog.length}
+                      </p>
+                      <Sparkbar values={latencyLog} className="mt-0.5" />
+                    </div>
+                    <div className="text-right">
+                      <span className="font-mono text-[9px] uppercase tracking-eyebrow text-muted">
+                        last
+                      </span>
+                      <div className="font-mono text-[12px] tab-num text-ink">
+                        {lastLatency !== undefined ? `${lastLatency.toFixed(1)}ms` : '—'}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              }
+              details={
+                <div>
+                  <p className="font-mono text-[10px] tab-num text-muted">
+                    log_GHG_pred = {trace.stage_3_xgb.log_ghg_pred.toFixed(4)}
+                  </p>
+                  <p className="font-mono text-[10px] tab-num text-muted">
+                    exp() = {trace.stage_3_xgb.ghg_pred_Mt.toFixed(2)} Mt
+                  </p>
+                  <Hairline className="my-2" />
+                  <p className="eyebrow text-muted">Top driver gain · M3b</p>
+                  <ul className="mt-1.5 space-y-1">
+                    {DRIVERS.slice(0, 4).map((d) => (
+                      <li key={d.feature} className="flex items-center gap-2">
+                        <span className="w-28 truncate text-[10px] text-ink">{d.feature}</span>
+                        <div className="h-1.5 flex-1 bg-ink/10">
+                          <div className="h-full bg-rust" style={{ width: `${(d.gain * 100).toFixed(1)}%` }} />
+                        </div>
+                        <span className="w-9 text-right font-mono text-[9px] tab-num text-ink">
+                          {(d.gain * 100).toFixed(1)}%
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              }
+            />
 
-            <Arrow />
+            <div className="hidden lg:flex"><Connector /></div>
+            <div className="flex justify-center lg:hidden"><Connector /></div>
 
-            <Stage
+            {/* Stage 04 — Scenario */}
+            <StageCard
               code="04"
-              title="NGFS scenario overlay"
-              subtitle={`${trace.stage_4_scenario.scenario} · g = ${(trace.stage_4_scenario.growth_rate_pa * 100).toFixed(1)}% p.a.`}
-              onInspect={() => setInspect('04')}
+              title="NGFS overlay"
               accent="amber"
-            >
-              <p className="font-serif italic text-[14px] leading-relaxed text-ink">
-                E({trace.stage_1_inputs.year}) = {trace.stage_3_xgb.ghg_pred_Mt.toFixed(1)} × (1 + {(trace.stage_4_scenario.growth_rate_pa * 100).toFixed(1)}%)<sup>{trace.stage_4_scenario.years_compounded}</sup> = <span className="not-italic font-semibold">{trace.stage_4_scenario.target_Mt.toFixed(1)} Mt</span>
-              </p>
-              <Hairline className="mt-3" />
-              <p className="mt-2 font-mono text-[11px] tab-num text-muted">
-                Δ vs Hot House ({trace.stage_4_scenario.hothouse_Mt.toFixed(1)} Mt): {(trace.stage_4_scenario.delta_pct * 100).toFixed(2)}%
-              </p>
-            </Stage>
+              fresh={fresh}
+              subtitle={`${trace.stage_4_scenario.scenario} · g = ${(trace.stage_4_scenario.growth_rate_pa * 100).toFixed(1)}%`}
+              onInspect={() => setInspect('04')}
+              hero={
+                <div>
+                  <p className="eyebrow text-muted">Target {trace.stage_1_inputs.year}</p>
+                  <div className="display tab-num text-[34px] leading-none text-ink">
+                    <AnimatedNumber
+                      value={trace.stage_4_scenario.target_Mt}
+                      format={(v) => v.toFixed(1)}
+                    />
+                    <span className="ml-1 text-[16px] text-muted">Mt</span>
+                  </div>
+                  <p className="mt-1 font-mono text-[10px] tab-num text-muted">
+                    Hot House {trace.stage_4_scenario.hothouse_Mt.toFixed(1)} Mt ·
+                    Δ{' '}
+                    <span className={trace.stage_4_scenario.delta_pct < 0 ? 'text-sage' : 'text-rust'}>
+                      {trace.stage_4_scenario.delta_pct >= 0 ? '+' : ''}
+                      {(trace.stage_4_scenario.delta_pct * 100).toFixed(2)}%
+                    </span>
+                  </p>
+                  <div className="mt-2">
+                    <ScenarioBar
+                      hothouse={trace.stage_4_scenario.hothouse_Mt}
+                      target={trace.stage_4_scenario.target_Mt}
+                    />
+                  </div>
+                </div>
+              }
+              details={
+                <p className="font-serif italic text-[12px] leading-relaxed text-ink">
+                  E({trace.stage_1_inputs.year}) = {trace.stage_3_xgb.ghg_pred_Mt.toFixed(1)} ×
+                  (1 + {(trace.stage_4_scenario.growth_rate_pa * 100).toFixed(1)}%)
+                  <sup>{trace.stage_4_scenario.years_compounded}</sup> ={' '}
+                  <span className="not-italic font-semibold">{trace.stage_4_scenario.target_Mt.toFixed(1)} Mt</span>
+                </p>
+              }
+            />
 
-            <Arrow />
+            <div className="hidden lg:flex"><Connector /></div>
+            <div className="flex justify-center lg:hidden"><Connector /></div>
 
-            <Stage
+            {/* Stage 05 — Loss */}
+            <StageCard
               code="05"
               title="Loss-ratio mapping"
-              subtitle={`LR = base × (1 + ε × Δ%) · GWP × LR = expected loss`}
+              accent={trace.stage_5_loss.lr_pp_vs_base < 0 ? 'sage' : 'rust'}
+              fresh={fresh}
+              subtitle={`ε ${elasticity.toFixed(2)} · GWP USD ${gwp}m`}
               onInspect={() => setInspect('05')}
-              accent="ink"
-            >
-              <div className="grid grid-cols-3 gap-3">
-                <StatBig
-                  value={`${(trace.stage_5_loss.lr * 100).toFixed(1)}%`}
-                  label="Loss ratio"
-                  accent={trace.stage_5_loss.lr_pp_vs_base < 0 ? 'sage' : 'rust'}
-                  size="md"
-                />
-                <StatBig
-                  value={`USD ${trace.stage_5_loss.loss_USDm.toFixed(0)}m`}
-                  label="Expected loss"
-                  accent="ink"
-                  size="md"
-                />
-                <StatBig
-                  value={`${trace.stage_5_loss.loss_swing_vs_hothouse_USDm >= 0 ? '+' : '−'}USD ${Math.abs(trace.stage_5_loss.loss_swing_vs_hothouse_USDm).toFixed(0)}m`}
-                  label="Δ vs Hot House"
-                  accent="sea"
-                  size="md"
-                />
-              </div>
-            </Stage>
-          </>
-        ) : (
-          <Card><p className="text-[12px] text-muted">Loading pipeline…</p></Card>
-        )}
+              hero={
+                <div>
+                  <p className="eyebrow text-muted">Expected loss</p>
+                  <div className={[
+                    'display tab-num text-[34px] leading-none',
+                    trace.stage_5_loss.lr_pp_vs_base < 0 ? 'text-sage' : 'text-rust',
+                  ].join(' ')}>
+                    USD{' '}
+                    <AnimatedNumber
+                      value={trace.stage_5_loss.loss_USDm}
+                      format={(v) => v.toFixed(0)}
+                    />
+                    <span className="ml-1 text-[16px] text-muted">m</span>
+                  </div>
+                  <div className="mt-1 flex items-baseline gap-3 font-mono text-[10px] tab-num">
+                    <span className="text-muted">
+                      LR{' '}
+                      <span className="text-ink">
+                        <AnimatedNumber
+                          value={trace.stage_5_loss.lr * 100}
+                          format={(v) => v.toFixed(1) + '%'}
+                        />
+                      </span>
+                    </span>
+                    <span className={trace.stage_5_loss.lr_pp_vs_base < 0 ? 'text-sage' : 'text-rust'}>
+                      {trace.stage_5_loss.lr_pp_vs_base >= 0 ? '+' : ''}
+                      {trace.stage_5_loss.lr_pp_vs_base.toFixed(1)} pp
+                    </span>
+                  </div>
+                  <p className="mt-2 font-mono text-[10px] tab-num text-muted">
+                    vs Hot House:{' '}
+                    <span className={trace.stage_5_loss.loss_swing_vs_hothouse_USDm < 0 ? 'text-sage' : 'text-rust'}>
+                      {trace.stage_5_loss.loss_swing_vs_hothouse_USDm >= 0 ? '+' : '−'}USD{' '}
+                      {Math.abs(trace.stage_5_loss.loss_swing_vs_hothouse_USDm).toFixed(0)}m
+                    </span>
+                  </p>
+                </div>
+              }
+              details={
+                <pre className="overflow-x-auto bg-ink p-2 font-mono text-[10px] text-paper">
+{`LR    = base × (1 + ε × Δ%)
+      = ${baseLr.toFixed(2)} × (1 + ${elasticity.toFixed(2)} × ${(trace.stage_4_scenario.delta_pct * 100).toFixed(2)}%)
+      = ${(trace.stage_5_loss.lr * 100).toFixed(2)}%
+loss  = GWP × LR = ${trace.stage_5_loss.loss_USDm.toFixed(1)}`}
+                </pre>
+              }
+            />
+          </div>
 
-        <p className="px-1 text-center font-mono text-[10px] uppercase tracking-eyebrow text-muted">
-          {trace?.trace_meta.served_by === 'fastapi' ? 'Live · FastAPI' : 'Cached · static JSON'} · seed {trace?.trace_meta.seed ?? 2026} · pipeline v{trace?.trace_meta.pipeline_version ?? '1.0'}
-        </p>
-      </div>
+          {/* Footer status strip */}
+          <FooterStrip cached={cached} trace={trace} updateTick={updateTick} />
+        </>
+      ) : (
+        <Card><p className="text-[12px] text-muted">Loading pipeline…</p></Card>
+      )}
 
       {/* Inspect modal */}
       <InspectSheet kind={inspect} trace={trace} country={country} onClose={() => setInspect(null)} />
@@ -395,84 +511,263 @@ export function Pipeline() {
   );
 }
 
-function Stage({
-  code, title, subtitle, accent, onInspect, children,
+// =============================================================================
+// CONTROL BAR — sticky compact strip up top.
+// =============================================================================
+
+function ControlBar({
+  meta, mode, country, scenario, elasticity, gwp, baseLr,
+  playing, busy, cached, trace,
+  onMode, onCountry, onScenario, onElasticity, onGwp, onBaseLr, onTogglePlay,
 }: {
-  code: string;
-  title: string;
-  subtitle?: string;
-  accent: 'ink' | 'sea' | 'rust' | 'amber';
-  onInspect: () => void;
-  children: React.ReactNode;
+  meta: PipelineMeta | null;
+  mode: Mode; country: string; scenario: string;
+  elasticity: number; gwp: number; baseLr: number;
+  playing: boolean; busy: boolean; cached: boolean; trace: Trace | null;
+  onMode: (m: Mode) => void;
+  onCountry: (c: string) => void;
+  onScenario: (s: string) => void;
+  onElasticity: (v: number) => void;
+  onGwp: (v: number) => void;
+  onBaseLr: (v: number) => void;
+  onTogglePlay: () => void;
 }) {
-  const accentBar = {
-    ink:   'before:bg-ink',
-    sea:   'before:bg-sea',
-    rust:  'before:bg-rust',
-    amber: 'before:bg-amber',
-  }[accent];
+  const countries = meta?.countries ?? ['Vietnam'];
+  const scenarios = Object.keys(meta?.ngfs_scenarios ?? { 'Net Zero 2050': 0 });
+  const [showLossControls, setShowLossControls] = useState(false);
+
   return (
-    <section
-      className={[
-        'relative border border-rule bg-paper px-5 py-4 transition',
-        'before:absolute before:left-0 before:top-0 before:h-full before:w-[3px]',
-        accentBar,
-      ].join(' ')}
-    >
-      <div className="flex items-baseline justify-between gap-3">
-        <div>
-          <Eyebrow>Stage {code}</Eyebrow>
-          <h2 className="display mt-0.5 text-[20px] leading-tight text-ink lg:text-[26px]">{title}</h2>
-          {subtitle && <p className="mt-1 text-[11px] text-muted">{subtitle}</p>}
+    <div className={[
+      'sticky top-[52px] z-20 -mx-4 border border-rule px-4 pb-3 pt-3 backdrop-blur lg:top-[64px] lg:-mx-0 lg:px-5',
+      cached ? 'bg-amber/[0.04]' : 'bg-paper/92',
+    ].join(' ')}>
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <div className="flex items-center gap-2">
+          <span
+            aria-hidden="true"
+            className={[
+              'inline-block h-2 w-2 rounded-full',
+              busy ? 'bg-amber animate-pulse' : cached ? 'bg-amber' : 'bg-sage',
+            ].join(' ')}
+          />
+          <Eyebrow tone={cached ? 'ink' : 'muted'}>
+            {busy ? 'Computing…' : cached ? 'Cached · API offline' : 'Live · FastAPI'}
+          </Eyebrow>
+          {trace && (
+            <span className="font-mono text-[10px] tab-num text-muted">
+              {trace.trace_meta.total_latency_ms != null
+                ? `${trace.trace_meta.total_latency_ms.toFixed(1)} ms`
+                : 'cached'}
+              {' · '}seed {trace.trace_meta.seed}
+            </span>
+          )}
         </div>
         <button
-          onClick={onInspect}
-          aria-label={`Inspect stage ${code}: ${title}`}
-          className="shrink-0 border border-rule px-2 py-1 font-mono text-[9px] uppercase tracking-eyebrow text-sea hover:bg-sea/5"
+          type="button"
+          onClick={onTogglePlay}
+          aria-pressed={playing}
+          aria-label={playing ? 'Stop auto-cycle' : 'Auto-cycle through SEA countries'}
+          className={[
+            'inline-flex items-center gap-1.5 border px-2.5 py-1 font-mono text-[10px] uppercase tracking-eyebrow transition',
+            playing
+              ? 'border-rust bg-rust/10 text-rust'
+              : 'border-rule bg-paper text-ink hover:border-ink',
+          ].join(' ')}
         >
-          inspect <span aria-hidden="true">→</span>
+          <span aria-hidden="true">{playing ? '■' : '▶'}</span>
+          {playing ? 'stop' : 'play'}
         </button>
       </div>
-      <Hairline className="mt-3" />
-      <div className="mt-3">{children}</div>
-    </section>
-  );
-}
 
-function Arrow() {
-  return (
-    <div aria-hidden="true" className="flex justify-center py-1">
-      <span className="font-mono text-[14px] text-muted">↓</span>
-    </div>
-  );
-}
+      {/* Mode + Scenario chips */}
+      <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-2">
+        <div className="flex items-center gap-1.5">
+          <span className="eyebrow text-muted">Mode</span>
+          <div role="radiogroup" aria-label="Pipeline mode" className="flex border border-rule">
+            {(['hindcast', 'forward'] as Mode[]).map((m) => (
+              <button
+                key={m}
+                role="radio"
+                aria-checked={mode === m}
+                onClick={() => onMode(m)}
+                className={[
+                  'min-h-[28px] px-2.5 font-mono text-[10px] uppercase tracking-eyebrow transition',
+                  mode === m ? 'bg-ink text-paper' : 'bg-paper text-ink',
+                ].join(' ')}
+              >
+                {m === 'hindcast' ? '2024 hindcast' : '2030 forward'}
+              </button>
+            ))}
+          </div>
+        </div>
 
-function SliderRow({
-  id, label, unit, value, min, max, step, format, onChange,
-}: {
-  id: string; label: string; unit: string; value: number; min: number; max: number; step: number; format: (v: number) => string; onChange: (v: number) => void;
-}) {
-  const inputId = `slider-${id}`;
-  return (
-    <div className="mt-3">
-      <div className="flex items-baseline justify-between">
-        <label htmlFor={inputId} className="text-[11px] text-ink">{label}</label>
-        <span className="font-mono text-[11px] tab-num text-ink">{format(value)}</span>
+        {mode === 'forward' && (
+          <div className="flex items-center gap-1.5">
+            <span className="eyebrow text-muted">NGFS</span>
+            <div role="radiogroup" aria-label="NGFS scenario" className="flex flex-wrap gap-1">
+              {scenarios.map((s) => (
+                <button
+                  key={s}
+                  role="radio"
+                  aria-checked={scenario === s}
+                  onClick={() => onScenario(s)}
+                  className={[
+                    'min-h-[28px] border px-2 font-mono text-[10px] uppercase tracking-eyebrow transition',
+                    scenario === s
+                      ? 'border-ink bg-ink text-paper'
+                      : 'border-rule bg-paper text-ink hover:border-ink',
+                  ].join(' ')}
+                >
+                  {s}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
-      <input
-        id={inputId}
-        type="range"
-        min={min}
-        max={max}
-        step={step}
-        value={value}
-        aria-valuetext={`${format(value)} ${unit}`}
-        onChange={(e) => onChange(Number(e.target.value))}
-        className="rule-slider"
-      />
+
+      {/* Country chips */}
+      <div className="mt-2">
+        <div className="flex items-center gap-1.5">
+          <span className="eyebrow text-muted">Country</span>
+          <div role="radiogroup" aria-label="Country" className="flex flex-wrap gap-1">
+            {countries.map((c) => (
+              <button
+                key={c}
+                role="radio"
+                aria-checked={country === c}
+                onClick={() => onCountry(c)}
+                className={[
+                  'min-h-[28px] border px-2 font-mono text-[10px] uppercase tracking-eyebrow transition',
+                  country === c
+                    ? 'border-sea bg-sea text-paper'
+                    : 'border-rule bg-paper text-ink hover:border-sea',
+                ].join(' ')}
+              >
+                {c}
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Elasticity dial — big numeric display + slider */}
+      <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-2">
+        <div className="flex items-center gap-2">
+          <span className="eyebrow text-muted">ε</span>
+          <div className="flex items-baseline gap-1">
+            <span className="display tab-num text-[20px] leading-none text-ink">
+              {elasticity.toFixed(2)}
+            </span>
+            <span className="font-mono text-[9px] text-muted">elasticity</span>
+          </div>
+          <input
+            type="range"
+            min={0.3}
+            max={1.2}
+            step={0.01}
+            value={elasticity}
+            onChange={(e) => onElasticity(Number(e.target.value))}
+            aria-label="Elasticity"
+            aria-valuetext={`elasticity ${elasticity.toFixed(2)}`}
+            className="rule-slider w-32 lg:w-44"
+          />
+        </div>
+
+        <button
+          type="button"
+          onClick={() => setShowLossControls((v) => !v)}
+          aria-expanded={showLossControls}
+          className="ml-auto font-mono text-[10px] uppercase tracking-eyebrow text-sea hover:underline"
+        >
+          <span aria-hidden="true">{showLossControls ? '▾' : '▸'}</span>{' '}
+          GWP / base LR
+        </button>
+      </div>
+
+      {showLossControls && (
+        <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-2 border-t border-rule pt-2">
+          <div className="flex items-center gap-2">
+            <span className="eyebrow text-muted">GWP</span>
+            <span className="font-mono text-[11px] tab-num text-ink">USD {gwp}m</span>
+            <input
+              type="range"
+              min={500}
+              max={3000}
+              step={50}
+              value={gwp}
+              onChange={(e) => onGwp(Number(e.target.value))}
+              aria-label="Gross written premium in USD millions"
+              aria-valuetext={`USD ${gwp} million`}
+              className="rule-slider w-32 lg:w-44"
+            />
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="eyebrow text-muted">Base LR</span>
+            <span className="font-mono text-[11px] tab-num text-ink">{(baseLr * 100).toFixed(0)}%</span>
+            <input
+              type="range"
+              min={0.40}
+              max={0.85}
+              step={0.01}
+              value={baseLr}
+              onChange={(e) => onBaseLr(Number(e.target.value))}
+              aria-label="Base loss ratio"
+              aria-valuetext={`base loss ratio ${(baseLr * 100).toFixed(0)} percent`}
+              className="rule-slider w-32 lg:w-44"
+            />
+          </div>
+        </div>
+      )}
+
+      {cached && getLastApiError() && !/abort/i.test(getLastApiError() ?? '') && (
+        <p className="mt-2 truncate font-mono text-[9px] text-amber">
+          reason: {getLastApiError()}
+        </p>
+      )}
     </div>
   );
 }
+
+function ScenarioBar({ hothouse, target }: { hothouse: number; target: number }) {
+  const peak = Math.max(hothouse, target, 0.01);
+  const hothouseW = (hothouse / peak) * 100;
+  const targetW = (target / peak) * 100;
+  const lower = target < hothouse;
+  return (
+    <div className="space-y-1" role="img" aria-label={`Hot House ${hothouse.toFixed(1)} Mt vs target ${target.toFixed(1)} Mt`}>
+      <div className="flex items-center gap-2">
+        <span className="w-16 font-mono text-[8px] uppercase tracking-eyebrow text-muted">Hot House</span>
+        <div className="h-1.5 flex-1 bg-ink/10">
+          <div className="h-full bg-rust/70" style={{ width: `${hothouseW}%` }} />
+        </div>
+      </div>
+      <div className="flex items-center gap-2">
+        <span className="w-16 font-mono text-[8px] uppercase tracking-eyebrow text-muted">Target</span>
+        <div className="h-1.5 flex-1 bg-ink/10">
+          <div className={['h-full transition-[width] duration-500', lower ? 'bg-sage' : 'bg-rust'].join(' ')} style={{ width: `${targetW}%` }} />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function FooterStrip({ cached, trace, updateTick }: { cached: boolean; trace: Trace; updateTick: number }) {
+  return (
+    <div className="flex flex-wrap items-center justify-between gap-2 border border-rule bg-sand/40 px-4 py-2 lg:px-5">
+      <p className="font-mono text-[10px] uppercase tracking-eyebrow text-muted">
+        {cached ? 'Cached · static JSON' : 'Live · FastAPI'} · pipeline v{trace.trace_meta.pipeline_version} · seed {trace.trace_meta.seed}
+      </p>
+      <p className="font-mono text-[10px] tab-num text-muted">
+        recomputes: {updateTick}
+      </p>
+    </div>
+  );
+}
+
+// =============================================================================
+// INSPECT MODAL — kept from previous version, lightly trimmed.
+// =============================================================================
 
 function InspectSheet({
   kind, trace, country, onClose,
@@ -546,7 +841,7 @@ function Inspect01({ trace, titleId }: { trace: Trace; titleId: string }) {
               <tr key={k}>
                 <td className="py-1.5 text-ink">{PRETTY_FEATURE[k] ?? k}</td>
                 <td className="py-1.5 text-right font-mono tab-num text-ink/70">{typeof v === 'number' ? v.toFixed(3) : String(v)}</td>
-                <td className="py-1.5 text-right font-mono tab-num text-amber">{ov !== undefined ? ov.toFixed(3) : '—'}</td>
+                <td className="py-1.5 text-right font-mono tab-num text-rust">{ov !== undefined ? ov.toFixed(3) : '—'}</td>
               </tr>
             );
           })}
@@ -666,6 +961,7 @@ function Inspect04({ trace, country, titleId }: { trace: Trace; country: string;
 }
 
 function Inspect05({ trace, titleId }: { trace: Trace; titleId: string }) {
+  void StatBig; // keep import used
   return (
     <>
       <h2 id={titleId} className="display text-[28px] leading-tight text-ink">Loss-ratio mapping</h2>

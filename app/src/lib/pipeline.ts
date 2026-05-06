@@ -77,6 +77,12 @@ export interface PipelineMeta {
   feature_panel_2024: Record<string, Record<string, number>>;
   actual_2024: Record<string, number>;
   constants: { gwp_usdm: number; base_lr: number; elasticity: number };
+  // Live snapshot overlay — present when data/external/live/latest/ has Climate
+  // TRACE data. Bundled fields above stay authoritative for reproducibility.
+  actual_2024_live?: Record<string, number>;
+  data_as_of?: string;
+  data_source?: string;
+  data_url?: string;
 }
 
 const API = import.meta.env.VITE_PIPELINE_API as string | undefined;
@@ -112,10 +118,19 @@ export async function getMeta(): Promise<PipelineMeta> {
     lastApiError = null;
     return metaCache;
   } catch (err) {
-    lastApiError = err instanceof Error ? err.message : String(err);
+    if (!isAbort(err)) {
+      lastApiError = err instanceof Error ? err.message : String(err);
+    }
     metaCache = FALLBACK_META;
     return metaCache;
   }
+}
+
+// Aborts come from our own debouncer cancelling stale requests — not real errors.
+function isAbort(err: unknown): boolean {
+  if (err instanceof DOMException && err.name === 'AbortError') return true;
+  const msg = String((err as { message?: string })?.message ?? err);
+  return msg.includes('aborted') || msg.includes('Abort');
 }
 
 /**
@@ -148,9 +163,13 @@ export async function predict(req: PredictRequest, signal?: AbortSignal): Promis
       lastApiError = null;
       return trace;
     } catch (err) {
-      // External-abort: don't fall back; let the caller handle it.
+      // External-abort: caller cancelled (newer request superseded). Re-throw
+      // so caller can drop this stale response. Internal-abort (our own 4s
+      // timeout) falls through to synthesiser like any other failure.
       if (signal?.aborted) throw err;
-      lastApiError = err instanceof Error ? err.message : String(err);
+      if (!isAbort(err)) {
+        lastApiError = err instanceof Error ? err.message : String(err);
+      }
       // fall through to synthesiser
     }
   }
