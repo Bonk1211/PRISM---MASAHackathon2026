@@ -340,11 +340,20 @@ def load_session(supabase: Any, session_id: str) -> dict[str, Any] | None:
         return None
 
 
-def ensure_session(supabase: Any, session_id: str | None) -> str | None:
+def ensure_session(
+    supabase: Any,
+    session_id: str | None,
+    user_id: str | None = None,
+) -> str | None:
     """Insert a row in scoping_sessions if session_id is given but not yet
-    present. Returns the session_id (caller-provided or new). None if Supabase
-    unavailable or insert failed."""
+    present. Stamps user_id for per-user RLS ownership. Returns the
+    session_id (caller-provided or new). None if Supabase unavailable, the
+    insert failed, or no user_id was provided (RLS would reject)."""
     if supabase is None:
+        return None
+    # Anonymous-auth uid is required so the row is owned. Without it the
+    # session would be orphaned and unreadable from the browser.
+    if not user_id:
         return None
     try:
         if session_id:
@@ -352,12 +361,17 @@ def ensure_session(supabase: Any, session_id: str | None) -> str | None:
             if existing:
                 return session_id
             supabase.table("scoping_sessions").insert(
-                {"id": session_id, "complete": False, "profile": {}}
+                {
+                    "id": session_id,
+                    "user_id": user_id,
+                    "complete": False,
+                    "profile": {},
+                }
             ).execute()
             return session_id
         resp = (
             supabase.table("scoping_sessions")
-            .insert({"complete": False, "profile": {}})
+            .insert({"user_id": user_id, "complete": False, "profile": {}})
             .execute()
         )
         rows = list(resp.data or [])
@@ -587,13 +601,12 @@ def call_consultant(
     transcript: list[dict[str, Any]],
     profile: dict[str, Any],
     model: str = "ilmu-nemo-nano",
-) -> tuple[str | None, dict[str, Any], str]:
-    """One ILMU turn. Returns (tool_name, tool_args, narration).
+) -> tuple[str | None, dict[str, Any], str, int]:
+    """One ILMU turn. Returns (tool_name, tool_args, narration, tokens).
 
     `narration` is filled only when the model emits prose alongside the tool
-    call (rare with tool_choice='required' but possible). The interview's
-    user-facing copy typically lives inside the ask_followup/set_scoping_axis
-    tool args.
+    call. `tokens` is total_tokens from the response usage object — used by
+    the per-user daily token budget bucket.
     """
     # Keep messages SHORT — nemo-nano thrashes past max_tokens when the
     # context grows. Skip transcript replay; the pinned-axes summary in the
@@ -625,6 +638,7 @@ def call_consultant(
         max_tokens=600,
     )
 
+    tokens = int(getattr(getattr(response, "usage", None), "total_tokens", 0) or 0)
     msg = response.choices[0].message
     narration = (getattr(msg, "content", None) or "").strip()
     tool_calls = getattr(msg, "tool_calls", None) or []
@@ -640,7 +654,7 @@ def call_consultant(
                 tool_args = {}
             tool_name = fn.name
             break
-    return tool_name, tool_args, narration
+    return tool_name, tool_args, narration, tokens
 
 
 # --- handler --------------------------------------------------------------
@@ -670,7 +684,10 @@ def handle_scoping(
         }
 
     # Persistence is best-effort. session_id may be None (fallback mode).
-    sid = ensure_session(supabase, req.session_id)
+    # user_id required for per-user RLS — without it ensure_session returns
+    # None and the turn runs stateless (no Supabase writes).
+    user_id = getattr(req, "user_id", None)
+    sid = ensure_session(supabase, req.session_id, user_id)
     transcript = load_transcript(supabase, sid) if sid else []
     session_row = load_session(supabase, sid) if sid else None
     profile: dict[str, Any] = (session_row or {}).get("profile") or {}
@@ -680,9 +697,16 @@ def handle_scoping(
     append_message(supabase, sid, "user", user_message)
 
     try:
-        tool_name, tool_args, narration = call_consultant(
+        tool_name, tool_args, narration, llm_tokens = call_consultant(
             client, user_message, transcript, profile,
         )
+        # Record token usage against the user budget. Best-effort; failure
+        # to import (e.g., circular) just skips telemetry.
+        try:
+            from serve.agent import record_token_usage
+            record_token_usage(user_id or "anon", llm_tokens)
+        except Exception:
+            pass
     except Exception as exc:
         msg = str(exc)[:200] or type(exc).__name__
         return {

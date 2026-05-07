@@ -71,6 +71,11 @@ class AgentRequest(BaseModel):
     screen: Literal["cedent", "stress", "scoping"]
     current_state: dict[str, Any] = Field(default_factory=dict, max_length=20)
     session_id: str | None = Field(default=None, max_length=64)
+    # Anon-auth uid from Supabase (browser-side signInAnonymously). Stamped
+    # onto inserted rows so per-user RLS isolates each visitor's transcripts.
+    # None when Supabase auth is unavailable — backend then degrades to
+    # stateless mode (no persistence, still answers).
+    user_id: str | None = Field(default=None, max_length=64)
 
 
 class AgentResponse(BaseModel):
@@ -219,22 +224,65 @@ def stress_compute(scenario: str, elasticity: float, gwp_usdm: float) -> dict[st
     }
 
 
-# --- rate limit (per-IP, in-memory) ---------------------------------------
+# --- rate limit + token budget (in-memory) --------------------------------
+# Two layers, both keyed by user_id when present (falls back to IP for the
+# rare unauthenticated path):
+#   1. Request rate — N requests / 60s
+#   2. Daily token budget — caps total LLM tokens (input + output) over 24h
+# Both buckets evict expired entries lazily on each check. Process-local —
+# resets on uvicorn restart, which is acceptable for the hackathon scope.
+
 SCOPING_RATE_LIMIT_PER_MIN = 60
+DAILY_TOKEN_BUDGET = 100_000  # per user / 24h
+_DAY_SECONDS = 24 * 60 * 60
 
 _BUCKET: dict[str, list[float]] = defaultdict(list)
+_TOKEN_LOG: dict[str, list[tuple[float, int]]] = defaultdict(list)
 
 
-def rate_limit_ok(ip: str, screen: str | None = None) -> bool:
+def rate_limit_ok(
+    key: str,
+    screen: str | None = None,
+) -> bool:
+    """Check the per-key request rate. `key` is user_id when authenticated,
+    IP otherwise. Scoping screen gets the higher 60/min cap; cedent/stress
+    stay at 30/min."""
     cap = SCOPING_RATE_LIMIT_PER_MIN if screen == "scoping" else RATE_LIMIT_PER_MIN
     now = time.monotonic()
-    hits = [t for t in _BUCKET[ip] if now - t < 60.0]
+    hits = [t for t in _BUCKET[key] if now - t < 60.0]
     if len(hits) >= cap:
-        _BUCKET[ip] = hits
+        _BUCKET[key] = hits
         return False
     hits.append(now)
-    _BUCKET[ip] = hits
+    _BUCKET[key] = hits
     return True
+
+
+def token_budget_ok(key: str) -> bool:
+    """True iff the user has remaining daily token budget. Checked BEFORE the
+    LLM call so a single oversize prompt doesn't exhaust the bucket on its own
+    — the prompt itself counts via record_token_usage after the call."""
+    now = time.monotonic()
+    log = [(t, n) for (t, n) in _TOKEN_LOG[key] if now - t < _DAY_SECONDS]
+    _TOKEN_LOG[key] = log
+    used = sum(n for _, n in log)
+    return used < DAILY_TOKEN_BUDGET
+
+
+def record_token_usage(key: str, tokens: int) -> None:
+    """Add a usage sample to the daily bucket. No-op for non-positive counts."""
+    if tokens <= 0:
+        return
+    _TOKEN_LOG[key].append((time.monotonic(), int(tokens)))
+
+
+def remaining_tokens(key: str) -> int:
+    """Inspector helper — used by /healthz-style telemetry."""
+    now = time.monotonic()
+    log = [(t, n) for (t, n) in _TOKEN_LOG[key] if now - t < _DAY_SECONDS]
+    _TOKEN_LOG[key] = log
+    used = sum(n for _, n in log)
+    return max(0, DAILY_TOKEN_BUDGET - used)
 
 
 # --- prompts --------------------------------------------------------------
@@ -277,7 +325,7 @@ def _narration_prompt(screen: str, message: str, updates: dict, model_output: di
 
 # --- handler --------------------------------------------------------------
 
-def _extract(req: AgentRequest) -> tuple[str, dict[str, Any]]:
+def _extract(req: AgentRequest) -> tuple[str, dict[str, Any], int]:
     client = _get_client()
     tool = SET_CEDENT_TOOL if req.screen == "cedent" else SET_STRESS_TOOL
     response = client.chat.completions.create(
@@ -294,6 +342,7 @@ def _extract(req: AgentRequest) -> tuple[str, dict[str, Any]]:
         temperature=0.0,
         max_tokens=EXTRACTION_MAX_TOKENS,
     )
+    tokens = int(getattr(getattr(response, "usage", None), "total_tokens", 0) or 0)
     msg = response.choices[0].message
     tool_calls = getattr(msg, "tool_calls", None) or []
     for tc in tool_calls:
@@ -304,11 +353,11 @@ def _extract(req: AgentRequest) -> tuple[str, dict[str, Any]]:
                 args = json.loads(args_raw) if isinstance(args_raw, str) else dict(args_raw)
             except (TypeError, json.JSONDecodeError):
                 args = {}
-            return fn.name, args
+            return fn.name, args, tokens
     raise ValueError("no function call returned")
 
 
-def _narrate_llm(prompt: str) -> str:
+def _narrate_llm(prompt: str) -> tuple[str, int]:
     client = _get_client()
     response = client.chat.completions.create(
         model=ILMU_MODEL,
@@ -323,9 +372,10 @@ def _narrate_llm(prompt: str) -> str:
         temperature=0.2,
         max_tokens=NARRATOR_MAX_TOKENS,
     )
+    tokens = int(getattr(getattr(response, "usage", None), "total_tokens", 0) or 0)
     text = (response.choices[0].message.content or "").strip()
     parsed = json.loads(text)
-    return str(parsed.get("narration") or "").strip()
+    return str(parsed.get("narration") or "").strip(), tokens
 
 
 def _narrate_template(updates: dict, model_output: dict | None, screen: str) -> str:
@@ -379,8 +429,10 @@ def _handle_scoping(req: AgentRequest) -> AgentResponse:
 def handle_agent(req: AgentRequest) -> AgentResponse:
     if req.screen == "scoping":
         return _handle_scoping(req)
+    bucket_key = req.user_id or "anon"
     try:
-        tool_name, raw_args = _extract(req)
+        tool_name, raw_args, extract_tokens = _extract(req)
+        record_token_usage(bucket_key, extract_tokens)
     except Exception as e:
         msg = str(e)[:200] or type(e).__name__
         return AgentResponse(error=f"parse_failed: {msg}")
@@ -400,7 +452,10 @@ def handle_agent(req: AgentRequest) -> AgentResponse:
         ) or None
 
     try:
-        narration = _narrate_llm(_narration_prompt(req.screen, req.message, updates, model_output))
+        narration, narrate_tokens = _narrate_llm(
+            _narration_prompt(req.screen, req.message, updates, model_output)
+        )
+        record_token_usage(bucket_key, narrate_tokens)
         if not narration:
             narration = _narrate_template(updates, model_output, req.screen)
     except Exception:

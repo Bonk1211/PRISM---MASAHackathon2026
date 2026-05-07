@@ -1,7 +1,9 @@
 import { Suspense, lazy } from 'react';
 import { HashRouter, Navigate, Route, Routes } from 'react-router-dom';
+import { AuthGuard } from './components/AuthGuard';
 import { Layout } from './components/Layout';
 import { Landing } from './screens/Landing';
+import { Onboarding } from './screens/Onboarding';
 import { Pipeline } from './screens/Pipeline';
 
 // Engagement Phase 1–6 screens (lazy).
@@ -55,6 +57,11 @@ export default function App() {
   return (
     <HashRouter>
       <Routes>
+        {/* Public — onboarding has no chrome and no auth requirement. */}
+        <Route path="onboarding" element={<Onboarding />} />
+
+        {/* Everything below the AuthGuard requires a Supabase session. */}
+        <Route element={<AuthGuard />}>
         <Route element={<Layout />}>
           <Route index element={<Landing />} />
 
@@ -99,6 +106,7 @@ export default function App() {
           <Route path="evidence"   element={<Navigate to="/appendix/evidence" replace />} />
 
           <Route path="*" element={<Landing />} />
+        </Route>
         </Route>
       </Routes>
     </HashRouter>

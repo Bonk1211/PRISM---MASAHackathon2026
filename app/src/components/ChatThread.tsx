@@ -218,6 +218,7 @@ export function ChatThread() {
     const ctrl = new AbortController();
     const t = setTimeout(() => ctrl.abort(), 20000);
     try {
+      const { getCurrentUserId } = await import('../lib/supabase');
       const r = await fetch(AGENT_API, {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
@@ -225,6 +226,9 @@ export function ChatThread() {
           message: text.trim(),
           screen: 'scoping',
           session_id: sessionId,
+          // Anon-auth uid so backend can stamp ownership on inserted rows.
+          // Backend uses service-role key which bypasses RLS for write.
+          user_id: getCurrentUserId(),
           current_state: profile,
         }),
         signal: ctrl.signal,

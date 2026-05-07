@@ -12,7 +12,7 @@
 // strict union) so a backend that adds enum values doesn't break the build.
 
 import { useCallback, useEffect, useState } from 'react';
-import { getSupabase, HAS_SUPABASE } from './supabase';
+import { ensureAnonAuth, getSupabase, HAS_SUPABASE } from './supabase';
 
 export type LOB = 'property_cat' | 'agriculture' | 'life' | 'casualty' | 'specialty';
 export type Framework =
@@ -140,12 +140,15 @@ export async function upsertSupabaseProfile(
 ): Promise<void> {
   const sb = getSupabase();
   if (!sb) return;
+  const uid = await ensureAnonAuth();
+  if (!uid) return;
   try {
     await sb
       .from('scoping_sessions')
       .upsert(
         {
           id: sessionId,
+          user_id: uid,
           client_label: profile.client_label ?? null,
           complete: !!profile.complete,
           profile,
@@ -166,6 +169,8 @@ export async function appendSupabaseMessage(
 ): Promise<void> {
   const sb = getSupabase();
   if (!sb) return;
+  const uid = await ensureAnonAuth();
+  if (!uid) return;
   try {
     await sb.from('scoping_messages').insert({
       session_id: sessionId,
@@ -202,10 +207,13 @@ export type SessionSummary = {
 export async function listSessions(limit = 50): Promise<SessionSummary[]> {
   const sb = getSupabase();
   if (!sb) return [];
+  const uid = await ensureAnonAuth();
+  if (!uid) return [];
   try {
     const { data, error } = await sb
       .from('scoping_sessions')
       .select('id, created_at, client_label, complete, profile')
+      .eq('user_id', uid)
       .order('created_at', { ascending: false })
       .limit(limit);
     if (error) return [];
@@ -218,6 +226,8 @@ export async function listSessions(limit = 50): Promise<SessionSummary[]> {
 export async function fetchSessionMessages(sessionId: string): Promise<ChatTurn[]> {
   const sb = getSupabase();
   if (!sb || !sessionId) return [];
+  const uid = await ensureAnonAuth();
+  if (!uid) return [];
   try {
     const { data, error } = await sb
       .from('scoping_messages')
@@ -246,6 +256,12 @@ export function useScoping() {
   const [profile, setProfile] = useState<ScopingProfile>(() => getScopingSnapshot());
   const [transcript, setTranscript] = useState<ChatTurn[]>(() => getTranscriptSnapshot());
   const [sessionId, setSessionId] = useState<string>(() => getOrCreateSessionId());
+
+  // Eagerly mint an anonymous auth session so the sidebar (and future writes)
+  // have a uid the moment the user lands on /phase1. Idempotent.
+  useEffect(() => {
+    void ensureAnonAuth();
+  }, []);
 
   const setFullProfile = useCallback(
     (full: ScopingProfile) => {

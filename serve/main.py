@@ -23,7 +23,14 @@ from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse
 
-from serve.agent import AgentRequest, AgentResponse, handle_agent, rate_limit_ok
+from serve.agent import (
+    AgentRequest,
+    AgentResponse,
+    handle_agent,
+    rate_limit_ok,
+    remaining_tokens,
+    token_budget_ok,
+)
 from serve.pipeline import META, PredictRequest, run_pipeline
 
 app = FastAPI(title="PRISM Pipeline", version="1.0")
@@ -109,9 +116,28 @@ def predict(req: PredictRequest) -> dict:
 
 @app.post("/agent", response_model=AgentResponse)
 def agent(req: AgentRequest, request: Request) -> AgentResponse:
+    # Prefer the authenticated user_id (stable across networks) over IP.
+    # Falls back to IP for unauthenticated callers.
     ip = request.client.host if request.client else "unknown"
-    # Pass the screen so scoping multi-turn interviews get the 60/min cap
-    # (cedent/stress remain at 30/min). See SCOPING_RATE_LIMIT_PER_MIN.
-    if not rate_limit_ok(ip, req.screen):
+    bucket_key = req.user_id or ip
+    # Two-layer abuse guard:
+    #   1. Per-user request rate (60/min scoping, 30/min cedent/stress)
+    #   2. Per-user daily token budget (100k tokens / 24h)
+    if not rate_limit_ok(bucket_key, req.screen):
         raise HTTPException(status_code=429, detail="rate_limited")
+    if not token_budget_ok(bucket_key):
+        raise HTTPException(status_code=429, detail="token_budget_exhausted")
     return handle_agent(req)
+
+
+@app.get("/usage", include_in_schema=False)
+def usage(request: Request, user_id: str | None = None) -> dict:
+    """Lightweight telemetry — daily token budget remaining for the calling
+    user (or IP fallback). Used by the frontend to surface a usage chip."""
+    ip = request.client.host if request.client else "unknown"
+    key = user_id or ip
+    return {
+        "key": key,
+        "tokens_remaining": remaining_tokens(key),
+        "daily_budget": 100_000,
+    }

@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
 import { DataFreshnessPill } from './DataFreshnessPill';
+import { UserMenu } from './UserMenu';
 import { useFocusTrap } from '../lib/useFocusTrap';
 
 type Tab = { to: string; code: string; label: string; tag?: string };
@@ -158,6 +159,7 @@ export function TopNav() {
 
         <div className="flex shrink-0 items-center gap-3">
           <DataFreshnessPill />
+          <UserMenu />
           <button
             onClick={() => setDrawerOpen(true)}
             aria-label="Open navigation"

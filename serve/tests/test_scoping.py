@@ -406,7 +406,7 @@ class _FakeSupabaseClient:
 def test_handle_scoping_persists_transcript_when_supabase_available():
     sb = _FakeSupabaseClient()
     sb.store["scoping_sessions"] = [{
-        "id": "sess-1", "complete": False, "profile": {},
+        "id": "sess-1", "complete": False, "profile": {}, "user_id": "user-1",
     }]
     fake_client = _FakeOpenAIClient([
         _fake_tool_call_response("set_scoping_axis", {
@@ -415,8 +415,14 @@ def test_handle_scoping_persists_transcript_when_supabase_available():
             "confidence": 0.9,
         }),
     ])
+    req = AgentRequest(
+        message="Vietnam-only book",
+        screen="scoping",
+        session_id="sess-1",
+        user_id="user-1",
+    )
     out = handle_scoping(
-        _make_req("Vietnam-only book", session_id="sess-1"),
+        req,
         supabase=sb,
         client=fake_client,
     )
