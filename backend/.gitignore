@@ -3,5 +3,5 @@ __pycache__/
 *.pyc
 *.pyo
 .pytest_cache/
-models/*.json
+# models/*.json — must ship in deploy image (Railway/Render clone from GitHub)
 !models/.gitkeep

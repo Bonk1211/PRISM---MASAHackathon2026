@@ -1,0 +1,37 @@
+# Tests + caches — not needed at runtime
+tests/
+.pytest_cache/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.coverage
+.coverage.*
+htmlcov/
+
+# Local env / venv
+.venv/
+venv/
+.env
+.env.example
+
+# Editor / OS
+.vscode/
+.idea/
+.DS_Store
+*.swp
+
+# Migrations are SQL applied out-of-band, not needed in API image
+migrations/
+
+# Docs
+README.md
+*.md
+
+# Git
+.git
+.gitignore
+.dockerignore
+
+# Dead model artefact — safety net if regenerated locally
+models/m3b.json

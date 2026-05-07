@@ -23,8 +23,10 @@ ROOT = Path(__file__).parent / "models"
 m3a = XGBRegressor()
 m3a.load_model(str(ROOT / "m3a.json"))
 
-m3b = XGBRegressor()
-m3b.load_model(str(ROOT / "m3b.json"))
+# M3b (structural, no-lag) is methodologically distinct (driver attribution
+# vs forecast) but unused at runtime — frontend pulls feature_importance_m3b
+# from canonical key_numbers_python.json, not the live model. Skip the load
+# to keep the deploy image small.
 
 with open(ROOT / "meta.json") as f:
     META = json.load(f)
