@@ -223,6 +223,28 @@ export async function listSessions(limit = 50): Promise<SessionSummary[]> {
   }
 }
 
+// Hard-delete a session and its transcript. Returns true on success / when
+// nothing was there to delete; false on Supabase error so the caller can
+// surface a toast. Best-effort across the two tables — messages first to
+// avoid orphaning rows on FK-cascade misconfig.
+export async function deleteSession(sessionId: string): Promise<boolean> {
+  const sb = getSupabase();
+  if (!sb || !sessionId) return false;
+  const uid = await ensureAnonAuth();
+  if (!uid) return false;
+  try {
+    await sb.from('scoping_messages').delete().eq('session_id', sessionId);
+    const { error } = await sb
+      .from('scoping_sessions')
+      .delete()
+      .eq('id', sessionId)
+      .eq('user_id', uid);
+    return !error;
+  } catch {
+    return false;
+  }
+}
+
 export async function fetchSessionMessages(sessionId: string): Promise<ChatTurn[]> {
   const sb = getSupabase();
   if (!sb || !sessionId) return [];

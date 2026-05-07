@@ -1,8 +1,31 @@
 import { useMemo, useState } from 'react';
+import {
+  BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell, LabelList,
+} from 'recharts';
 import { Card, Eyebrow, Hairline } from '../components/Card';
 import { EvidenceModal } from '../components/EvidenceModal';
 import { EVIDENCE, EVIDENCE_BY_ID } from '../data/evidence';
 import { POLICY_REFS } from '../data/policy';
+
+// Source token → display label + hue. Source strings in EVIDENCE entries are
+// long ("key_numbers_python.json → headline.loss_swing_usdm") so we bucket
+// them by primary provider for the chart.
+const SOURCE_BUCKETS: { label: string; hue: string; match: (s: string) => boolean }[] = [
+  { label: 'WDI / pipeline JSON', hue: '#0E7C86', match: (s) => /key_numbers_python|wdi|world bank/i.test(s) },
+  { label: 'EM-DAT',              hue: '#8B2E1F', match: (s) => /em-?dat|cred/i.test(s) },
+  { label: 'ND-GAIN',             hue: '#3F8A66', match: (s) => /nd-?gain|notre dame/i.test(s) },
+  { label: 'Swiss Re sigma',      hue: '#B8761C', match: (s) => /swiss re|sigma/i.test(s) },
+  { label: 'NGFS',                hue: '#4F6D8A', match: (s) => /ngfs/i.test(s) },
+  { label: 'BNM CRST',            hue: '#7A6E55', match: (s) => /bnm|crst/i.test(s) },
+  { label: 'Cedent framework',    hue: '#5C7C3D', match: (s) => /cedent\.ts|deliverables\/05/i.test(s) },
+  { label: 'Other',               hue: '#7A8A9C', match: () => true },
+];
+
+function bucketFor(source: string): string {
+  for (const b of SOURCE_BUCKETS) if (b.match(source)) return b.label;
+  return 'Other';
+}
+
 
 type ViewMode = 'number' | 'policy' | 'source';
 
@@ -31,6 +54,36 @@ export function Evidence() {
 
   const entry = activeId ? EVIDENCE_BY_ID[activeId] ?? null : null;
 
+  // Aggregate: how many EVIDENCE entries per source bucket (for any view).
+  const sourceHist = useMemo(() => {
+    const counts = new Map<string, number>();
+    for (const e of EVIDENCE) {
+      const b = bucketFor(e.source ?? '');
+      counts.set(b, (counts.get(b) ?? 0) + 1);
+    }
+    // Preserve SOURCE_BUCKETS order, drop empty buckets.
+    return SOURCE_BUCKETS
+      .map((b) => ({ label: b.label, count: counts.get(b.label) ?? 0, hue: b.hue }))
+      .filter((d) => d.count > 0);
+  }, []);
+
+  // Aggregate: how many evidence entries per policy reference.
+  const policyHist = useMemo(() => {
+    const counts = new Map<string, number>();
+    for (const e of EVIDENCE) {
+      if (!e.policyId) continue;
+      counts.set(e.policyId, (counts.get(e.policyId) ?? 0) + 1);
+    }
+    return POLICY_REFS
+      .map((p) => ({
+        id: p.id,
+        label: p.short,
+        count: counts.get(p.id) ?? 0,
+      }))
+      .filter((d) => d.count > 0)
+      .sort((a, b) => b.count - a.count);
+  }, []);
+
   return (
     <div className="space-y-5">
       <section className="border border-rule bg-paper px-5 py-5 lg:px-10 lg:py-8">
@@ -43,6 +96,64 @@ export function Evidence() {
           The differentiator. Tap any number anywhere in the app — or browse here by number, by policy instrument, or by data source.
         </p>
       </section>
+
+      {/* Audit-trail anatomy — where the EVIDENCE mass concentrates */}
+      <div className="grid gap-3 lg:grid-cols-2">
+        <Card title="Audit trail · by source" subtitle={`${EVIDENCE.length} numbers across ${sourceHist.length} sources`}>
+          <div className="h-48">
+            <ResponsiveContainer>
+              <BarChart
+                data={sourceHist}
+                layout="vertical"
+                margin={{ top: 4, right: 36, left: 4, bottom: 4 }}
+                barCategoryGap={4}
+              >
+                <XAxis
+                  type="number"
+                  tickLine={false}
+                  axisLine={{ stroke: 'rgba(10,26,42,0.18)' }}
+                  fontSize={10}
+                  allowDecimals={false}
+                />
+                <YAxis type="category" dataKey="label" width={130} tickLine={false} axisLine={false} fontSize={10} />
+                <Tooltip formatter={(v) => `${v} entries`} cursor={{ fill: 'rgba(10,26,42,0.04)' }} />
+                <Bar dataKey="count" radius={[0, 2, 2, 0]}>
+                  {sourceHist.map((d) => (
+                    <Cell key={d.label} fill={d.hue} />
+                  ))}
+                  <LabelList dataKey="count" position="right" fontSize={10} fill="#0A1A2A" />
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        </Card>
+
+        <Card title="Audit trail · by policy anchor" subtitle={`${policyHist.length} instruments referenced by EVIDENCE`}>
+          <div className="h-48">
+            <ResponsiveContainer>
+              <BarChart
+                data={policyHist}
+                layout="vertical"
+                margin={{ top: 4, right: 36, left: 4, bottom: 4 }}
+                barCategoryGap={4}
+              >
+                <XAxis
+                  type="number"
+                  tickLine={false}
+                  axisLine={{ stroke: 'rgba(10,26,42,0.18)' }}
+                  fontSize={10}
+                  allowDecimals={false}
+                />
+                <YAxis type="category" dataKey="label" width={130} tickLine={false} axisLine={false} fontSize={10} />
+                <Tooltip formatter={(v) => `${v} entries`} cursor={{ fill: 'rgba(10,26,42,0.04)' }} />
+                <Bar dataKey="count" fill="#0E7C86" radius={[0, 2, 2, 0]}>
+                  <LabelList dataKey="count" position="right" fontSize={10} fill="#0A1A2A" />
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        </Card>
+      </div>
 
       {/* View toggle */}
       <div className="flex border border-rule">

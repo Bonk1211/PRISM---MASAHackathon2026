@@ -68,6 +68,16 @@ function normalise(mix: Partial<Mix>): Mix {
 
 const INITIAL_PRESET = CEDENT_PRESETS[0];
 
+type StepNo = 1 | 2 | 3 | 4 | 5 | 6;
+const STEPS: { n: StepNo; short: string; question: string; help: string }[] = [
+  { n: 1, short: 'Cedent',    question: 'Who are we pricing?',         help: 'Pick a preset cedent or override the country.' },
+  { n: 2, short: 'Sectors',   question: 'How is the book split?',      help: 'Allocate GWP retention across sectors.' },
+  { n: 3, short: 'Adapt',     question: 'How adaptive is the country?',help: 'ND-GAIN, NDC plan, energy-mix override.' },
+  { n: 4, short: 'Scenario',  question: 'Which 2030 pathway?',         help: 'NGFS scenario + elasticity ε.' },
+  { n: 5, short: 'Capital',   question: 'What\'s the treaty notional?',help: 'GWP and base loss ratio.' },
+  { n: 6, short: 'Review',    question: 'Ready to price.',             help: 'Confirm inputs, then run the simulation.' },
+];
+
 export function Pricing() {
   const [preset, setPreset] = useState<CedentPreset | null>(INITIAL_PRESET);
   const [country, setCountry] = useState(INITIAL_PRESET.country);
@@ -80,6 +90,10 @@ export function Pricing() {
 
   const [gwp, setGwp] = useState(PORTFOLIO.gwpUsdM);
   const [baseLr, setBaseLr] = useState(PORTFOLIO.baseLossRatio);
+
+  const [step, setStep] = useState<StepNo>(1);
+  const goNext = () => setStep((s) => (Math.min(6, s + 1) as StepNo));
+  const goPrev = () => setStep((s) => (Math.max(1, s - 1) as StepNo));
 
   const [simOpen, setSimOpen] = useState(false);
   const [simInputs, setSimInputs] = useState<SimulationInputs | null>(null);
@@ -229,6 +243,47 @@ export function Pricing() {
 
   return (
     <div className="space-y-4">
+      {/* Wizard stepper — single source of position cue */}
+      <nav aria-label="Strategy steps" className="border border-rule bg-paper px-4 py-3">
+        <ol className="flex flex-wrap items-center gap-1.5">
+          {STEPS.map((s, i) => {
+            const active = step === s.n;
+            const done = step > s.n;
+            return (
+              <li key={s.n} className="flex items-center gap-1.5">
+                <button
+                  type="button"
+                  onClick={() => setStep(s.n)}
+                  aria-current={active ? 'step' : undefined}
+                  className={[
+                    'flex items-baseline gap-1.5 border px-2.5 py-1 transition',
+                    active
+                      ? 'border-ink bg-ink text-paper'
+                      : done
+                        ? 'border-ink/60 bg-ink/[0.05] text-ink hover:bg-ink/10'
+                        : 'border-rule bg-paper text-muted hover:border-ink hover:text-ink',
+                  ].join(' ')}
+                >
+                  <span className="font-mono text-[9px] tab-num">0{s.n}</span>
+                  <span className="text-[11px]">{s.short}</span>
+                </button>
+                {i < STEPS.length - 1 && (
+                  <span aria-hidden="true" className="font-mono text-[10px] text-muted">›</span>
+                )}
+              </li>
+            );
+          })}
+        </ol>
+        <div className="mt-2 flex items-baseline justify-between gap-3 border-t border-rule pt-2">
+          <p className="font-serif text-[14px] italic leading-snug text-ink lg:text-[16px]">
+            {STEPS[step - 1].question}
+          </p>
+          <p className="hidden font-mono text-[10px] uppercase tracking-eyebrow text-muted lg:block">
+            {STEPS[step - 1].help}
+          </p>
+        </div>
+      </nav>
+
       {/* Live HUD — recomputes inline from the same formula the modal uses */}
       <section className="border border-rule bg-paper">
         <div className="flex items-baseline justify-between border-b border-rule px-4 py-2">
@@ -274,7 +329,8 @@ export function Pricing() {
         </div>
       </section>
 
-      {/* Charts row — scenario fan + elasticity sensitivity. The actuarial diagrams. */}
+      {/* Charts row — visible only on Scenario step + Review step */}
+      {(step === 4 || step === 6) && (
       <section className="grid gap-3 lg:grid-cols-2">
         <div className="border border-rule bg-paper">
           <div className="flex items-baseline justify-between border-b border-rule px-4 py-2">
@@ -395,14 +451,15 @@ export function Pricing() {
             </ResponsiveContainer>
           </div>
           <p className="border-t border-rule px-4 py-2 font-mono text-[10px] uppercase tracking-eyebrow text-muted">
-            Slope = baseLR × Δemissions vs Hot House. Drag ε on card 04 — dot tracks.
+            Slope = baseLR × Δemissions vs Hot House. Drag ε on the Scenario step.
           </p>
         </div>
       </section>
+      )}
 
-      {/* Box-selection cards · 5 inputs */}
-      <div className="grid grid-cols-1 gap-3 lg:grid-cols-2 2xl:grid-cols-3">
-        {/* 1. Counterparty */}
+      {/* Wizard step content — one input at a time */}
+      <div className="grid grid-cols-1 gap-3">
+        {step === 1 && (
         <InputCard
           step="01 · Counterparty"
           title="Pick the cedent or country"
@@ -450,8 +507,9 @@ export function Pricing() {
             STIRPAT residual {COUNTRY_TIER[country].residualPct >= 0 ? '+' : ''}{COUNTRY_TIER[country].residualPct}% · country tier <span className="text-ink font-semibold">{preview.ct}</span>
           </p>
         </InputCard>
+        )}
 
-        {/* 2. Sector mix */}
+        {step === 2 && (
         <InputCard
           step="02 · Sector mix"
           title="GWP retention by sector"
@@ -521,8 +579,9 @@ export function Pricing() {
             </button>
           </div>
         </InputCard>
+        )}
 
-        {/* 3. Adaptive context */}
+        {step === 3 && (
         <InputCard
           step="03 · Adaptive context"
           title="ND-GAIN, NDC, energy mix"
@@ -593,8 +652,9 @@ export function Pricing() {
             </p>
           </div>
         </InputCard>
+        )}
 
-        {/* 4. Scenario */}
+        {step === 4 && (
         <InputCard
           step="04 · Scenario"
           title="NGFS pathway + elasticity"
@@ -654,8 +714,9 @@ export function Pricing() {
             </p>
           </div>
         </InputCard>
+        )}
 
-        {/* 5. Capital */}
+        {step === 5 && (
         <InputCard
           step="05 · Capital"
           title="GWP and base loss ratio"
@@ -707,10 +768,11 @@ export function Pricing() {
             </div>
           </div>
         </InputCard>
+        )}
 
-        {/* Last result preview — appears after first run */}
-        {lastResult && (
-          <section className="border border-rule bg-sand px-5 py-5 lg:col-span-2">
+        {/* Last result preview — appears after first run, on Review step only */}
+        {step === 6 && lastResult && (
+          <section className="border border-rule bg-sand px-5 py-5">
             <div className="flex items-baseline justify-between">
               <Eyebrow>Latest run · summary</Eyebrow>
               <span className="font-mono text-[10px] uppercase tracking-eyebrow text-muted">
@@ -748,40 +810,55 @@ export function Pricing() {
         )}
       </div>
 
-      {/* CTA tray — full-width status bar with summary tile + Run button */}
+      {/* Wizard footer nav — Back · step counter + reset · Next/Run */}
       <div
-        className="sticky bottom-2 z-10 -mx-5 border-t border-rule bg-paper/95 px-5 py-3 backdrop-blur lg:static lg:mx-0 lg:border lg:border-ink lg:bg-ink lg:px-6 lg:py-5 lg:text-paper"
+        className="sticky bottom-2 z-10 flex items-center justify-between gap-3 border border-ink bg-paper px-4 py-3 lg:static lg:bg-ink lg:px-6 lg:py-4 lg:text-paper"
         style={{ paddingBottom: 'calc(0.75rem + env(safe-area-inset-bottom, 0))' }}
       >
-        <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:gap-6">
-          <div className="hidden flex-1 grid-cols-4 gap-4 lg:grid">
-            <CtaStat label="Cedent" value={preset?.name ?? country} accent="paper" />
-            <CtaStat label="Tier" value={preview.comp} accent={preview.loadingPct > 8 ? 'amber' : 'paper'} />
-            <CtaStat label="LR · forecast" value={`${(preview.lr * 100).toFixed(1)}%`} accent={preview.lr > baseLr ? 'amber' : 'paper'} />
-            <CtaStat label="Δ vs Hot House" value={`${preview.swingUsdM >= 0 ? '−' : '+'}USD ${Math.abs(Math.round(preview.swingUsdM))}m`} accent="paper" />
-          </div>
-          <div className="flex items-center gap-3">
-            <button
-              onClick={reset}
-              className="font-mono text-[11px] uppercase tracking-eyebrow text-sea hover:underline lg:text-paper/70 lg:hover:text-paper"
-            >
-              Reset
-            </button>
-            <button
-              onClick={runSimulation}
-              className="flex flex-1 items-center justify-center gap-2 border border-ink bg-ink px-5 py-3.5 text-[14px] font-semibold uppercase tracking-eyebrow text-paper transition hover:bg-paper hover:text-ink lg:flex-none lg:border-paper lg:bg-paper lg:px-7 lg:py-4 lg:text-ink lg:hover:bg-ink lg:hover:text-paper"
-            >
-              <span aria-hidden="true">▶</span>
-              Run Simulation
-            </button>
-          </div>
+        <button
+          type="button"
+          onClick={goPrev}
+          disabled={step === 1}
+          className="border border-rule bg-paper px-3 py-2 font-mono text-[11px] uppercase tracking-eyebrow text-ink transition hover:bg-ink/[0.05] disabled:cursor-not-allowed disabled:opacity-40 lg:border-paper/40 lg:bg-transparent lg:text-paper lg:hover:bg-paper/10"
+        >
+          ← Back
+        </button>
+        <div className="flex items-baseline gap-2 font-mono text-[10px] uppercase tracking-eyebrow text-muted lg:text-paper/60">
+          <span>Step {step} of 6</span>
+          <span aria-hidden="true">·</span>
+          <button
+            type="button"
+            onClick={reset}
+            className="text-sea hover:underline lg:text-paper/70 lg:hover:text-paper"
+          >
+            Reset
+          </button>
         </div>
-        <p className="mt-2 text-center text-[10px] text-muted lg:mt-3 lg:text-left lg:text-paper/60">
-          {savedCount > 0
-            ? `${savedCount} saved profile${savedCount === 1 ? '' : 's'} flow into the assessment report`
-            : 'Saved profiles flow into the assessment report'}
-        </p>
+        {step < 6 ? (
+          <button
+            type="button"
+            onClick={goNext}
+            className="flex items-center gap-2 border border-ink bg-ink px-5 py-2.5 text-[13px] font-semibold uppercase tracking-eyebrow text-paper transition hover:bg-paper hover:text-ink lg:border-paper lg:bg-paper lg:text-ink lg:hover:bg-ink lg:hover:text-paper"
+          >
+            Next
+            <span aria-hidden="true">→</span>
+          </button>
+        ) : (
+          <button
+            type="button"
+            onClick={runSimulation}
+            className="flex items-center gap-2 border border-ink bg-ink px-5 py-2.5 text-[13px] font-semibold uppercase tracking-eyebrow text-paper transition hover:bg-paper hover:text-ink lg:border-paper lg:bg-paper lg:text-ink lg:hover:bg-ink lg:hover:text-paper"
+          >
+            <span aria-hidden="true">▶</span>
+            Run Simulation
+          </button>
+        )}
       </div>
+      {savedCount > 0 && (
+        <p className="text-center font-mono text-[10px] uppercase tracking-eyebrow text-muted">
+          {savedCount} saved profile{savedCount === 1 ? '' : 's'} flow into the assessment report
+        </p>
+      )}
 
       {toast && (
         <div
@@ -827,18 +904,3 @@ function HudTile({
   );
 }
 
-function CtaStat({
-  label, value, accent = 'paper',
-}: { label: string; value: string; accent?: 'paper' | 'amber' }) {
-  return (
-    <div>
-      <p className="font-mono text-[9px] uppercase tracking-eyebrow text-paper/60">{label}</p>
-      <p className={[
-        'display tab-num mt-1 truncate text-[20px] leading-none italic',
-        accent === 'amber' ? 'text-amber' : 'text-paper',
-      ].join(' ')}>
-        {value}
-      </p>
-    </div>
-  );
-}

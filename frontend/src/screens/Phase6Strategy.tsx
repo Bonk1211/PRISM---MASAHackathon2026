@@ -7,7 +7,7 @@ export function Phase6Strategy() {
     <>
       <Pricing />
       <PhaseFooterNav
-        prev={{ to: '/phase5', label: 'Phase 5' }}
+        prev={{ to: '/phase4', label: 'Phase 4 · Pipeline' }}
         next={{ to: '/', label: 'Done · Home' }}
       />
     </>

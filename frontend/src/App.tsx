@@ -14,9 +14,6 @@ const Phase1Discovery = lazy(() =>
 const Phase4DataPipeline = lazy(() =>
   import('./screens/Phase4DataPipeline').then((m) => ({ default: m.Phase4DataPipeline })),
 );
-const Phase5Modeling = lazy(() =>
-  import('./screens/Phase5Modeling').then((m) => ({ default: m.Phase5Modeling })),
-);
 const Phase6Strategy = lazy(() =>
   import('./screens/Phase6Strategy').then((m) => ({ default: m.Phase6Strategy })),
 );
@@ -67,7 +64,7 @@ export default function App() {
           <Route path="phase2" element={<Navigate to="/phase1" replace />} />
           <Route path="phase3" element={<Navigate to="/phase1" replace />} />
           <Route path="phase4" element={<L><Phase4DataPipeline /></L>} />
-          <Route path="phase5" element={<L><Phase5Modeling /></L>} />
+          <Route path="phase5" element={<Navigate to="/phase6" replace />} />
           <Route path="phase6" element={<L><Phase6Strategy /></L>} />
 
           {/* Appendix — the 14 legacy chart-driven screens */}
