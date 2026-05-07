@@ -1,10 +1,10 @@
 """Apply Phase 1 scoping migration to Supabase.
 
-Reads serve/.env for SUPABASE_URL + SUPABASE_SERVICE_ROLE_KEY, then runs
-serve/migrations/001_scoping.sql against the project's Postgres instance.
+Reads backend/.env for SUPABASE_URL + SUPABASE_SERVICE_ROLE_KEY, then runs
+backend/migrations/001_scoping.sql against the project's Postgres instance.
 
 Usage:
-    python serve/migrations/apply.py
+    python backend/migrations/apply.py
 
 Requires:
     pip install supabase psycopg2-binary python-dotenv
@@ -23,7 +23,7 @@ SQL_PATH = Path(__file__).with_name("001_scoping.sql")
 
 
 def load_env() -> dict[str, str]:
-    env_path = ROOT / "serve" / ".env"
+    env_path = ROOT / "backend" / ".env"
     if not env_path.exists():
         return {}
     out: dict[str, str] = {}
@@ -49,7 +49,7 @@ def main() -> int:
 
     if not url or not service_key:
         print(
-            "[apply.py] Missing SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY in serve/.env.\n"
+            "[apply.py] Missing SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY in backend/.env.\n"
             "Fallback: paste the SQL below into\n"
             f"  https://supabase.com/dashboard/project/{project_ref(url) or '<ref>'}/sql/new\n\n"
             f"--- {SQL_PATH.name} ---\n{sql}",
@@ -77,7 +77,7 @@ def main() -> int:
         print(
             "[apply.py] SUPABASE_DB_PASSWORD not set. The service-role JWT cannot run\n"
             "DDL via the REST API. Either:\n"
-            "  1) Add SUPABASE_DB_PASSWORD=<db-password> to serve/.env, or\n"
+            "  1) Add SUPABASE_DB_PASSWORD=<db-password> to backend/.env, or\n"
             f"  2) Paste {SQL_PATH.name} into\n"
             f"     https://supabase.com/dashboard/project/{ref}/sql/new",
             file=sys.stderr,

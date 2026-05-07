@@ -109,7 +109,7 @@ export function Pricing() {
     if (!ndcPlanFiled && (comp === 'A' || comp === 'B')) comp = 'C';
     const loadingPct = LOADING[comp].pct;
 
-    // Mirrors Stress.tsx + serve/agent.py stress_compute exactly.
+    // Mirrors Stress.tsx + backend/agent.py stress_compute exactly.
     const ref = STRESS_2030.find((s) => s.scenario === 'Current Policies');
     const sel = STRESS_2030.find((s) => s.scenario === scenario);
     const pctChg = ref && sel ? (sel.emissionsMt - ref.emissionsMt) / ref.emissionsMt : 0;

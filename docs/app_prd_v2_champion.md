@@ -251,7 +251,7 @@ Same source-of-truth pattern as v1.0 (everything traces to `key_numbers_python.j
 |---|---|---|---|
 | `PARTIAL_CORR` | `key_numbers_python.json` → `partial_correlations` | Diagnostic | Yes |
 | `SECTORAL_HEATMAP` | `key_numbers_python.json` → `sectoral_residuals_pct` | Sectoral | Yes |
-| `EVIDENCE_INDEX` | new file `app/src/data/evidence.ts` — manually curated mapping of every number → report section | Evidence | Yes |
+| `EVIDENCE_INDEX` | new file `frontend/src/data/evidence.ts` — manually curated mapping of every number → report section | Evidence | Yes |
 | `CEDENT_PRESETS` | `10_vn_cedent_targets.md` (5 named cedents) | Cedent | Yes |
 | `POLICY_REFS` | `06_policy_crosswalk.md` (8 instruments) | Actions, Evidence | Yes |
 | `DEMO_SCRIPT` | this PRD §7 | `/admin/script` (speaker reference) | Yes |
@@ -276,7 +276,7 @@ Both are widely-maintained, MIT-licensed, dependency-light. Neither breaks the b
 ## 12. Architecture — extended from v1.0
 
 ```
-app/
+frontend/
 ├── public/                    Icons (192, 512, 512-maskable, apple-touch, favicon, qr-test)
 ├── scripts/
 │   ├── sync-data.mjs          Auto-syncs key_numbers_python.json

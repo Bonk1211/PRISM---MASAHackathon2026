@@ -1,6 +1,6 @@
 // Pipeline client — wraps POST /predict on the FastAPI service.
 // Falls back to a local synthesiser using key_numbers_python.json + the real
-// pipeline_meta.json (synced from serve/models/meta.json by `npm run sync-data`)
+// pipeline_meta.json (synced from backend/models/meta.json by `npm run sync-data`)
 // when the API is unreachable or VITE_PIPELINE_API is unset, so the screen still
 // renders honestly in offline / pre-deploy demos.
 
@@ -179,7 +179,7 @@ export async function predict(req: PredictRequest, signal?: AbortSignal): Promis
 /**
  * Cached-mode synthesiser. Uses canon JSON outputs + the real meta panel to produce
  * a stage-shaped trace. Honest about being cached — `inference_ms` is null and
- * `served_by` reads 'cached'. Forward-mode anchor mirrors serve/pipeline.py:122
+ * `served_by` reads 'cached'. Forward-mode anchor mirrors backend/pipeline.py:122
  * (compound from M3a-predicted 2024 emissions, NOT from exp(log_GHG_lag1)).
  */
 function synthesise(req: PredictRequest): Trace {

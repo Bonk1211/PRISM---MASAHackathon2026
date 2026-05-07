@@ -6,9 +6,9 @@ User types free-form prose on the Cedent or Stress screen. Two-turn pattern:
      fallback if the call raises.
 
 The LLM never invents pipeline numbers. For Stress, the server replicates the
-exact formula in app/src/screens/Stress.tsx (reads STRESS_2030 aggregate from
+exact formula in frontend/src/screens/Stress.tsx (reads STRESS_2030 aggregate from
 key_numbers_python.json) so narration matches the on-screen StatBig values.
-For Cedent, no compute step — the React tier helpers in app/src/data/cedent.ts
+For Cedent, no compute step — the React tier helpers in frontend/src/data/cedent.ts
 re-derive the composite once the form state changes.
 
 ILMU is OpenAI-compatible. Base URL: https://api.ilmu.ai/v1.
@@ -25,7 +25,7 @@ from typing import Any, Literal
 
 from pydantic import BaseModel, Field
 
-from serve.pipeline import META
+from backend.pipeline import META
 
 ILMU_MODEL = "ilmu-nemo-nano"
 ILMU_BASE_URL = "https://api.ilmu.ai/v1"
@@ -59,7 +59,7 @@ def _get_client() -> Any:
         from openai import OpenAI
         api_key = os.environ.get("ILMU_API_KEY")
         if not api_key:
-            raise RuntimeError("ILMU_API_KEY missing — set in serve/.env")
+            raise RuntimeError("ILMU_API_KEY missing — set in backend/.env")
         _OPENAI_CLIENT = OpenAI(api_key=api_key, base_url=ILMU_BASE_URL)
     return _OPENAI_CLIENT
 
@@ -198,7 +198,7 @@ def validate_updates(name: str, raw: dict[str, Any], screen: str) -> dict[str, A
     return out
 
 
-# --- stress recompute (mirrors app/src/screens/Stress.tsx exactly) ---------
+# --- stress recompute (mirrors frontend/src/screens/Stress.tsx exactly) ---------
 # Frontend uses STRESS_2030 aggregate × user elasticity; we replicate so the
 # narration cites the same numbers the on-screen StatBig renders.
 
@@ -396,8 +396,8 @@ def _narrate_template(updates: dict, model_output: dict | None, screen: str) -> 
 
 def _handle_scoping(req: AgentRequest) -> AgentResponse:
     """Phase 1 dispatch — keeps the cedent/stress two-stage path untouched."""
-    from serve.scoping import handle_scoping
-    from serve.supabase_client import get_client as get_supabase
+    from backend.scoping import handle_scoping
+    from backend.supabase_client import get_client as get_supabase
 
     try:
         client = _get_client()

@@ -7,7 +7,7 @@
 // persisted server-side keyed by `session_id`. Soft gate: phases 2-6 still
 // render with default scope when scoping is incomplete.
 //
-// Shape mirrors serve/scoping.py::ScopingProfile — see that module for the
+// Shape mirrors backend/scoping.py::ScopingProfile — see that module for the
 // authoritative enum lists. Frontend stays permissive (string instead of
 // strict union) so a backend that adds enum values doesn't break the build.
 

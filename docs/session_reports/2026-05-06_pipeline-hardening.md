@@ -36,12 +36,12 @@ After deduplication and severity calibration: **37 unique findings** (3 Critical
 |---|---|---|
 | CR-001 | Forward-mode anchor diverged between server and client synthesiser | **Fixed** — `synthesise()` now uses `canon.pred_2024`, matches server byte-for-byte |
 | CR-002 | Modal focus management absent (InspectSheet, EvidenceModal, Sidebar drawer) | **Fixed** — new `useFocusTrap` hook with focus restore, Tab cycle, ESC, `aria-labelledby`, `aria-hidden` backdrop |
-| CR-003 | FALLBACK_META covered only 3/10 SEA countries → silent VN mislabelling | **Fixed** — `npm run sync-data` now copies `serve/models/meta.json` into `app/src/data/pipeline_meta.json`; FALLBACK_META imports it; all 10 SEA panels available offline |
+| CR-003 | FALLBACK_META covered only 3/10 SEA countries → silent VN mislabelling | **Fixed** — `npm run sync-data` now copies `backend/models/meta.json` into `frontend/src/data/pipeline_meta.json`; FALLBACK_META imports it; all 10 SEA panels available offline |
 | CR-004 | `target_year` unbounded → pow-loop blowup, NaN/Inf JSON | **Fixed** — `Field(ge=2024, le=2050)`, returns 422 |
 | CR-005 | `feature_overrides` unbounded → memory DoS, `math.exp` overflow | **Fixed** — `max_length=32`, finite check, clamp to `feature_ranges`, `math.exp(min(x, 30))` |
 | CR-006 | Public unauth `/predict` over ngrok with `--reload` and wildcard CORS | **Fixed** — CORS locked to localhost (env-overridable via `CORS_ALLOW_ORIGINS`), new `make api-prod` target without `--reload` |
 | CR-007 | `make smoke` printed values but never asserted | **Fixed** — asserts `err_pct ∈ [-5,-3]%`, `delta_pct < 0`, `lr_pp_vs_base < 0`, `swing < 0` for canonical inputs |
-| CR-008 | No regression-anchor tests pinning `/predict` to `key_numbers_python.json` | **Fixed** — `serve/tests/test_regression_anchors.py` with 19 cases covering all 10 SEA hindcasts, scenario sign-direction, validation surfaces; `make test` target wires it up |
+| CR-008 | No regression-anchor tests pinning `/predict` to `key_numbers_python.json` | **Fixed** — `backend/tests/test_regression_anchors.py` with 19 cases covering all 10 SEA hindcasts, scenario sign-direction, validation surfaces; `make test` target wires it up |
 | CR-009 | Recharts not code-split → bundle ~270 KB+ gzip vs PRD §9 230 KB cap | **Fixed** — `lazy()` on chart-heavy screens, `manualChunks: { recharts }`. Initial route now **79.83 KB gzip** + 17 KB react = ~103 KB; Recharts in 106 KB lazy chunk |
 | CR-010 | `make models` only ran when notebook mtime newer (stale after `git checkout`) | **Fixed** — target now always evaluates, gated by an inner mtime check that prints status |
 | CR-011 | 13 sliders + 3 dropdowns lacked accessible names + value-with-unit | **Fixed** — every range input has `aria-valuetext` with units; mode toggle is `role="radiogroup"`; selects have `htmlFor`; reset glyphs have `aria-label` |
@@ -51,7 +51,7 @@ Plus collateral wins from the same edits: M-001 (country/scenario whitelist), M-
 #### Iteration 2 — polish
 
 - **M-010** Cached banner now renders `reason: ...` from `getLastApiError()` so judges see *why* (timeout / 500 / CORS) instead of an opaque "Cached mode".
-- **L-001** `serve/main.py` index page computes the `curl` example from `request.base_url` — works behind ngrok/proxy without hardcoding `localhost:8000`.
+- **L-001** `backend/main.py` index page computes the `curl` example from `request.base_url` — works behind ngrok/proxy without hardcoding `localhost:8000`.
 - **A11Y-10** Story editorial `<h1>` demoted to `<h2>` so Layout's page-title `<h1>` is canonical → clean `h1` → `h2` hierarchy across every screen.
 
 #### Iteration 3 — documentation
@@ -66,7 +66,7 @@ After iteration 3, working tree was diff-clean; further iterations would only ch
 
 | Check | Result |
 |---|---|
-| `pytest serve/tests/` | **19/19 pass** |
+| `pytest backend/tests/` | **19/19 pass** |
 | `make smoke` VN hindcast | err **−4.05%** (asserted in `[-5,-3]`) |
 | `make smoke` VN forward Net Zero 2030 | swing **−USD 135m** matches headline |
 | Pydantic 422 on bad inputs | unknown country, target_year > 2050, > 32 override keys all return 422 |
@@ -92,30 +92,30 @@ After iteration 3, working tree was diff-clean; further iterations would only ch
 
  Makefile                               |  47 +++--
  README.md                              | 117 ++++++-----
- app/package.json                       |   2 +-
- app/src/App.tsx                        |  51 +++--
- app/src/components/EvidenceModal.tsx   |  31 ++-
- app/src/components/Layout.tsx          |  11 +-
- app/src/components/Sidebar.tsx         |  24 +--
- app/src/data/pipeline_meta.json        | 348 +++++++++++++++++++++++++++++++
- app/src/index.css                      |   7 +-
- app/src/lib/pipeline.ts                | 158 +++++----------
- app/src/lib/useFocusTrap.ts            |  84 ++++++++  (new)
- app/src/screens/Pipeline.tsx           | 184 +++++++++++------
- app/src/screens/Story.tsx              |   4 +-
- app/tailwind.config.js                 |   4 +-
- app/vite.config.ts                     |  12 ++
+ frontend/package.json                       |   2 +-
+ frontend/src/App.tsx                        |  51 +++--
+ frontend/src/components/EvidenceModal.tsx   |  31 ++-
+ frontend/src/components/Layout.tsx          |  11 +-
+ frontend/src/components/Sidebar.tsx         |  24 +--
+ frontend/src/data/pipeline_meta.json        | 348 +++++++++++++++++++++++++++++++
+ frontend/src/index.css                      |   7 +-
+ frontend/src/lib/pipeline.ts                | 158 +++++----------
+ frontend/src/lib/useFocusTrap.ts            |  84 ++++++++  (new)
+ frontend/src/screens/Pipeline.tsx           | 184 +++++++++++------
+ frontend/src/screens/Story.tsx              |   4 +-
+ frontend/tailwind.config.js                 |   4 +-
+ frontend/vite.config.ts                     |  12 ++
  pyrefly.toml                           |   3 +    (new)
- serve/main.py                          |  50 +++--
- serve/pipeline.py                      |  80 ++++++--
- serve/pyproject.toml                   |   6 +
- serve/tests/__init__.py                |   0    (new)
- serve/tests/test_regression_anchors.py | 141 ++++++++++++  (new)
+ backend/main.py                          |  50 +++--
+ backend/pipeline.py                      |  80 ++++++--
+ backend/pyproject.toml                   |   6 +
+ backend/tests/__init__.py                |   0    (new)
+ backend/tests/test_regression_anchors.py | 141 ++++++++++++  (new)
 ```
 
 ## What's left for the team before 7 May 2026
 
-1. **Re-execute the notebook one last time** before submission — confirms `serve/models/{m3a.json, m3b.json, meta.json}` and `exhibits/results/key_numbers_python.json` regenerate cleanly with seed 2026.
+1. **Re-execute the notebook one last time** before submission — confirms `backend/models/{m3a.json, m3b.json, meta.json}` and `exhibits/results/key_numbers_python.json` regenerate cleanly with seed 2026.
 2. **Run `make demo`** end-to-end on the actual demo laptop. macOS users — confirm `brew install libomp` was done.
 3. **Run `make test`** after any notebook re-execution. The pytest harness will catch any silent XGBoost-version-related drift in M3a outputs vs canon.
 4. **If exposing via ngrok**: use `make api-prod` (drops `--reload`, adds `--workers 1`) and set `CORS_ALLOW_ORIGINS` to your deployed frontend origin if there is one.

@@ -1,8 +1,8 @@
 """PRISM Pipeline FastAPI service.
 
 Run locally:
-    cd serve && uv sync
-    uvicorn serve.main:app --host 0.0.0.0 --port 8000 --reload
+    cd backend && uv sync
+    uvicorn backend.main:app --host 0.0.0.0 --port 8000 --reload
 
 Expose via ngrok for the live demo:
     ngrok http 8000
@@ -11,7 +11,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-# Load serve/.env before any module reads os.environ. uvicorn does not auto-load
+# Load backend/.env before any module reads os.environ. uvicorn does not auto-load
 # .env files, so ILMU_API_KEY / SUPABASE_* would be missing without this.
 try:
     from dotenv import load_dotenv
@@ -23,7 +23,7 @@ from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse
 
-from serve.agent import (
+from backend.agent import (
     AgentRequest,
     AgentResponse,
     handle_agent,
@@ -31,7 +31,7 @@ from serve.agent import (
     remaining_tokens,
     token_budget_ok,
 )
-from serve.pipeline import META, PredictRequest, run_pipeline
+from backend.pipeline import META, PredictRequest, run_pipeline
 
 app = FastAPI(title="PRISM Pipeline", version="1.0")
 

@@ -12,7 +12,7 @@ from pathlib import Path
 
 import pytest
 
-from serve.pipeline import PredictRequest, run_pipeline
+from backend.pipeline import PredictRequest, run_pipeline
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 CANON = json.loads((REPO_ROOT / "exhibits/results/key_numbers_python.json").read_text())

@@ -18,8 +18,8 @@ from unittest.mock import patch
 
 import pytest
 
-from serve.agent import AgentRequest, handle_agent
-from serve.scoping import (
+from backend.agent import AgentRequest, handle_agent
+from backend.scoping import (
     handle_scoping,
     is_profile_complete,
     merge_axis_into_profile,
@@ -317,8 +317,8 @@ def test_handle_agent_dispatches_scoping_screen():
             "axis": "line_of_business",
         }),
     ])
-    with patch("serve.agent._get_client", return_value=fake_client):
-        with patch("serve.supabase_client.get_client", return_value=None):
+    with patch("backend.agent._get_client", return_value=fake_client):
+        with patch("backend.supabase_client.get_client", return_value=None):
             resp = handle_agent(AgentRequest(
                 message="we're a Vietnamese cedent",
                 screen="scoping",

@@ -11,7 +11,7 @@ from unittest.mock import patch
 
 import pytest
 
-from serve.agent import (
+from backend.agent import (
     AgentRequest,
     handle_agent,
     rate_limit_ok,
@@ -111,7 +111,7 @@ class _FakeClient:
 
 def _patch_get_client(responses):
     fake = _FakeClient(responses)
-    return patch("serve.agent._get_client", return_value=fake), fake
+    return patch("backend.agent._get_client", return_value=fake), fake
 
 
 def test_handle_agent_stress_happy_path():

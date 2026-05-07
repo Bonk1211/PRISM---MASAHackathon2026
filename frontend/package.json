@@ -4,7 +4,7 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "sync-data": "cp ../exhibits/results/key_numbers_python.json src/data/key_numbers_python.json && cp ../serve/models/meta.json src/data/pipeline_meta.json",
+    "sync-data": "cp ../exhibits/results/key_numbers_python.json src/data/key_numbers_python.json && cp ../backend/models/meta.json src/data/pipeline_meta.json",
     "predev": "npm run sync-data",
     "prebuild": "npm run sync-data",
     "dev": "vite",

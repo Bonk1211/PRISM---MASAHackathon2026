@@ -27,7 +27,7 @@ Numbers are sourced from `exhibits/results/key_numbers.json` and
 ## Local development
 
 ```bash
-cd app
+cd frontend
 npm install
 npm run dev          # http://localhost:5173 (auto-binds to LAN)
 ```
@@ -57,7 +57,7 @@ Two practical paths during the hackathon:
 
 ```bash
 npm run build
-# Push the contents of app/dist/ to any static host, e.g.:
+# Push the contents of frontend/dist/ to any static host, e.g.:
 #   - GitHub Pages         (vite base = './' is already set)
 #   - Vercel/Netlify drag-drop
 #   - `npx serve dist`     (then expose via ngrok for HTTPS)
@@ -68,7 +68,7 @@ Then visit the hosted URL on the phone and **Add to Home Screen**.
 ## Project layout
 
 ```
-app/
+frontend/
 ├── public/
 │   ├── favicon.svg
 │   ├── pwa-192.png  pwa-512.png  pwa-512-maskable.png  apple-touch-icon.png

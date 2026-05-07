@@ -703,7 +703,7 @@ def handle_scoping(
         # Record token usage against the user budget. Best-effort; failure
         # to import (e.g., circular) just skips telemetry.
         try:
-            from serve.agent import record_token_usage
+            from backend.agent import record_token_usage
             record_token_usage(user_id or "anon", llm_tokens)
         except Exception:
             pass

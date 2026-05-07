@@ -153,7 +153,7 @@ The analysis supports four concrete actions for the client:
 │   ├── results/                           ← JSON outputs (key_numbers + supporting)
 │   └── MASA_Hackathon_Summary.pdf
 │
-├── app/                                   ← Mobile-first PWA viewer (Vite + React 19)
+├── frontend/                                   ← Mobile-first PWA viewer (Vite + React 19)
 │   ├── public/                             icons + manifest assets
 │   ├── src/
 │   │   ├── data/                           keyNumbers.ts + cedent.ts (port of JSON)
@@ -199,7 +199,7 @@ Five elements separate this work from a generic regression-and-recommendations s
 
 **Interactive dashboard with explicit policy linkage.** The R Shiny app has six tabs including a dedicated Indicator Diagnostic panel (interactive partial-correlation toggling, residual ranking, sectoral heatmap) and a Policy Linkage tab citing Paris Agreement, NGFS, BNM CRST, IFRS S2, TCFD, UNFCCC NDCs, and the ASEAN Strategy for Carbon Neutrality. The bonus criterion (10 %) explicitly rewards this combination.
 
-**Mobile PWA (`app/`) for the live demo.** A Vite + React installable Progressive Web App walks a non-technical viewer through the same 5-screen story (Story → Model → Hot Spots → Stress → Cedent → Actions) on a phone. The Stress and Cedent screens recompute live, and the Cedent screen ports the same 5-tier composite logic used in the Shiny *Reinsurance Impact* tab. Numerical anchors mirror `exhibits/results/key_numbers.json`. Detailed product requirements live in `docs/app_prd.md`.
+**Mobile PWA (`frontend/`) for the live demo.** A Vite + React installable Progressive Web App walks a non-technical viewer through the same 5-screen story (Story → Model → Hot Spots → Stress → Cedent → Actions) on a phone. The Stress and Cedent screens recompute live, and the Cedent screen ports the same 5-tier composite logic used in the Shiny *Reinsurance Impact* tab. Numerical anchors mirror `exhibits/results/key_numbers.json`. Detailed product requirements live in `docs/app_prd.md`.
 
 **External data integration (`data/external/`).** Two open datasets enrich the WDI core: **EM-DAT Country Profiles** (CRED/UCLouvain via HDX) for Vietnam vs Philippines disaster claims (2018–2023, 2024-CPI USD damages), and **ND-GAIN 2026 Country Index** (Notre Dame) for the adaptive-capacity tier in the cedent screening framework. `data/external/build_external_panel.py` produces `external_features_sea.csv`, joined into both R and Python pipelines and quoted in §2.3 of the report.
 
