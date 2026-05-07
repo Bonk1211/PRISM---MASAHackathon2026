@@ -38,6 +38,139 @@ Headline number USD 135 m / +11.25 pp computed from three constants pinned in no
 
 ---
 
+## Technical architecture
+
+End-to-end data flow from raw World Bank panel through the Python notebook, into the FastAPI inference layer, and out to the React PWA — with Supabase and ILMU as side-channel services for Phase 1 scoping persistence and LLM inference.
+
+```mermaid
+flowchart LR
+  subgraph Sources["Data sources"]
+    WDI[("World Bank WDI<br/>1,486 ind × 217 econ × 1960–2024")]
+    EMDAT[("EM-DAT disasters")]
+    NDGAIN[("ND-GAIN vulnerability")]
+    NGFS[("NGFS Phase V scenarios")]
+    SR[("Swiss Re sigma 1/2024<br/>elasticity 0.7")]
+  end
+
+  subgraph Pipeline["Python pipeline — analysis.ipynb (41 cells, ~3 min)"]
+    direction TB
+    Curate["Cell 4–6 · Curate 16-indicator panel<br/>fwd-only interp ≤3y · no 2024 leakage"]
+    Panel[("SEA panel<br/>10 economies × 35 yr × 16 ind")]
+    Diag["Partial corr · STIRPAT residuals<br/>sectoral STIRPAT · two-way FE"]
+    M1["M1 log-linear<br/>9.23% MAPE"]
+    M2["M2 auto-ARIMA<br/>2.67% MAPE"]
+    M3a["M3a XGBoost AR<br/>2.43% MAPE · forecast"]
+    M3b["M3b XGBoost structural<br/>9.67% MAPE · attribution"]
+    Stress["NGFS perturbation<br/>× elasticity × GWP 1.2bn"]
+  end
+
+  subgraph Artefacts["Canonical artefacts"]
+    Canon[("exhibits/results/<br/>key_numbers_python.json")]
+    Models[("backend/models/<br/>m3a · m3b · meta")]
+    Figs[("exhibits/figures/<br/>fig1–fig13")]
+  end
+
+  subgraph Backend["FastAPI · :8000"]
+    Predict["/POST /predict<br/>5-stage trace"]
+    Meta["/GET /meta<br/>feature ranges"]
+    Agent["/POST /agent<br/>NL parser"]
+    Scoping["/POST /scoping/*<br/>multi-turn chat"]
+  end
+
+  subgraph Frontend["PWA · React 19 + Vite 7 + Tailwind"]
+    Phases["Phase 1–6 engagement<br/>(primary path)"]
+    Appx["14 appendix screens<br/>(/appendix/*)"]
+    Sync["npm sync-data · pre-build copy"]
+  end
+
+  Supa[("Supabase<br/>anon auth · sessions<br/>transcripts · token usage")]
+  ILMU{{"ILMU LLM<br/>YTL AI Labs<br/>ilmu-nemo-nano"}}
+  Judge((Judge / Cedent))
+
+  WDI --> Curate
+  Curate --> Panel
+  EMDAT -. context only .-> Panel
+  NDGAIN -. context only .-> Panel
+  Panel --> Diag
+  Panel --> M1 & M2 & M3a & M3b
+  NGFS --> Stress
+  SR --> Stress
+  M3a --> Stress
+  Diag --> Canon
+  M1 --> Canon
+  M2 --> Canon
+  M3a --> Canon
+  M3b --> Canon
+  Stress --> Canon
+  M3a --> Models
+  M3b --> Models
+  Canon --> Figs
+
+  Models --> Predict
+  Models --> Meta
+  Canon -. Sync .-> Frontend
+  Models -. Sync .-> Frontend
+
+  Predict <--> Appx
+  Meta <--> Appx
+  Meta <--> Phases
+  Agent <--> Appx
+  Scoping <--> Phases
+
+  Agent <--> ILMU
+  Scoping <--> ILMU
+  Scoping <--> Supa
+  Phases <--> Supa
+
+  Judge --> Frontend
+
+  classDef src fill:#fef3c7,stroke:#b45309,color:#1f2937
+  classDef art fill:#e0e7ff,stroke:#4338ca,color:#1f2937
+  classDef ext fill:#fce7f3,stroke:#be185d,color:#1f2937
+  class WDI,EMDAT,NDGAIN,NGFS,SR src
+  class Canon,Models,Figs art
+  class Supa,ILMU ext
+```
+
+---
+
+## User journey — six-phase consulting engagement
+
+The PWA reframes the submission as a Hannover Re engagement, not a notebook tour. A judge (or cedent) signs in anonymously, walks Phase 1 → Phase 6 with completeness gates, and can drill into any of the 14 chart-driven appendix screens at any point.
+
+```mermaid
+flowchart TD
+  Start([Judge / cedent opens PRISM]) --> Auth["/onboarding<br/>Supabase anonymous sign-in"]
+  Auth --> P1["Phase 1 · Scoping<br/><i>ILMU consultant chat</i><br/>pin 5 axes:<br/>LoB · geo · horizon ·<br/>frameworks · disclosure"]
+  P1 -->|"gate: 5 axes pinned"| P2["Phase 2 · Risk Taxonomy<br/>physical / transition / liability<br/>+ acute / chronic split"]
+  P2 -->|"gate: taxonomy chosen"| P3["Phase 3 · Indicator Mapping<br/>map risks → 16 WDI indicators<br/>+ partial-corr diagnostic"]
+  P3 --> P4["Phase 4 · Data Pipeline<br/>walkthrough:<br/>curate → panel → STIRPAT"]
+  P4 --> P5["Phase 5 · Modelling<br/>M1 / M2 / M3a / M3b benchmark<br/>+ live /predict sliders"]
+  P5 --> P6["Phase 6 · Strategy<br/>cedent screening<br/>parametric pricing<br/>stress refresh playbook"]
+  P6 --> Out([Engagement deliverable<br/>USD 135 m / +11.25 pp swing])
+
+  P3 -. drill .-> AX1["/appendix/diagnostic<br/>pairwise vs partial"]
+  P3 -. drill .-> AX2["/appendix/sectoral<br/>STIRPAT 8-sector"]
+  P4 -. drill .-> AX3["/appendix/story<br/>narrative arc"]
+  P5 -. drill .-> AX4["/appendix/pipeline<br/>live /predict demo"]
+  P5 -. drill .-> AX5["/appendix/model<br/>forecast benchmark"]
+  P5 -. drill .-> AX6["/appendix/compare<br/>VN vs PH deep-dive"]
+  P6 -. drill .-> AX7["/appendix/stress<br/>NGFS scenario charts"]
+  P6 -. drill .-> AX8["/appendix/cedent<br/>screening tool"]
+  P6 -. drill .-> AX9["/appendix/pricing<br/>typhoon parametric"]
+  P6 -. drill .-> AX10["/appendix/actions<br/>recommendation tracker"]
+
+  classDef gate fill:#dcfce7,stroke:#15803d,color:#1f2937
+  classDef phase fill:#dbeafe,stroke:#1d4ed8,color:#1f2937
+  classDef apx fill:#f3f4f6,stroke:#6b7280,color:#374151
+  class P1,P2,P3,P4,P5,P6 phase
+  class AX1,AX2,AX3,AX4,AX5,AX6,AX7,AX8,AX9,AX10 apx
+```
+
+Phase progression is gated: Phase 1 must pin all five scoping axes before Phase 2 unlocks; Phase 2 risk-taxonomy selection gates Phase 3 onward. Drill-down to appendix screens is unrestricted — judges can jump straight to `/appendix/pipeline` for the live `/predict` slider demo without traversing the engagement.
+
+---
+
 ## Repository map
 
 ```
