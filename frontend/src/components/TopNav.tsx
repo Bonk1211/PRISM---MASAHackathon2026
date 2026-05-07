@@ -12,9 +12,8 @@ const PRIMARY: Tab[] = [
   { to: '/',                code: '00', label: 'Home' },
   { to: '/phase1',          code: '01', label: 'Discovery',  tag: 'Scope · taxonomy · indicators' },
   { to: '/phase4',          code: '02', label: 'Pipeline',   tag: 'Phase 4' },
-  { to: '/phase5',          code: '03', label: 'Modeling',   tag: 'Phase 5' },
-  { to: '/phase6',          code: '04', label: 'Strategy',   tag: 'Phase 6' },
-  { to: '/appendix/report', code: '05', label: 'Report',     tag: 'Memo' },
+  { to: '/phase6',          code: '03', label: 'Strategy',   tag: 'Modeling · pricing · cedent' },
+  { to: '/appendix/report', code: '04', label: 'Report',     tag: 'Memo' },
 ];
 
 // APPENDIX hidden from primary nav. Routes still resolve for deep links and

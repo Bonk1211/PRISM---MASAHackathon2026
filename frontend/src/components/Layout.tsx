@@ -8,8 +8,7 @@ const META: Record<string, { code: string; title: string; eyebrow: string }> = {
   // Engagement — Discovery (phase1) replaces the former Phases 1–3.
   '/phase1':   { code: '01', title: 'Discovery',     eyebrow: 'Engagement · Scope · Taxonomy · Indicators' },
   '/phase4':   { code: '02', title: 'Data Pipeline', eyebrow: 'Engagement · Phase 4' },
-  '/phase5':   { code: '03', title: 'Modeling',      eyebrow: 'Engagement · Phase 5' },
-  '/phase6':   { code: '04', title: 'Strategy',      eyebrow: 'Engagement · Phase 6' },
+  '/phase6':   { code: '03', title: 'Strategy',      eyebrow: 'Engagement · Modeling + Pricing' },
 
   // Appendix — the 14 legacy chart-driven screens.
   '/appendix/story':      { code: 'a1',  title: 'Story',      eyebrow: 'Appendix' },
@@ -59,7 +58,8 @@ export function Layout() {
     loc.pathname === '/appendix/pipeline' ||
     loc.pathname === '/appendix/pricing' ||
     loc.pathname === '/phase1' ||
-    loc.pathname === '/phase4';
+    loc.pathname === '/phase4' ||
+    loc.pathname === '/phase6';
 
   useEffect(() => {
     document.title = `${meta.title} — PRISM · SEA Climate Risk`;
