@@ -6,36 +6,90 @@ Team: [TEAM_NAME]
 
 ---
 
-## 1. Generative AI tools used
+## 1. Posture — minimise, then review
 
-| Tool | Version / model | Purpose |
+Our default was **not** to use generative AI. We treated it as a narrow assistant
+for boilerplate and a rephrasing tool, never as a source of truth. Every piece
+of generative-AI output that survived into this submission — code, prose,
+explanations, narration — was **read, executed where applicable, and edited by
+a human team member before commit**. Nothing was pasted in unreviewed.
+
+The headline analytical work — feature engineering, model selection, hold-out
+validation, NGFS scenario calibration, partial-correlation sign-flip
+diagnostic, sector residual mapping, cedent tiering rules, the USD 135 m loss
+swing — is the team's own. No AI made a modelling decision for us.
+
+## 2. Generative AI tools used
+
+| Tool | Version / model | Where it appears |
 |---|---|---|
-| Anthropic Claude | claude-opus-4 (Apr 2026) | Code scaffolding, report drafting assistance, explanation of statistical methods, refactoring of R/Python pipelines |
-| GitHub Copilot (optional — delete row if not used) | latest | Inline code completion during development |
-| ChatGPT (optional — delete row if not used) | GPT-4o | Cross-checking of statistical reasoning |
-| Google Gemini | `gemini-2.5-flash` via `google-genai` SDK | **Live in-app feature.** Cedent and Stress screens of the PWA include an "AI input" panel. Gemini parses an underwriter's free-text request into structured slider values via tool/function calling, then narrates the resulting numbers in 2–3 sentences. Implemented in `backend/agent.py` and `frontend/src/components/AgentPanel.tsx`. |
+| Anthropic Claude | claude-opus-4 | Light code scaffolding (file skeletons, Tailwind boilerplate) and prose copy-edits. Never accepted unverified. |
+| YTL ILMU (`nemo-super`) | OpenAI-compatible | **Live in-app feature only.** Powers the PRISM scoping chatbot (`backend/scoping.py`) and the natural-language input parser on the Pricing/Cedent screens (`backend/agent.py`). Tool-calling only — emits structured slider values, never invents numbers. |
 
-## 2. What we used AI for
+We did not use any other generative-AI tool in this submission.
 
-- **Code scaffolding.** Generating the initial structure of `R/analysis.Rmd`, `python/analysis.ipynb`, and `shiny_frontend/app.R`. All AI-generated code was executed, debugged, and modified by team members; we did not commit code we had not run and verified ourselves.
-- **Report drafting assistance.** Generating draft prose for the report and slide deck, which the team then edited for accuracy, tone, and length.
-- **Methodology explanation.** Asking AI to clarify NGFS scenario design, Swiss Re sigma elasticity assumptions, and the STIRPAT framework, then verifying against primary sources.
-- **Live PWA feature (Cedent + Stress screens).** Gemini Flash (`gemini-2.5-flash`) acts as a natural-language input parser. The user types prose such as "Vietnamese power cedent, 70% thermal, no NDC plan filed" or "Net Zero 2050 at elasticity 0.9"; the model emits a single forced tool call (`set_cedent_inputs` / `set_stress_inputs`) which is server-side validated and clamped, then a second turn writes a 2–3 sentence narration over the precomputed numbers. The brief permits LLM use in the interactive deliverable; the modelling pipeline (`analysis/python/analysis.ipynb`) remains R/Python-only.
+## 3. What AI was used for — and the review gate
 
-## 3. What we did NOT use AI for
+- **Code scaffolding.** Initial file skeletons (component shells, FastAPI route
+  stubs) were drafted with Claude. Every file was then **run, debugged, and
+  refactored by a team member**; we did not commit code we had not executed
+  and read end-to-end. Type-checking (`tsc`) and the 19-anchor regression
+  suite (`make test`) provide a hard gate against drift.
+- **Prose copy-edits.** Sentence-level rephrasing of the report, the executive
+  one-pager, and microcopy. Claims, numbers, and references were written by
+  the team first, then tightened. **Every paragraph was re-read and edited
+  before commit.**
+- **Methodology rubber-ducking.** We occasionally asked an LLM to restate the
+  STIRPAT framework, NGFS scenario logic, or Swiss Re sigma elasticity in
+  plain English to check our own understanding — then verified against
+  primary sources (Swiss Re Sigma 1/2024, NGFS Phase V documentation, World
+  Bank WDI metadata). The verified primary source is what we cite.
+- **Live PWA feature.** ILMU `nemo-super` runs two narrow flows inside the
+  app: (a) the scoping chatbot that pins five cedent-profile axes via forced
+  tool calls; (b) the Pricing/Cedent natural-language parser that converts
+  prose like "Vietnamese power cedent, 70% thermal, no NDC plan" into
+  validated slider values. The model **only emits structured tool calls**;
+  numbers are computed deterministically by the Python pipeline downstream.
+  The brief explicitly permits LLM use in the interactive deliverable; the
+  modelling pipeline (`analysis/python/analysis.ipynb`) stays Python-only.
 
-- **Final modelling decisions.** Model selection (XGBoost over ARIMA/log-linear) was a team decision based on observed hold-out MAPE — not an AI suggestion accepted blindly.
-- **Citations.** Every reference in the bibliography was located and read by a team member; we did not let the AI generate citations without verification.
-- **Numerical results.** All numbers in the report come from running our own code on the WDI dataset. No AI-fabricated statistics appear in the submission.
-- **Pipeline numerical outputs in the live feature.** The Cedent + Stress AI panel never generates loss ratios, expected losses, sector residuals, composite tiers, or premium loadings. Those values are computed deterministically by (a) the XGBoost models in `backend/pipeline.py` (seed `RANDOM_STATE = 2026`), (b) the Stress recompute in `backend/agent.py` (which reads the canonical `exhibits/results/key_numbers_python.json`), and (c) the React tier helpers in `frontend/src/data/cedent.ts`. Gemini only narrates over already-computed values; the system prompt explicitly forbids introducing numbers not present in the payload, and the panel falls back to a templated narration if the LLM call fails.
+## 4. What we did NOT use AI for
 
-## 4. Validation & accountability statement
+- **Modelling decisions.** Choice of XGBoost over ARIMA / log-linear, the dual
+  M3a (autoregressive) + M3b (structural) specification, lag selection,
+  hold-out year, seed value (`RANDOM_STATE = 2026`) — all team decisions
+  driven by observed hold-out MAPE.
+- **Numerical results.** Every number in the report (USD 135 m loss swing,
+  +11 pp loss-ratio delta, 2.4 % MAPE, partial-correlation coefficients,
+  sector residuals, country tiers) is produced by running our own code on
+  the WDI panel. Single source of truth: `exhibits/results/key_numbers_python.json`.
+  No AI-fabricated statistics appear anywhere in the submission.
+- **Pipeline numerical outputs in the live PWA feature.** The chatbot and
+  pricing parser never generate loss ratios, expected losses, residuals,
+  composite tiers, or loadings. Those values are computed deterministically
+  by (a) the XGBoost models in `backend/pipeline.py`, (b) the stress
+  recompute in `backend/agent.py` reading canonical
+  `key_numbers_python.json`, and (c) the React tier helpers in
+  `frontend/src/data/cedent.ts`. The system prompt explicitly forbids
+  introducing numbers not present in the payload, and the panel falls back
+  to a templated narration if the LLM call fails or hallucinates.
+- **Citations.** Every reference in the bibliography was located and read by
+  a team member. AI was never asked to produce citations.
+- **Final wording of headline claims.** The pitch deck headline, the report's
+  Executive Summary §2, and the Hannover Re memo cover were written from
+  scratch by a team member.
 
-The team has **read, executed, and verified all code** in this submission. We have **independently checked all numerical claims and citations** against the underlying data and source documents. Any errors are our own.
+## 5. Validation & accountability statement
 
-The team takes full accountability for the originality and integrity of the content of this submission, including any AI-assisted output.
+The team has **read, executed, and verified all code** in this submission.
+We have **independently checked all numerical claims and citations** against
+the underlying data and source documents. Every line of generative-AI
+content was reviewed by a human team member before being committed.
 
-## 5. Signed
+We take full accountability for the originality and integrity of this
+submission, including any AI-assisted output. Any errors are our own.
+
+## 6. Signed
 
 | Name | Role | Signature |
 |---|---|---|
