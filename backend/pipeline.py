@@ -15,12 +15,15 @@ from pathlib import Path
 from typing import Literal
 
 import numpy as np
+import xgboost as xgb
 from pydantic import BaseModel, Field, field_validator
-from xgboost import XGBRegressor
 
 ROOT = Path(__file__).parent / "models"
 
-m3a = XGBRegressor()
+# Raw Booster API instead of XGBRegressor — XGBRegressor pulls sklearn (and
+# scipy transitively) at instantiation, adding ~150 MB to the deploy image.
+# Booster.predict on a DMatrix is numerically identical for dense inputs.
+m3a = xgb.Booster()
 m3a.load_model(str(ROOT / "m3a.json"))
 
 # M3b (structural, no-lag) is methodologically distinct (driver attribution
@@ -52,7 +55,7 @@ if _LIVE_CT.exists():
 # Sanity check: model and meta must agree on input arity. Catches the worst
 # silent failure mode — re-running cell 42 after editing FEATURES without
 # retraining the M3a binary.
-_expected_n = m3a.n_features_in_  # type: ignore[attr-defined]
+_expected_n = m3a.num_features()
 _meta_n = len(META.get("m3a_features", []))
 assert _expected_n == _meta_n, (
     f"meta.json/m3a.json drift: m3a expects {_expected_n} features, meta lists {_meta_n}. "
@@ -147,10 +150,11 @@ def run_pipeline(req: PredictRequest) -> dict:
         "log_transformed_keys": log_keys,
     }
 
-    # Stage 3 — XGBoost inference
+    # Stage 3 — XGBoost inference. Booster was trained with named features, so
+    # DMatrix must carry feature_names for _validate_features() to pass.
     X_arr = np.asarray([X], dtype=np.float32)
     t_inf = time.perf_counter()
-    log_ghg_pred = float(m3a.predict(X_arr)[0])
+    log_ghg_pred = float(m3a.predict(xgb.DMatrix(X_arr, feature_names=feature_order))[0])
     inference_ms = (time.perf_counter() - t_inf) * 1000.0
     # Clamp before exp() — defends against extreme override values producing
     # OverflowError. log(1e9 Mt) ≈ 20.7, so 30 is a generous ceiling.
