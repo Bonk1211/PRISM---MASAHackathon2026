@@ -1,15 +1,33 @@
-FROM python:3.12-slim
+# Multi-stage build keeps the final image lean: deps compile/install in stage 1,
+# only the resulting site-packages + binary are copied to a clean runtime stage.
+# Saves apt cache, pip cache, build tools, and __pycache__ from the final layer.
 
-# XGBoost on linux dynamically links libgomp.so.1 — must be installed at OS
-# level. Without this, `import xgboost` raises OSError on first request.
+FROM python:3.12-slim AS builder
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /build
+
+COPY requirements.txt .
+# --no-cache-dir: don't keep downloaded wheels
+# --no-compile: skip .pyc generation (Python compiles on first import; saves ~20 MB)
+RUN pip install --no-cache-dir --no-compile --prefix=/install -r requirements.txt
+
+
+FROM python:3.12-slim AS runtime
+
+# XGBoost on linux dynamically links libgomp.so.1. Required at runtime; no
+# build-essential, no apt cache.
 RUN apt-get update && apt-get install -y --no-install-recommends \
     libgomp1 \
     && rm -rf /var/lib/apt/lists/*
 
-WORKDIR /app
+# Pull installed packages from builder stage.
+COPY --from=builder /install /usr/local
 
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+WORKDIR /app
 
 # Copy source under /app/backend/ so internal imports `from backend.X` resolve
 # when Railway Root Directory is set to `backend` (build context = backend/).

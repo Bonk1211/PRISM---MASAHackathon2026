@@ -1,5 +1,5 @@
 fastapi>=0.115
-uvicorn[standard]>=0.32
+uvicorn>=0.32
 pydantic>=2.9
 xgboost>=3.0
 numpy>=2.0
