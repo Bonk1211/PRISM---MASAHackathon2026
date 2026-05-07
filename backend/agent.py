@@ -12,7 +12,9 @@ For Cedent, no compute step — the React tier helpers in frontend/src/data/cede
 re-derive the composite once the form state changes.
 
 ILMU is OpenAI-compatible. Base URL: https://api.ilmu.ai/v1.
-Cheapest model with full tool-calling + JSON mode = ilmu-nemo-nano.
+Default model = `nemo-super` (the canonical ILMU model id from the
+custom-api-ilmu-ai provider config). Override via the ILMU_MODEL env var
+if YTL ships additional tiers (e.g. nemo-super-pro).
 """
 from __future__ import annotations
 
@@ -27,7 +29,11 @@ from pydantic import BaseModel, Field
 
 from backend.pipeline import META
 
-ILMU_MODEL = "ilmu-nemo-nano"
+# Single source of truth for the ILMU model. Both /agent (this module) and
+# /agent scoping path (backend/scoping.py) read this so the demo stays on one
+# tier. Bump the env var to swap models without redeploying. The canonical
+# model id from the provider config is `nemo-super` (no `ilmu-` prefix).
+ILMU_MODEL = os.getenv("ILMU_MODEL", "nemo-super")
 ILMU_BASE_URL = "https://api.ilmu.ai/v1"
 EXTRACTION_MAX_TOKENS = 400
 NARRATOR_MAX_TOKENS = 300

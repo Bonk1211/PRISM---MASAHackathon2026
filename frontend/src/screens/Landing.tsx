@@ -267,7 +267,7 @@ export function Landing() {
           />
           <FeedRow
             name="YTL ILMU"
-            endpoint="ilmu-nemo-nano"
+            endpoint="nemo-super"
             description="Natural-language scenario input on the Pricing screen — type a memo, get a stressed loss ratio."
             status="live"
             pillLabel="Live"

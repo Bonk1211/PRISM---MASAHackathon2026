@@ -14,6 +14,7 @@ import {
   type ScopingProfile,
   type SessionSummary,
   SCOPING_AXES,
+  deleteSession,
   listSessions,
   pinnedAxes,
   useScoping,
@@ -43,11 +44,10 @@ const AXIS_LABEL: Record<ScopingAxis, string> = {
 };
 
 // Predicted user input — chips shift to the next-unpinned axis so the user
-// always gets relevant prompts. Phrasings are TESTED against ilmu-nemo-nano:
-// each chip pins its axis at confidence 0.9 reliably (3/3 cold runs). Do not
-// edit without re-testing — the model is sensitive to enum casing and
-// abbreviation (e.g. "UW" fails, "underwriting" works; "TCFD only" fails,
-// "TCFD and ISSB_S2" works).
+// always gets relevant prompts. Phrasings were originally hardened against
+// the smallest ILMU tier; the default model is now `nemo-super`, but the
+// same wording stays on the safe side (exact enum casing, no abbreviations
+// like "UW"). Re-test if ILMU_MODEL on the backend is downgraded.
 //
 // Three-chip set per axis: the canonical SEA-typhoon demo persona first, a
 // diversified middle option, then a contrasting profile for variety.
@@ -164,6 +164,13 @@ export function ChatThread({
   const [err, setErr] = useState<string | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
 
+  // Inline axis-viz tracker. Records which axis got pinned at which assistant
+  // turn, so we can render a small visualisation right inside that bubble.
+  // Keyed by transcript index (assistant-turn position). Only fills on live
+  // turns; replays from supabase don't repopulate it.
+  const prevProfileRef = useRef<ScopingProfile>({});
+  const [pinnedAtTurn, setPinnedAtTurn] = useState<Record<number, ScopingAxis>>({});
+
   // History sidebar state.
   const [historyOpen, setHistoryOpen] = useState<boolean>(() => getInitialHistoryOpen());
   const [sessions, setSessions] = useState<SessionSummary[]>([]);
@@ -194,6 +201,27 @@ export function ChatThread({
     }
   }, [transcript.length, loading, extraBubbles]);
 
+  // Detect a newly-pinned axis between renders and tag it onto the most
+  // recent assistant turn. The tag is what AxisViz reads.
+  useEffect(() => {
+    const newlyPinned = SCOPING_AXES.find(
+      (a) =>
+        profile[a as keyof ScopingProfile] !== undefined &&
+        prevProfileRef.current[a as keyof ScopingProfile] === undefined,
+    );
+    prevProfileRef.current = profile;
+    if (!newlyPinned) return;
+    let lastAsstIdx = -1;
+    for (let i = transcript.length - 1; i >= 0; i--) {
+      if (transcript[i].role === 'assistant') {
+        lastAsstIdx = i;
+        break;
+      }
+    }
+    if (lastAsstIdx < 0) return;
+    setPinnedAtTurn((p) => (p[lastAsstIdx] ? p : { ...p, [lastAsstIdx]: newlyPinned as ScopingAxis }));
+  }, [profile, transcript.length]);
+
   const pinned = pinnedAxes(profile);
   const conf = profile.confidence ?? {};
 
@@ -211,12 +239,47 @@ export function ChatThread({
 
   function handleNewChat() {
     reset();
+    setPinnedAtTurn({});
+    prevProfileRef.current = {};
     void reloadSessions();
   }
 
   async function handleSwitch(id: string) {
     await switchSession(id);
     setErr(null);
+    setPinnedAtTurn({});
+    prevProfileRef.current = {};
+  }
+
+  // Soft-confirm delete from the sidebar. If the deleted row was the active
+  // session, fall back to a fresh chat so we don't leave the conversation
+  // pointing at a phantom id.
+  const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
+  async function handleDelete(id: string) {
+    if (pendingDeleteId !== id) {
+      setPendingDeleteId(id);
+      // Auto-cancel the armed delete after a few seconds so a stray click
+      // doesn't quietly stay primed.
+      window.setTimeout(() => {
+        setPendingDeleteId((curr) => (curr === id ? null : curr));
+      }, 4000);
+      return;
+    }
+    setPendingDeleteId(null);
+    // Optimistic UI: drop from the list immediately, refetch on next list call.
+    setSessions((prev) => prev.filter((s) => s.id !== id));
+    const ok = await deleteSession(id);
+    if (!ok) {
+      setErr('Could not delete session — please retry.');
+      void reloadSessions();
+      return;
+    }
+    if (id === sessionId) {
+      reset();
+      setPinnedAtTurn({});
+      prevProfileRef.current = {};
+    }
+    void reloadSessions();
   }
 
   async function submit(text: string) {
@@ -344,14 +407,15 @@ export function ChatThread({
             )}
             {sessions.map((s) => {
               const sel = s.id === sessionId;
+              const armed = pendingDeleteId === s.id;
               return (
-                <li key={s.id}>
+                <li key={s.id} className="group/row relative">
                   <button
                     type="button"
                     onClick={() => void handleSwitch(s.id)}
                     aria-current={sel ? 'true' : undefined}
                     className={[
-                      'flex w-full items-baseline justify-between gap-2 border-l-2 px-2 py-1.5 text-left transition',
+                      'flex w-full items-baseline justify-between gap-2 border-l-2 px-2 py-1.5 pr-8 text-left transition',
                       sel
                         ? 'border-ink bg-ink/[0.04] text-ink'
                         : 'border-transparent text-ink hover:border-rule hover:bg-ink/[0.02]',
@@ -361,6 +425,23 @@ export function ChatThread({
                     <span className="shrink-0 font-mono text-[9px] tab-num text-muted">
                       {relativeTime(s.created_at)}
                     </span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      void handleDelete(s.id);
+                    }}
+                    aria-label={armed ? 'Confirm delete' : 'Delete session'}
+                    title={armed ? 'Click again to confirm' : 'Delete'}
+                    className={[
+                      'absolute right-1 top-1/2 grid h-6 w-6 -translate-y-1/2 place-items-center font-mono text-[12px] transition',
+                      armed
+                        ? 'border border-rust bg-rust text-paper'
+                        : 'text-muted opacity-0 hover:text-rust group-hover/row:opacity-100 focus:opacity-100',
+                    ].join(' ')}
+                  >
+                    {armed ? '!' : '×'}
                   </button>
                 </li>
               );
@@ -372,7 +453,7 @@ export function ChatThread({
       {/* Conversation column */}
       <div className="flex h-[80vh] flex-col border border-rule bg-paper">
         <div className="flex items-baseline justify-between border-b border-rule px-4 py-3">
-          <Eyebrow>Consultant interview · ILMU Nano</Eyebrow>
+          <Eyebrow>Consultant interview · ILMU Nemo Super</Eyebrow>
           <button
             type="button"
             onClick={handleNewChat}
@@ -407,26 +488,34 @@ export function ChatThread({
             </div>
           ) : (
             <ul className="mx-auto max-w-2xl space-y-5">
-              {transcript.map((turn, i) => (
-                <li
-                  key={i}
-                  className={[
-                    'flex',
-                    turn.role === 'user' ? 'justify-end' : 'justify-start',
-                  ].join(' ')}
-                >
-                  <div
+              {transcript.map((turn, i) => {
+                const vizAxis = turn.role === 'assistant' ? pinnedAtTurn[i] : undefined;
+                return (
+                  <li
+                    key={i}
                     className={[
-                      'max-w-[80%] whitespace-pre-wrap leading-relaxed',
-                      turn.role === 'user'
-                        ? 'rounded-2xl rounded-br-sm bg-ink px-4 py-2 text-[13px] text-paper'
-                        : 'rounded-2xl rounded-bl-sm border border-rule bg-paper px-4 py-2 font-serif text-[14px] italic text-ink',
+                      'flex',
+                      turn.role === 'user' ? 'justify-end' : 'justify-start',
                     ].join(' ')}
                   >
-                    {turn.content}
-                  </div>
-                </li>
-              ))}
+                    <div
+                      className={[
+                        'max-w-[80%] whitespace-pre-wrap leading-relaxed',
+                        turn.role === 'user'
+                          ? 'rounded-2xl rounded-br-sm bg-ink px-4 py-2 text-[13px] text-paper'
+                          : 'rounded-2xl rounded-bl-sm border border-rule bg-paper px-4 py-2 font-serif text-[14px] italic text-ink',
+                      ].join(' ')}
+                    >
+                      {turn.content}
+                      {vizAxis && (
+                        <div className="not-italic mt-3 border-t border-rule pt-3">
+                          <AxisViz axis={vizAxis} profile={profile} />
+                        </div>
+                      )}
+                    </div>
+                  </li>
+                );
+              })}
               {loading && (
                 <li className="flex justify-start">
                   <div className="rounded-2xl rounded-bl-sm border border-rule bg-paper px-4 py-2 font-serif text-[13px] italic text-muted">
@@ -581,6 +670,197 @@ export function ChatThread({
           </p>
         )}
       </aside>
+    </div>
+  );
+}
+
+// ============================================================================
+// AxisViz — small in-bubble visualisations the user sees the moment ILMU pins
+// an axis. Each is intentionally compact (≤ 80 px tall) so the chat doesn't
+// balloon. All shapes work inside the assistant bubble's max-w[80%].
+// ============================================================================
+
+const SECTOR_HUE: Record<string, string> = {
+  property_cat: '#8B2E1F',
+  agriculture:  '#5C7C3D',
+  life:         '#0E7C86',
+  casualty:     '#B8761C',
+  specialty:    '#4F6D8A',
+};
+
+const SEA_TIER_HUE: Record<string, string> = {
+  Vietnam: '#B8761C', Philippines: '#3F8A66', Indonesia: '#3F8A66',
+  Singapore: '#3F8A66', Thailand: '#0E7C86', Malaysia: '#B8761C',
+  Cambodia: '#0E7C86', Myanmar: '#0E7C86', 'Lao PDR': '#8B2E1F',
+  'Brunei Darussalam': '#0A1A2A',
+};
+
+const FRAMEWORK_HUE: Record<string, string> = {
+  TCFD: '#0E7C86', ISSB_S2: '#3F8A66', Solvency_II_ORSA: '#B8761C',
+  NAIC: '#4F6D8A', Internal_Capital: '#7A6E55', Other: '#7A8A9C',
+};
+
+const DISCLOSURE_HUE: Record<string, string> = {
+  TCFD: '#0E7C86', ISSB_S2: '#3F8A66',
+  Regulatory_Stress_Test: '#B8761C', Internal_Only: '#0A1A2A',
+};
+
+function AxisViz({ axis, profile }: { axis: ScopingAxis; profile: ScopingProfile }) {
+  if (axis === 'line_of_business') {
+    const lob = profile.line_of_business ?? {};
+    const entries = Object.entries(lob)
+      .filter(([, v]) => Number.isFinite(v) && v > 0)
+      .sort(([, a], [, b]) => b - a);
+    const total = entries.reduce((s, [, v]) => s + v, 0) || 1;
+    return (
+      <div>
+        <p className="font-mono text-[9px] uppercase tracking-eyebrow text-muted">Book mix</p>
+        <div className="mt-1 flex h-3 w-full overflow-hidden border border-rule">
+          {entries.map(([k, v]) => (
+            <span
+              key={k}
+              title={`${k.replace('_', ' ')} ${Math.round(v)}%`}
+              style={{ width: `${(v / total) * 100}%`, background: SECTOR_HUE[k] ?? '#7A8A9C' }}
+            />
+          ))}
+        </div>
+        <ul className="mt-2 grid grid-cols-2 gap-x-3 gap-y-1 font-mono text-[10px] tab-num text-ink">
+          {entries.map(([k, v]) => (
+            <li key={k} className="flex items-center gap-1.5">
+              <span
+                className="h-2 w-2 shrink-0"
+                style={{ background: SECTOR_HUE[k] ?? '#7A8A9C' }}
+                aria-hidden="true"
+              />
+              <span className="flex-1 truncate text-muted">{k.replace('_', ' ')}</span>
+              <span className="text-ink">{Math.round(v)}%</span>
+            </li>
+          ))}
+        </ul>
+      </div>
+    );
+  }
+
+  if (axis === 'geography') {
+    const tags = profile.geography ?? [];
+    return (
+      <div>
+        <p className="font-mono text-[9px] uppercase tracking-eyebrow text-muted">
+          Markets · {tags.length}
+        </p>
+        <div className="mt-1.5 flex flex-wrap gap-1.5">
+          {tags.map((t) => (
+            <span
+              key={t}
+              className="inline-flex items-center gap-1 border border-rule bg-paper px-1.5 py-0.5 text-[11px] text-ink"
+            >
+              <span
+                className="h-1.5 w-1.5 rounded-full"
+                style={{ background: SEA_TIER_HUE[t] ?? '#7A8A9C' }}
+                aria-hidden="true"
+              />
+              {t}
+            </span>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  if (axis === 'time_horizon') {
+    const th = profile.time_horizon ?? { uw_years: 1, life_years: 30 };
+    const max = 50;
+    const uwPct = (th.uw_years / max) * 100;
+    const lifePct = (th.life_years / max) * 100;
+    return (
+      <div>
+        <p className="font-mono text-[9px] uppercase tracking-eyebrow text-muted">Horizon</p>
+        <div className="mt-2 space-y-2">
+          <HorizonBar label="Underwriting" years={th.uw_years} pct={uwPct} hue="#0E7C86" />
+          <HorizonBar label="Liability tail" years={th.life_years} pct={lifePct} hue="#8B2E1F" />
+        </div>
+        <div className="mt-1 flex justify-between font-mono text-[8px] tab-num text-muted">
+          <span>0y</span>
+          <span>25y</span>
+          <span>50y</span>
+        </div>
+      </div>
+    );
+  }
+
+  if (axis === 'frameworks') {
+    const tags = profile.frameworks ?? [];
+    return (
+      <div>
+        <p className="font-mono text-[9px] uppercase tracking-eyebrow text-muted">
+          Frameworks · {tags.length}
+        </p>
+        <div className="mt-1.5 flex flex-wrap gap-1.5">
+          {tags.map((t) => (
+            <span
+              key={t}
+              className="inline-flex items-center gap-1 border px-1.5 py-0.5 text-[11px]"
+              style={{
+                borderColor: FRAMEWORK_HUE[t] ?? '#7A8A9C',
+                color: FRAMEWORK_HUE[t] ?? '#0A1A2A',
+              }}
+            >
+              <span
+                className="h-1.5 w-1.5"
+                style={{ background: FRAMEWORK_HUE[t] ?? '#7A8A9C' }}
+                aria-hidden="true"
+              />
+              {t}
+            </span>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  if (axis === 'disclosures') {
+    const tags = profile.disclosures ?? [];
+    return (
+      <div>
+        <p className="font-mono text-[9px] uppercase tracking-eyebrow text-muted">
+          Disclosures · {tags.length}
+        </p>
+        <div className="mt-1.5 flex flex-wrap gap-1.5">
+          {tags.map((t) => (
+            <span
+              key={t}
+              className="inline-flex items-center gap-1 border px-1.5 py-0.5 text-[11px]"
+              style={{
+                borderColor: DISCLOSURE_HUE[t] ?? '#7A8A9C',
+                color: DISCLOSURE_HUE[t] ?? '#0A1A2A',
+              }}
+            >
+              <span
+                className="h-1.5 w-1.5"
+                style={{ background: DISCLOSURE_HUE[t] ?? '#7A8A9C' }}
+                aria-hidden="true"
+              />
+              {t}
+            </span>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  return null;
+}
+
+function HorizonBar({ label, years, pct, hue }: { label: string; years: number; pct: number; hue: string }) {
+  return (
+    <div>
+      <div className="flex items-baseline justify-between font-mono text-[9px] tab-num text-muted">
+        <span>{label}</span>
+        <span className="text-ink">{years}y</span>
+      </div>
+      <div className="mt-0.5 h-1.5 w-full bg-rule">
+        <div className="h-full" style={{ width: `${Math.min(100, pct)}%`, background: hue }} />
+      </div>
     </div>
   );
 }

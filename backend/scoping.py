@@ -198,49 +198,61 @@ ASK_FOLLOWUP_TOOL = {
 
 # --- system prompt --------------------------------------------------------
 #
-# Tuned for ilmu-nemo-nano. Constraints learned the hard way:
-#   - Stay under ~800 chars; longer prompts make the model thrash past
+# Originally hardened on the smallest ILMU tier; defaults now run on
+# `nemo-super` (the model id exposed by the custom-api-ilmu-ai provider
+# config) which handles the full prompt comfortably. Keep the constraints
+# below in mind if anyone tunes a smaller model in via ILMU_MODEL:
+#   - Stay under ~1.2 kB; longer prompts make smaller tiers thrash past
 #     max_tokens without emitting any tool call.
 #   - Always force a tool call. Plain-text replies are fallback-handled but
 #     break the wizard flow; the prompt repeats this rule at top + bottom.
 #   - Shape examples must use the EXACT enum casing the validator accepts
 #     ("property_cat", "TCFD", "ISSB_S2"). Prose hints like "TCFD only" fail.
 
-SYSTEM_PROMPT = """You are ILMU, a senior climate-risk consultant at Hannover Re APAC.
-Mission: a 5-axis cedent intake. ONE axis per turn, in fixed order:
-line_of_business → geography → time_horizon → frameworks → disclosures.
+# Prompt structure follows the ILMU prompt-engineering guide:
+#   docs.ilmu.ai/docs/developer-tools/prompt-engineering
+#
+# Key rules applied:
+#   - Front-load role + the single hardest constraint (one tool call per turn).
+#   - Keep system prompt under 500 tokens. Current build ≈ 380 tokens.
+#   - Few-shot examples (5; the doc allows up to 5 for complex tool-routing).
+#   - Behavioural instructions stay in the system message, never in user turns.
+#   - Output format examples use the EXACT enum casing the validator accepts.
+
+SYSTEM_PROMPT = """You are ILMU — a senior climate-risk consultant at Hannover Re APAC.
+
+ROLE
+Run a five-axis cedent intake. Each turn emit EXACTLY ONE tool call. Never reply with plain text.
+Pin axes in fixed order; skip an axis only if the system message says it is already pinned.
+Order: line_of_business → geography → time_horizon → frameworks → disclosures.
 
 DECISION RULE
-- Concrete answer with numbers / enum tags → set_scoping_axis @ confidence 0.9.
-- Anything else (greeting, single keyword, hedged, off-topic) → ask_followup with
-  ONE crisp question that ECHOES the user's keyword and demands the missing
-  detail. ≤ 25 words. Always cite 1–2 example values.
+- Concrete answer (numbers / enum tags)        → set_scoping_axis @ confidence 0.9
+- Greeting / single keyword / hedged / partial → ask_followup with ONE ≤25-word question that
+  echoes the user's keyword and cites 1–2 example values
 
-EXAMPLES (do not deviate)
-- user: "70% property cat, 20% agriculture, 10% specialty"
-  → set_scoping_axis(line_of_business, {"property_cat":70,"agriculture":20,"specialty":10}, 0.9)
-- user: "property"
-  → ask_followup("Got property cat — what share of the book? e.g. 70 %, 90 %.", "line_of_business")
-- user: "hi" / "whats up" / ""
-  → ask_followup("Let's start with the book mix — what % is property cat, agriculture, life, casualty, specialty?", "line_of_business")
-- user: "vietnam"
-  → ask_followup("Got Vietnam — any other markets? e.g. Philippines, Indonesia.", "geography")
-- user: "tcfd"
-  → ask_followup("TCFD noted — anything else? e.g. ISSB_S2, Solvency_II_ORSA.", "frameworks")
+EXAMPLES
+- "70% property cat, 20% agriculture, 10% specialty"
+    → set_scoping_axis(line_of_business, {"property_cat":70,"agriculture":20,"specialty":10}, 0.9)
+- "property"
+    → ask_followup("Got property cat — what % of the book? e.g. 70 %, 90 %.", line_of_business)
+- "hi" / "" / off-topic
+    → ask_followup("Let's start with the book mix — what % is property cat, agriculture, life, casualty, specialty?", line_of_business)
+- "vietnam"
+    → ask_followup("Got Vietnam — any other markets? e.g. Philippines, Indonesia.", geography)
+- "tcfd"
+    → ask_followup("TCFD noted — anything else? e.g. ISSB_S2, Solvency_II_ORSA.", frameworks)
 
 PAYLOAD SHAPES (exact keys / enum casing)
-- line_of_business → {"property_cat":70,"agriculture":20,"specialty":10}  (sums ≈100)
+- line_of_business → {"property_cat":70,"agriculture":20,"specialty":10}  (values sum ≈100)
 - geography        → {"tags":["Vietnam","Philippines","Indonesia"]}
 - time_horizon     → {"uw_years":1,"life_years":30}
-- frameworks       → {"tags":["TCFD","ISSB_S2"]}  enum: TCFD ISSB_S2 Solvency_II_ORSA NAIC Internal_Capital Other
-- disclosures      → {"tags":["TCFD","ISSB_S2"]}  enum: TCFD ISSB_S2 Regulatory_Stress_Test Internal_Only
+- frameworks       → {"tags":[...]}  enum: TCFD ISSB_S2 Solvency_II_ORSA NAIC Internal_Capital Other
+- disclosures      → {"tags":[...]}  enum: TCFD ISSB_S2 Regulatory_Stress_Test Internal_Only
 
 STYLE
-- Warm, terse, plain English. ≤ 2 sentences of prose.
-- Never re-list pinned axes — the server echoes captures back.
-- Never repeat the same primer twice. If the user gave a partial answer, build
-  on it ("Got X — what's the percentage?") rather than restarting.
-- ALWAYS emit exactly ONE tool call. Never reply with prose only."""
+- Warm, terse, ≤2 sentences. Never re-list pinned axes — the server echoes them.
+- Never repeat the same primer twice. Build on whatever the user said."""
 
 
 # --- validation -----------------------------------------------------------
@@ -712,15 +724,23 @@ def call_consultant(
     user_message: str,
     transcript: list[dict[str, Any]],
     profile: dict[str, Any],
-    model: str = "ilmu-nemo-nano",
+    model: str | None = None,
 ) -> tuple[str | None, dict[str, Any], str, int]:
     """One ILMU turn. Returns (tool_name, tool_args, narration, tokens).
 
     `narration` is filled only when the model emits prose alongside the tool
     call. `tokens` is total_tokens from the response usage object — used by
     the per-user daily token budget bucket.
+
+    `model` defaults to backend.agent.ILMU_MODEL — switched once at module
+    boot via the ILMU_MODEL env var (default `nemo-super`).
     """
-    # Keep messages SHORT — nemo-nano thrashes past max_tokens when the
+    if model is None:
+        # Late import avoids a hard cycle: backend.agent imports backend.pipeline,
+        # and backend.scoping is loaded by backend.agent at request time.
+        from backend.agent import ILMU_MODEL as _DEFAULT_MODEL
+        model = _DEFAULT_MODEL
+    # Keep messages SHORT — smaller tiers thrash past max_tokens when the
     # context grows. Skip transcript replay; the pinned-axes summary in the
     # system message is sufficient memory because the model's only job is to
     # decide whether the latest user message pins an axis.
@@ -739,12 +759,13 @@ def call_consultant(
         model=model,
         messages=messages,
         # set_scoping omitted — server auto-marks complete=True via
-        # is_profile_complete() once all five axes pin. Two tools keeps
-        # nemo-nano's tool selection reliable; with three tools it thrashes
-        # past max_tokens without emitting any call.
+        # is_profile_complete() once all five axes pin. Two tools keeps the
+        # tool selection reliable; with three tools smaller tiers thrash past
+        # max_tokens without emitting any call.
         tools=[SET_SCOPING_AXIS_TOOL, ASK_FOLLOWUP_TOOL],
-        # ILMU nemo-nano does not honor tool_choice="required" reliably.
-        # The system prompt hard-forces the tool call instead.
+        # tool_choice="required" is unreliable on smaller tiers. The system
+        # prompt hard-forces the tool call instead, and the no-tool fallback
+        # in handle_scoping() catches any miss.
         tool_choice="auto",
         temperature=0.0,
         max_tokens=600,
@@ -802,7 +823,16 @@ def handle_scoping(
     sid = ensure_session(supabase, req.session_id, user_id)
     transcript = load_transcript(supabase, sid) if sid else []
     session_row = load_session(supabase, sid) if sid else None
-    profile: dict[str, Any] = (session_row or {}).get("profile") or {}
+    server_profile: dict[str, Any] = (session_row or {}).get("profile") or {}
+
+    # Continuity guard: when Supabase silently fails (table missing, RLS
+    # blocked, sid=None), the server-side profile is empty every turn — and
+    # next_axis stays "line_of_business" forever, even after the user has
+    # answered. The frontend always sends its accumulated profile in
+    # `current_state`; trust it as a fallback so the wizard doesn't re-loop
+    # the LOB primer when Supabase is down.
+    client_profile: dict[str, Any] = getattr(req, "current_state", None) or {}
+    profile: dict[str, Any] = server_profile if server_profile else client_profile
 
     # Persist user turn before the LLM call so even an LLM error leaves a
     # complete transcript on disk.
