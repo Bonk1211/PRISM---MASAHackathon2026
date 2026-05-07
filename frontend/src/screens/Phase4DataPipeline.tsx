@@ -9,7 +9,7 @@ export function Phase4DataPipeline() {
     <>
       <Pipeline />
       <PhaseFooterNav
-        prev={{ to: '/phase1', label: 'Discovery' }}
+        prev={{ to: '/phase1', label: 'Chatbot' }}
         next={{ to: '/phase6', label: 'Phase 6 · Strategy' }}
       />
     </>

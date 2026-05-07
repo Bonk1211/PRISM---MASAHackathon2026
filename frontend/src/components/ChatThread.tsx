@@ -1,7 +1,7 @@
 // Phase 1 multi-turn consultant chat — Claude-style chatbox.
 //
 // Visual = Claude chat: centered narrow column, no message bubbles for
-// assistant (plain text, serif italic for ILMU's voice), user messages in
+// assistant (plain text, serif italic for PRISM's voice), user messages in
 // a right-aligned gray rounded card, large rounded composer with send
 // arrow inside the textarea.
 //
@@ -11,13 +11,17 @@
 // continueTo/showContinue) preserved so Phase1Discovery's wizard injection
 // still works.
 
-import { useCallback, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { Eyebrow } from './Card';
 import {
+  listSessions,
   pinnedAxes,
   SCOPING_AXES,
   type ChatTurn,
   type ScopingAxis,
+  type ScopingProfile,
+  type SessionSummary,
   useScoping,
 } from '../lib/scoping';
 
@@ -77,6 +81,50 @@ const SUGGESTIONS_BY_AXIS: Record<ScopingAxis, string[]> = {
 // single tap pins LOB instantly; remaining chips give variety.
 const OPENING_SUGGESTIONS = SUGGESTIONS_BY_AXIS.line_of_business;
 
+// === History sidebar helpers ============================================
+
+const HISTORY_OPEN_KEY = 'prism.scoping.history_open.v1';
+
+function getInitialHistoryOpen(): boolean {
+  try {
+    const v = localStorage.getItem(HISTORY_OPEN_KEY);
+    if (v !== null) return v === '1';
+  } catch {
+    /* ignore */
+  }
+  if (typeof window !== 'undefined' && typeof window.matchMedia === 'function') {
+    return window.matchMedia('(min-width: 1024px)').matches;
+  }
+  return true;
+}
+
+function sessionLabel(s: SessionSummary): string {
+  if (s.client_label) return s.client_label;
+  const lob = (s.profile as ScopingProfile | null)?.line_of_business;
+  if (lob) {
+    const top = (Object.entries(lob) as [string, number][])
+      .filter(([, v]) => Number.isFinite(v) && v > 0)
+      .sort(([, a], [, b]) => b - a)[0];
+    if (top) return `${top[0].replace('_', ' ')} ${Math.round(top[1])}%`;
+  }
+  const geo = (s.profile as ScopingProfile | null)?.geography;
+  if (geo && geo.length > 0) return geo.slice(0, 2).join(', ');
+  return 'Untitled scope';
+}
+
+function relativeTime(iso: string): string {
+  const then = new Date(iso).getTime();
+  const now = Date.now();
+  const min = Math.round((now - then) / 60000);
+  if (min < 1) return 'now';
+  if (min < 60) return `${min}m`;
+  const hr = Math.round(min / 60);
+  if (hr < 24) return `${hr}h`;
+  const day = Math.round(hr / 24);
+  if (day < 30) return `${day}d`;
+  return new Date(iso).toISOString().slice(0, 10);
+}
+
 export function ChatThread({
   continueTo = '/phase2',
   continueLabel = 'Continue to Phase 2 →',
@@ -91,13 +139,58 @@ export function ChatThread({
   composerHint?: React.ReactNode;
 } = {}) {
   const nav = useNavigate();
-  const { profile, transcript, sessionId, setFullProfile, appendTurn } = useScoping();
+  const {
+    profile,
+    transcript,
+    sessionId,
+    setFullProfile,
+    appendTurn,
+    reset,
+    switchSession,
+  } = useScoping();
   const [msg, setMsg] = useState('');
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState<string | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const taRef = useRef<HTMLTextAreaElement>(null);
   const inFlight = useRef(false);
+
+  // History sidebar state.
+  const [historyOpen, setHistoryOpen] = useState<boolean>(() => getInitialHistoryOpen());
+  const [sessions, setSessions] = useState<SessionSummary[]>([]);
+  const [historyLoading, setHistoryLoading] = useState(false);
+
+  const reloadSessions = useCallback(async () => {
+    setHistoryLoading(true);
+    const rows = await listSessions(50);
+    setSessions(rows);
+    setHistoryLoading(false);
+  }, []);
+
+  useEffect(() => {
+    void reloadSessions();
+  }, [reloadSessions]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(HISTORY_OPEN_KEY, historyOpen ? '1' : '0');
+    } catch {
+      /* ignore */
+    }
+  }, [historyOpen]);
+
+  const handleNewChat = useCallback(() => {
+    reset();
+    void reloadSessions();
+  }, [reset, reloadSessions]);
+
+  const handleSwitch = useCallback(
+    async (id: string) => {
+      await switchSession(id);
+      setErr(null);
+    },
+    [switchSession],
+  );
 
   // Auto-scroll on new turn / spinner / injected wizard bubbles.
   const scrollToBottom = useCallback(() => {
@@ -157,6 +250,8 @@ export function ChatThread({
         });
       }
       if (data.error) setErr(data.error);
+      // Refresh history list so the current session label updates.
+      void reloadSessions();
     } catch (e) {
       const name = e instanceof Error ? e.name : '';
       const m = e instanceof Error ? e.message : String(e);
@@ -188,15 +283,99 @@ export function ChatThread({
   }, [profile, transcript.length, composerHint]);
 
   const isEmpty = transcript.length === 0 && !loading;
+  const sidebarCols = historyOpen
+    ? 'lg:grid-cols-[260px_1fr]'
+    : 'lg:grid-cols-[44px_1fr]';
 
   return (
-    <div className="mx-auto flex h-[80vh] w-full max-w-3xl flex-col">
+    <div className={['lg:grid lg:items-start lg:gap-3', sidebarCols].join(' ')}>
+      {/* === History sidebar — desktop only === */}
+      <aside
+        aria-label="Chat history"
+        className="mb-3 hidden flex-col border border-rule bg-paper transition-all lg:mb-0 lg:flex lg:h-[80vh] lg:overflow-hidden"
+      >
+        <div className="flex items-center justify-between border-b border-rule px-2 py-2.5">
+          {historyOpen ? (
+            <>
+              <Eyebrow>History</Eyebrow>
+              <div className="flex items-center gap-1">
+                <button
+                  type="button"
+                  onClick={handleNewChat}
+                  title="Start a new scoping session"
+                  className="font-mono text-[10px] uppercase tracking-eyebrow text-sea hover:text-ink"
+                >
+                  + New
+                </button>
+                <button
+                  type="button"
+                  aria-label="Hide history"
+                  onClick={() => setHistoryOpen(false)}
+                  className="px-1 font-mono text-[12px] text-muted hover:text-ink"
+                >
+                  ‹
+                </button>
+              </div>
+            </>
+          ) : (
+            <button
+              type="button"
+              aria-label="Show history"
+              onClick={() => setHistoryOpen(true)}
+              className="mx-auto px-1 font-mono text-[12px] text-muted hover:text-ink"
+            >
+              ›
+            </button>
+          )}
+        </div>
+
+        {historyOpen && (
+          <ul className="flex-1 overflow-y-auto px-1 py-1">
+            {historyLoading && sessions.length === 0 && (
+              <li className="px-2 py-2 font-mono text-[10px] uppercase tracking-eyebrow text-muted">
+                Loading…
+              </li>
+            )}
+            {!historyLoading && sessions.length === 0 && (
+              <li className="px-2 py-2 text-[11px] leading-snug text-muted">
+                No history yet. Send a message to start.
+              </li>
+            )}
+            {sessions.map((s) => {
+              const sel = s.id === sessionId;
+              return (
+                <li key={s.id}>
+                  <button
+                    type="button"
+                    onClick={() => void handleSwitch(s.id)}
+                    aria-current={sel ? 'true' : undefined}
+                    className={[
+                      'flex w-full items-baseline justify-between gap-2 border-l-2 px-2 py-1.5 text-left transition',
+                      sel
+                        ? 'border-ink bg-ink/[0.04] text-ink'
+                        : 'border-transparent text-ink hover:border-rule hover:bg-ink/[0.02]',
+                    ].join(' ')}
+                  >
+                    <span className="min-w-0 flex-1 truncate text-[12px]">{sessionLabel(s)}</span>
+                    <span className="shrink-0 font-mono text-[9px] tab-num text-muted">
+                      {relativeTime(s.created_at)}
+                    </span>
+                  </button>
+                </li>
+              );
+            })}
+          </ul>
+        )}
+      </aside>
+
+      {/* === Conversation column === */}
+      <div className="mx-auto flex h-[80vh] w-full max-w-3xl flex-col lg:mx-0 lg:max-w-none">
       {/* Transcript */}
       <div ref={scrollRef} className="flex-1 overflow-y-auto px-4 py-8">
         {isEmpty ? (
           <div className="flex h-full flex-col items-center justify-center text-center">
             <p className="display text-[28px] leading-[1.05] text-ink lg:text-[40px]">
-              Hi — I'm <span className="italic">ILMU</span>.
+              Hi — I'm <span className="italic">PRISM</span>.
             </p>
             <p className="mt-3 max-w-md font-serif text-[15px] italic leading-relaxed text-ink lg:text-[16px]">
               Five questions, then I'll propose the risk taxonomy and the indicator panel
@@ -282,8 +461,8 @@ export function ChatThread({
             }}
             rows={1}
             maxLength={2000}
-            placeholder="Reply to ILMU…"
-            aria-label="Reply to ILMU"
+            placeholder="Reply to PRISM…"
+            aria-label="Reply to PRISM"
             disabled={loading}
             onKeyDown={(e) => {
               if (e.key === 'Enter' && !e.shiftKey) {
@@ -329,6 +508,7 @@ export function ChatThread({
             </button>
           )}
         </div>
+      </div>
       </div>
     </div>
   );

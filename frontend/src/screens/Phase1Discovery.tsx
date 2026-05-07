@@ -1,5 +1,5 @@
 // Phase 1 · Discovery (consolidated, in-chat). The single screen that replaces
-// the former Scoping + Taxonomy + Indicators tabs. ILMU walks the user through
+// the former Scoping + Taxonomy + Indicators tabs. PRISM walks the user through
 // three steps inside one chat feed:
 //   1. Scope    — multi-turn interview, five axes pin via the Gemini agent.
 //   2. Taxonomy — assistant proposes 4 risk buckets (auto-derived from scope).

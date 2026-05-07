@@ -6,7 +6,7 @@ const META: Record<string, { code: string; title: string; eyebrow: string }> = {
   '/':         { code: '00', title: 'PRISM',      eyebrow: 'Home' },
 
   // Engagement — Discovery (phase1) replaces the former Phases 1–3.
-  '/phase1':   { code: '01', title: 'Discovery',     eyebrow: 'Engagement · Scope · Taxonomy · Indicators' },
+  '/phase1':   { code: '01', title: 'Chatbot',       eyebrow: 'Scope · Taxonomy · Indicators' },
   '/phase4':   { code: '02', title: 'Data Pipeline', eyebrow: 'Engagement · Phase 4' },
   '/phase6':   { code: '03', title: 'Strategy',      eyebrow: 'Engagement · Modeling + Pricing' },
 

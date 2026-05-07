@@ -421,7 +421,7 @@ export function Landing() {
             glyph="II"
             eyebrow="Act II · Pricing"
             title="Run a pricing simulation"
-            blurb="Natural-language scenario via ILMU. Slide elasticity, swap NGFS pathway, see the loss ratio move in real time."
+            blurb="Natural-language scenario via PRISM. Slide elasticity, swap NGFS pathway, see the loss ratio move in real time."
             to="/pricing"
             cta="Price a cedent"
           />
@@ -457,8 +457,8 @@ export function Landing() {
             pillLabel={`Live · ${climateTraceAsOf}`}
           />
           <FeedRow
-            name="YTL ILMU"
-            endpoint="nemo-super"
+            name="PRISM Assistant"
+            endpoint="api.prism.app/agent"
             description="Natural-language scenario input on the Pricing screen — type a memo, get a stressed loss ratio."
             status="live"
             pillLabel="Live"

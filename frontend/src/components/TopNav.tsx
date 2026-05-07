@@ -1,16 +1,15 @@
 import { useEffect, useRef, useState } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
-import { DataFreshnessPill } from './DataFreshnessPill';
 import { UserMenu } from './UserMenu';
 import { useFocusTrap } from '../lib/useFocusTrap';
 
 type Tab = { to: string; code: string; label: string; tag?: string };
 
 // PRIMARY = the consulting engagement, condensed. Discovery (phase1) merges
-// the former Scoping + Taxonomy + Indicators tabs into one ILMU-driven step.
+// the former Scoping + Taxonomy + Indicators tabs into one PRISM-driven step.
 const PRIMARY: Tab[] = [
   { to: '/',                code: '00', label: 'Home' },
-  { to: '/phase1',          code: '01', label: 'Discovery',  tag: 'Scope · taxonomy · indicators' },
+  { to: '/phase1',          code: '01', label: 'Chatbot',    tag: 'Scope · taxonomy · indicators' },
   { to: '/phase4',          code: '02', label: 'Pipeline',   tag: 'Phase 4' },
   { to: '/phase6',          code: '03', label: 'Strategy',   tag: 'Modeling · pricing · cedent' },
   { to: '/appendix/report', code: '04', label: 'Report',     tag: 'Memo' },
@@ -155,7 +154,6 @@ export function TopNav() {
         </nav>
 
         <div className="flex shrink-0 items-center gap-3">
-          <DataFreshnessPill />
           <UserMenu />
           <button
             onClick={() => setDrawerOpen(true)}
