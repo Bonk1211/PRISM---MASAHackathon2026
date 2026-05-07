@@ -242,7 +242,7 @@ export function Pricing() {
     : 'Diversified mix';
 
   return (
-    <div className="mx-auto w-full max-w-[1180px] space-y-4">
+    <div className="space-y-4">
       {/* Wizard stepper — single source of position cue */}
       <nav aria-label="Strategy steps" className="border border-rule bg-paper px-4 py-3">
         <ol className="flex flex-wrap items-center gap-1.5">

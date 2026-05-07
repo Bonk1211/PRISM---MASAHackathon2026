@@ -49,17 +49,6 @@ export function Layout() {
   const meta = META[loc.pathname] ?? { code: '—', title: 'PRISM', eyebrow: '' };
   const headingRef = useRef<HTMLHeadingElement>(null);
   const isLanding = loc.pathname === '/';
-  // Wide screens — drop the canvas constraint so the 5-card pipeline row +
-  // pricing simulator can use the full viewport.
-  const isFullBleed =
-    isLanding ||
-    loc.pathname === '/pipeline' ||
-    loc.pathname === '/pricing' ||
-    loc.pathname === '/appendix/pipeline' ||
-    loc.pathname === '/appendix/pricing' ||
-    loc.pathname === '/phase1' ||
-    loc.pathname === '/phase4' ||
-    loc.pathname === '/phase6';
 
   useEffect(() => {
     document.title = `${meta.title} — PRISM · SEA Climate Risk`;
@@ -96,24 +85,16 @@ export function Layout() {
         </div>
       )}
 
-      <main
-        className={
-          isLanding
-            ? ''
-            : isFullBleed
-              ? 'w-full px-5 pb-12 pt-5 lg:px-8 lg:pt-8'
-              : 'mx-auto w-full max-w-shell px-5 pb-12 pt-5 lg:px-10 lg:pt-8'
-        }
-      >
-        <div className={isLanding || isFullBleed ? '' : 'mx-auto max-w-canvas'}>
+      <main className="mx-auto w-full max-w-shell px-5 pb-12 pt-5 lg:px-10 lg:pt-8">
+        <div className="mx-auto max-w-canvas">
           <Outlet />
         </div>
       </main>
 
       <footer className="border-t border-rule px-5 py-4 lg:px-10 print:hidden">
         <div className="mx-auto flex max-w-shell items-baseline justify-between font-mono text-[10px] uppercase tracking-eyebrow text-muted">
-          <span>PRISM · MASA Hackathon 2026</span>
-          <span className="tab-num">Pipeline v1.0 · Seed 2026</span>
+          <span>PRISM · Climate-Risk Underwriting Platform</span>
+          <span className="tab-num">v1.0</span>
         </div>
       </footer>
     </div>
