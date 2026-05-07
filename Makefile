@@ -9,8 +9,8 @@ API_PORT    ?= 8000
 WEB_PORT    ?= 5173
 PYTHON      ?= python3
 NOTEBOOK    := analysis/python/analysis.ipynb
-MODELS_DIR  := serve/models
-ENV_LOCAL   := app/.env.local
+MODELS_DIR  := backend/models
+ENV_LOCAL   := frontend/.env.local
 
 # ---------------------------------------------------------------------------
 # help
@@ -39,11 +39,11 @@ install: install-api install-web ## Install both backend + frontend deps.
 
 .PHONY: install-api
 install-api: ## Install backend Python deps via pip.
-	cd serve && $(PYTHON) -m pip install -q -r requirements.txt
+	cd backend && $(PYTHON) -m pip install -q -r requirements.txt
 
 .PHONY: install-web
 install-web: ## Install frontend npm deps + seed .env.local.
-	cd app && npm install --silent
+	cd frontend && npm install --silent
 	@if [ ! -f $(ENV_LOCAL) ]; then \
 	  echo "VITE_PIPELINE_API=http://localhost:$(API_PORT)" > $(ENV_LOCAL); \
 	  echo "  wrote $(ENV_LOCAL)"; \
@@ -54,7 +54,7 @@ install-web: ## Install frontend npm deps + seed .env.local.
 # ---------------------------------------------------------------------------
 
 .PHONY: models
-models: ## Re-execute notebook to (re)build serve/models/. Always runs (avoids stale-after-checkout).
+models: ## Re-execute notebook to (re)build backend/models/. Always runs (avoids stale-after-checkout).
 	@if [ -f $(MODELS_DIR)/m3a.json ] && [ $(MODELS_DIR)/m3a.json -nt $(NOTEBOOK) ]; then \
 	  echo "==> models up-to-date (m3a.json newer than notebook). Use 'make clean-models && make models' to force."; \
 	else \
@@ -71,17 +71,17 @@ models: ## Re-execute notebook to (re)build serve/models/. Always runs (avoids s
 .PHONY: api
 api: ## Start FastAPI on :8000 in the foreground (with --reload for dev).
 	@echo "==> API on http://$(API_HOST):$(API_PORT) (dev · reload on)"
-	uvicorn serve.main:app --host $(API_HOST) --port $(API_PORT) --reload
+	uvicorn backend.main:app --host $(API_HOST) --port $(API_PORT) --reload
 
 .PHONY: api-prod
 api-prod: ## Start FastAPI without --reload (use for ngrok / live demo).
 	@echo "==> API on http://$(API_HOST):$(API_PORT) (prod · no reload)"
-	uvicorn serve.main:app --host $(API_HOST) --port $(API_PORT) --workers 1
+	uvicorn backend.main:app --host $(API_HOST) --port $(API_PORT) --workers 1
 
 .PHONY: web
 web: ## Start Vite dev server on :5173 in the foreground.
 	@echo "==> Web on http://localhost:$(WEB_PORT)/#/pipeline"
-	cd app && npm run dev
+	cd frontend && npm run dev
 
 .PHONY: dev
 dev: ## Start API + web in parallel. Ctrl-C kills both.
@@ -104,12 +104,12 @@ ngrok: ## Expose API via ngrok (separate terminal). Requires ngrok installed.
 # ---------------------------------------------------------------------------
 
 .PHONY: build
-build: ## Production build of the web app to app/dist/.
-	cd app && npm run build
+build: ## Production build of the web app to frontend/dist/.
+	cd frontend && npm run build
 
 .PHONY: preview
 preview: build ## Preview the production build on :4173.
-	cd app && npm run preview
+	cd frontend && npm run preview
 
 # ---------------------------------------------------------------------------
 # verify
@@ -141,21 +141,21 @@ smoke: ## Curl /healthz + 2× /predict and assert expected ranges. Requires `mak
 
 .PHONY: test
 test: ## Run pytest regression anchors against canon JSON. Requires models built.
-	cd serve && $(PYTHON) -m pytest -q tests/
+	cd backend && $(PYTHON) -m pytest -q tests/
 
 # ---------------------------------------------------------------------------
 # stop / clean
 # ---------------------------------------------------------------------------
 
 .PHONY: stop
-stop: ## Kill any running uvicorn (serve.*) or vite processes.
-	-@pkill -f "uvicorn serve" 2>/dev/null && echo "  killed uvicorn" || echo "  no uvicorn"
+stop: ## Kill any running uvicorn (backend.*) or vite processes.
+	-@pkill -f "uvicorn backend" 2>/dev/null && echo "  killed uvicorn" || echo "  no uvicorn"
 	-@pkill -f "vite" 2>/dev/null && echo "  killed vite" || echo "  no vite"
 
 .PHONY: clean
 clean: ## Remove build artefacts, caches, and generated models. Keeps node_modules.
-	rm -rf app/dist app/.vite serve/__pycache__ serve/.pytest_cache /tmp/exec.ipynb
-	@echo "  cleaned. (run 'make clean-models' to also delete serve/models/*.json)"
+	rm -rf frontend/dist frontend/.vite backend/__pycache__ backend/.pytest_cache /tmp/exec.ipynb
+	@echo "  cleaned. (run 'make clean-models' to also delete backend/models/*.json)"
 
 .PHONY: clean-models
 clean-models: ## Delete generated model artefacts (regen via 'make models').
@@ -163,4 +163,4 @@ clean-models: ## Delete generated model artefacts (regen via 'make models').
 
 .PHONY: clean-all
 clean-all: clean clean-models ## Full clean including node_modules.
-	rm -rf app/node_modules
+	rm -rf frontend/node_modules

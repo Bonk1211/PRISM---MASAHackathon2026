@@ -79,7 +79,7 @@ def fetch_ngfs_stub() -> dict | None:
     """NGFS Phase V scenario growth rates would refresh here. The IIASA
     scenario-explorer REST API requires `ixmp4 login` + the `pyam` Python
     package. Skipped tonight to avoid breaking the pipeline; bundled values
-    in serve/models/meta.json remain authoritative."""
+    in backend/models/meta.json remain authoritative."""
     print("[ngfs] skipped — IIASA auth + pyam dep deferred to Grand Final", file=sys.stderr)
     return None
 

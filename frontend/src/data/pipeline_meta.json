@@ -1,0 +1,348 @@
+{
+  "pipeline_version": "1.0",
+  "random_state": 2026,
+  "m3a_features": [
+    "log_GDP",
+    "log_pop",
+    "log_GHG_lag1",
+    "log_GHG_lag2",
+    "renewable_energy_pct",
+    "urban_pop_pct",
+    "industry_pct_GDP",
+    "forest_area_pct",
+    "CO2_intensity_GDP",
+    "GDP_per_capita_2015USD"
+  ],
+  "m3b_features": [
+    "log_GDP",
+    "log_pop",
+    "renewable_energy_pct",
+    "urban_pop_pct",
+    "industry_pct_GDP",
+    "forest_area_pct",
+    "CO2_intensity_GDP",
+    "GDP_per_capita_2015USD"
+  ],
+  "countries": [
+    "Brunei Darussalam",
+    "Cambodia",
+    "Indonesia",
+    "Lao PDR",
+    "Malaysia",
+    "Myanmar",
+    "Philippines",
+    "Singapore",
+    "Thailand",
+    "Vietnam"
+  ],
+  "last_actual_year": 2024,
+  "feature_panel_2023": {
+    "Brunei Darussalam": {
+      "log_GDP": 23.299462230215184,
+      "log_pop": 13.036694371758275,
+      "log_GHG_lag1": 2.477109665485776,
+      "log_GHG_lag2": 2.5284688864131284,
+      "renewable_energy_pct": 0.0,
+      "urban_pop_pct": 74.8199193881365,
+      "industry_pct_GDP": 61.74118600913136,
+      "forest_area_pct": 72.10626185958255,
+      "CO2_intensity_GDP": 0.7380826693306465,
+      "GDP_per_capita_2015USD": 28645.96453962838
+    },
+    "Cambodia": {
+      "log_GDP": 24.3159039414934,
+      "log_pop": 16.67335223707882,
+      "log_GHG_lag1": 3.85236216902131,
+      "log_GHG_lag2": 3.878195244133336,
+      "renewable_energy_pct": 52.4,
+      "urban_pop_pct": 40.6290788072508,
+      "industry_pct_GDP": 40.5173741615592,
+      "forest_area_pct": 43.06197598005891,
+      "CO2_intensity_GDP": 0.5206801159150787,
+      "GDP_per_capita_2015USD": 2085.057484621225
+    },
+    "Indonesia": {
+      "log_GDP": 27.79563006533689,
+      "log_pop": 19.454541393663803,
+      "log_GHG_lag1": 7.074370128734233,
+      "log_GHG_lag2": 6.944357759862427,
+      "renewable_energy_pct": 20.2,
+      "urban_pop_pct": 58.1179353397878,
+      "industry_pct_GDP": 40.21568231067943,
+      "forest_area_pct": 47.72203369024635,
+      "CO2_intensity_GDP": 0.6553064941326863,
+      "GDP_per_capita_2015USD": 4192.651678906919
+    },
+    "Lao PDR": {
+      "log_GDP": 23.734069088251054,
+      "log_pop": 15.852174157045626,
+      "log_GHG_lag1": 3.6506270719768117,
+      "log_GHG_lag2": 3.6337313711452754,
+      "renewable_energy_pct": 49.2,
+      "urban_pop_pct": 38.8070088517156,
+      "industry_pct_GDP": 30.533580830834666,
+      "forest_area_pct": 71.45580589254766,
+      "CO2_intensity_GDP": 1.2679313138714352,
+      "GDP_per_capita_2015USD": 2648.8872660803527
+    },
+    "Malaysia": {
+      "log_GDP": 26.719803167325825,
+      "log_pop": 17.374460638672065,
+      "log_GHG_lag1": 5.745395196469214,
+      "log_GHG_lag2": 5.681235525150185,
+      "renewable_energy_pct": 7.5,
+      "urban_pop_pct": 76.4434752105739,
+      "industry_pct_GDP": 37.56485733222144,
+      "forest_area_pct": 57.71903819814336,
+      "CO2_intensity_GDP": 0.7023744541714264,
+      "GDP_per_capita_2015USD": 11445.392527507936
+    },
+    "Myanmar": {
+      "log_GDP": 24.87834440498144,
+      "log_pop": 17.806969280730744,
+      "log_GHG_lag1": 4.7964514841535175,
+      "log_GHG_lag2": 4.798118412523261,
+      "renewable_energy_pct": 62.9,
+      "urban_pop_pct": 30.3820718069466,
+      "industry_pct_GDP": 37.59292503626689,
+      "forest_area_pct": 42.40237792452541,
+      "CO2_intensity_GDP": 0.4900013007287185,
+      "GDP_per_capita_2015USD": 1177.766496471765
+    },
+    "Philippines": {
+      "log_GDP": 26.787592298027377,
+      "log_pop": 18.559496142844377,
+      "log_GHG_lag1": 5.491400393779346,
+      "log_GHG_lag2": 5.462190628523418,
+      "renewable_energy_pct": 28.0,
+      "urban_pop_pct": 55.1242716168851,
+      "industry_pct_GDP": 28.19762250917741,
+      "forest_area_pct": 24.46007311265386,
+      "CO2_intensity_GDP": 0.377592548554934,
+      "GDP_per_capita_2015USD": 3744.697638029279
+    },
+    "Singapore": {
+      "log_GDP": 26.693392194008773,
+      "log_pop": 15.59344963061941,
+      "log_GHG_lag1": 4.275387524184169,
+      "log_GHG_lag2": 4.257670166270455,
+      "renewable_energy_pct": 1.1,
+      "urban_pop_pct": 100.0,
+      "industry_pct_GDP": 22.145995027166407,
+      "forest_area_pct": 20.93314763231198,
+      "CO2_intensity_GDP": 0.1432781587682638,
+      "GDP_per_capita_2015USD": 66167.35963036072
+    },
+    "Thailand": {
+      "log_GDP": 26.853402410179616,
+      "log_pop": 18.088035265941585,
+      "log_GHG_lag1": 6.034933914242921,
+      "log_GHG_lag2": 5.988204488888119,
+      "renewable_energy_pct": 19.0,
+      "urban_pop_pct": 60.9341926574707,
+      "industry_pct_GDP": 32.98040932864924,
+      "forest_area_pct": 38.687388674665776,
+      "CO2_intensity_GDP": 0.5985528866962955,
+      "GDP_per_capita_2015USD": 6408.414325772941
+    },
+    "Vietnam": {
+      "log_GDP": 26.660474979807866,
+      "log_pop": 18.42419647651564,
+      "log_GHG_lag1": 6.203495380258577,
+      "log_GHG_lag2": 6.187811043044598,
+      "renewable_energy_pct": 24.2,
+      "urban_pop_pct": 38.1298904418945,
+      "industry_pct_GDP": 37.58156975488241,
+      "forest_area_pct": 47.44548207089962,
+      "CO2_intensity_GDP": 1.0312747028616622,
+      "GDP_per_capita_2015USD": 3775.4637555580166
+    }
+  },
+  "feature_panel_2024": {
+    "Brunei Darussalam": {
+      "log_GDP": 23.33918778796171,
+      "log_pop": 13.04487955964431,
+      "log_GHG_lag1": 2.4899936888365573,
+      "log_GHG_lag2": 2.477109665485776,
+      "renewable_energy_pct": 0.0,
+      "urban_pop_pct": 74.8983133873697,
+      "industry_pct_GDP": 61.67552257968283,
+      "forest_area_pct": 72.10626185958255,
+      "CO2_intensity_GDP": 0.6847091669782965,
+      "GDP_per_capita_2015USD": 29563.86827530823
+    },
+    "Cambodia": {
+      "log_GDP": 24.37393800502537,
+      "log_pop": 16.685611635711275,
+      "log_GHG_lag1": 3.8914488005425207,
+      "log_GHG_lag2": 3.85236216902131,
+      "renewable_energy_pct": 52.4,
+      "urban_pop_pct": 40.8727033252729,
+      "industry_pct_GDP": 41.7506561774631,
+      "forest_area_pct": 43.06197598005891,
+      "CO2_intensity_GDP": 0.5049072539304401,
+      "GDP_per_capita_2015USD": 2182.7184390234097
+    },
+    "Indonesia": {
+      "log_GDP": 27.844709184842234,
+      "log_pop": 19.462680108797322,
+      "log_GHG_lag1": 7.139915894108107,
+      "log_GHG_lag2": 7.074370128734233,
+      "renewable_energy_pct": 20.2,
+      "urban_pop_pct": 58.7509635387997,
+      "industry_pct_GDP": 39.31848572498695,
+      "forest_area_pct": 47.72203369024635,
+      "CO2_intensity_GDP": 0.6559363242004859,
+      "GDP_per_capita_2015USD": 4367.862666211912
+    },
+    "Lao PDR": {
+      "log_GDP": 23.774540870840216,
+      "log_pop": 15.865757427349209,
+      "log_GHG_lag1": 3.717787559261144,
+      "log_GHG_lag2": 3.6506270719768117,
+      "renewable_energy_pct": 49.2,
+      "urban_pop_pct": 39.5552154401406,
+      "industry_pct_GDP": 29.0463781785597,
+      "forest_area_pct": 71.45580589254766,
+      "CO2_intensity_GDP": 1.2327286654421357,
+      "GDP_per_capita_2015USD": 2721.078106630822
+    },
+    "Malaysia": {
+      "log_GDP": 26.769597200880597,
+      "log_pop": 17.38666652777361,
+      "log_GHG_lag1": 5.763222080893447,
+      "log_GHG_lag2": 5.745395196469214,
+      "renewable_energy_pct": 7.5,
+      "urban_pop_pct": 76.9170296648992,
+      "industry_pct_GDP": 36.97337325643348,
+      "forest_area_pct": 57.71903819814336,
+      "CO2_intensity_GDP": 0.7003839100768141,
+      "GDP_per_capita_2015USD": 11883.791277489954
+    },
+    "Myanmar": {
+      "log_GDP": 24.868576388730254,
+      "log_pop": 17.81371292935685,
+      "log_GHG_lag1": 4.772703771057176,
+      "log_GHG_lag2": 4.7964514841535175,
+      "renewable_energy_pct": 62.9,
+      "urban_pop_pct": 30.4499084074136,
+      "industry_pct_GDP": 37.812370647006645,
+      "forest_area_pct": 42.40237792452541,
+      "CO2_intensity_GDP": 0.4967402255350543,
+      "GDP_per_capita_2015USD": 1158.4792809931553
+    },
+    "Philippines": {
+      "log_GDP": 26.84295146874419,
+      "log_pop": 18.56775216772966,
+      "log_GHG_lag1": 5.539424207554846,
+      "log_GHG_lag2": 5.491400393779346,
+      "renewable_energy_pct": 28.0,
+      "urban_pop_pct": 55.4520983215477,
+      "industry_pct_GDP": 27.693977993132076,
+      "forest_area_pct": 24.46007311265386,
+      "CO2_intensity_GDP": 0.3829029746870905,
+      "GDP_per_capita_2015USD": 3925.304869721802
+    },
+    "Singapore": {
+      "log_GDP": 26.736336960649524,
+      "log_pop": 15.613394567183342,
+      "log_GHG_lag1": 4.282108228284514,
+      "log_GHG_lag2": 4.275387524184169,
+      "renewable_energy_pct": 1.1,
+      "urban_pop_pct": 100.0,
+      "industry_pct_GDP": 21.37731512021351,
+      "forest_area_pct": 20.93314763231198,
+      "CO2_intensity_GDP": 0.1440245114214756,
+      "GDP_per_capita_2015USD": 67706.83361497392
+    },
+    "Thailand": {
+      "log_GDP": 26.878502946166247,
+      "log_pop": 18.08755505538743,
+      "log_GHG_lag1": 6.017772439796613,
+      "log_GHG_lag2": 6.034933914242921,
+      "renewable_energy_pct": 19.0,
+      "urban_pop_pct": 61.8689338391321,
+      "industry_pct_GDP": 32.1359776535892,
+      "forest_area_pct": 38.687388674665776,
+      "CO2_intensity_GDP": 0.602338752481112,
+      "GDP_per_capita_2015USD": 6574.461093879849
+    },
+    "Vietnam": {
+      "log_GDP": 26.728985484660573,
+      "log_pop": 18.430509146580512,
+      "log_GHG_lag1": 6.296968426030955,
+      "log_GHG_lag2": 6.203495380258577,
+      "renewable_energy_pct": 24.2,
+      "urban_pop_pct": 38.4900703430176,
+      "industry_pct_GDP": 37.64146520342487,
+      "forest_area_pct": 47.44548207089962,
+      "CO2_intensity_GDP": 1.0618034865880852,
+      "GDP_per_capita_2015USD": 4017.746041115536
+    }
+  },
+  "actual_2024": {
+    "Brunei Darussalam": 11.8655,
+    "Cambodia": 49.8348,
+    "Indonesia": 1323.7779,
+    "Lao PDR": 41.5496,
+    "Malaysia": 332.1668,
+    "Myanmar": 117.7875,
+    "Philippines": 266.5973,
+    "Singapore": 76.0928,
+    "Thailand": 422.3873,
+    "Vietnam": 584.2576
+  },
+  "feature_ranges": {
+    "log_GDP": {
+      "min": 22.508795776583913,
+      "max": 27.020511254364838
+    },
+    "log_pop": {
+      "min": 12.831933998209553,
+      "max": 19.27788979587218
+    },
+    "log_GHG_lag1": {
+      "min": 2.0806197732624083,
+      "max": 6.442217403095088
+    },
+    "log_GHG_lag2": {
+      "min": 2.0750421661576377,
+      "max": 6.415659923833008
+    },
+    "renewable_energy_pct": {
+      "min": 0.0,
+      "max": 84.795
+    },
+    "urban_pop_pct": {
+      "min": 18.666728758321234,
+      "max": 100.0
+    },
+    "industry_pct_GDP": {
+      "min": 16.487716635947915,
+      "max": 67.08977371233019
+    },
+    "forest_area_pct": {
+      "min": 23.241805806676016,
+      "max": 75.77898613518198
+    },
+    "CO2_intensity_GDP": {
+      "min": 0.14846861674845577,
+      "max": 0.958986688777396
+    },
+    "GDP_per_capita_2015USD": {
+      "min": 512.7039088642803,
+      "max": 44191.549263379304
+    }
+  },
+  "ngfs_scenarios": {
+    "Current Policies": 0.025,
+    "Delayed Transition": 0.01,
+    "Mitigation": -0.01,
+    "Net Zero 2050": -0.025
+  },
+  "constants": {
+    "gwp_usdm": 1200,
+    "base_lr": 0.62,
+    "elasticity": 0.7
+  }
+}

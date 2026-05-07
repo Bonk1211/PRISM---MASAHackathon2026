@@ -1,0 +1,586 @@
+// Phase 1 multi-turn consultant chat — chatbot-style UI.
+//
+// Differs from AgentPanel:
+//   1. Multi-turn — server replays Supabase-backed transcript on every turn.
+//   2. Sends session_id so the server can stitch turns into one interview.
+//   3. Surfaces full ScopingProfile + per-axis confidence as a sticky rail.
+
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { Eyebrow, Hairline } from './Card';
+import {
+  type ChatTurn,
+  type ScopingAxis,
+  type ScopingProfile,
+  type SessionSummary,
+  SCOPING_AXES,
+  listSessions,
+  pinnedAxes,
+  useScoping,
+} from '../lib/scoping';
+
+const PIPELINE_API = (import.meta.env.VITE_PIPELINE_API as string | undefined) ?? '';
+const AGENT_API =
+  (import.meta.env.VITE_AGENT_API as string | undefined) ??
+  (PIPELINE_API ? `${PIPELINE_API}/agent` : '/agent');
+
+type AgentResponse = {
+  updates: Record<string, unknown>;
+  narration: string;
+  tool_called: string | null;
+  scoping_profile: ScopingProfile | null;
+  complete: boolean;
+  session_id: string | null;
+  error: string | null;
+};
+
+const AXIS_LABEL: Record<ScopingAxis, string> = {
+  line_of_business: 'Line of business',
+  geography: 'Geography',
+  time_horizon: 'Time horizon',
+  frameworks: 'Frameworks',
+  disclosures: 'Disclosures',
+};
+
+// Predicted user input — chips shift to the next-unpinned axis so the user
+// always gets relevant prompts. Phrasings are TESTED against ilmu-nemo-nano:
+// each chip pins its axis at confidence 0.9 reliably (3/3 cold runs). Do not
+// edit without re-testing — the model is sensitive to enum casing and
+// abbreviation (e.g. "UW" fails, "underwriting" works; "TCFD only" fails,
+// "TCFD and ISSB_S2" works).
+//
+// Three-chip set per axis: the canonical SEA-typhoon demo persona first, a
+// diversified middle option, then a contrasting profile for variety.
+const SUGGESTIONS_BY_AXIS: Record<ScopingAxis, string[]> = {
+  line_of_business: [
+    'Mostly property cat — 70% property cat, 20% agriculture, 10% specialty',
+    'Diversified — 50% property cat, 25% agriculture, 25% specialty',
+    'Cat-heavy with casualty tail — 80% property cat, 15% specialty, 5% casualty',
+  ],
+  geography: [
+    'SEA core — Vietnam, Philippines, Indonesia',
+    'Mekong only — Vietnam and Philippines',
+    'Asean-5 — Indonesia, Thailand, Malaysia',
+  ],
+  time_horizon: [
+    '1-year underwriting horizon, 30-year liability tail',
+    '3-year underwriting horizon, 20-year liability tail',
+    '1-year underwriting horizon, 50-year liability tail',
+  ],
+  frameworks: [
+    'TCFD and ISSB_S2',
+    'TCFD and Solvency_II_ORSA',
+    'ISSB_S2 and Internal_Capital',
+  ],
+  disclosures: [
+    'Public TCFD and ISSB_S2 annual disclosure',
+    'Regulatory_Stress_Test only — confidential',
+    'Internal_Only',
+  ],
+};
+
+// Opener chips on a fresh chat. First option = the canonical demo persona so
+// judges can hit one button and watch ILMU pin LOB instantly; the other two
+// give variety. Same phrasings reuse the LOB axis chip set.
+const OPENING_SUGGESTIONS = SUGGESTIONS_BY_AXIS.line_of_business;
+
+function formatAxisValue(axis: ScopingAxis, value: unknown): string {
+  if (value == null) return '—';
+  if (axis === 'line_of_business' && typeof value === 'object') {
+    const entries = Object.entries(value as Record<string, number>)
+      .filter(([, v]) => Number.isFinite(v) && v > 0)
+      .sort(([, a], [, b]) => b - a);
+    return entries.map(([k, v]) => `${k.replace('_', ' ')} ${Math.round(v)}%`).join(' · ');
+  }
+  if (axis === 'time_horizon' && typeof value === 'object') {
+    const th = value as { uw_years?: number; life_years?: number };
+    return `${th.uw_years ?? '?'}y UW · ${th.life_years ?? '?'}y life`;
+  }
+  if (Array.isArray(value)) return value.join(' · ');
+  return String(value);
+}
+
+const HISTORY_OPEN_KEY = 'prism.scoping.history_open.v1';
+
+function getInitialHistoryOpen(): boolean {
+  try {
+    const v = localStorage.getItem(HISTORY_OPEN_KEY);
+    if (v !== null) return v === '1';
+  } catch {
+    /* ignore */
+  }
+  // Default open on desktop, closed on small screens.
+  if (typeof window !== 'undefined' && typeof window.matchMedia === 'function') {
+    return window.matchMedia('(min-width: 1024px)').matches;
+  }
+  return true;
+}
+
+function sessionLabel(s: SessionSummary): string {
+  if (s.client_label) return s.client_label;
+  const lob = s.profile?.line_of_business;
+  if (lob) {
+    const top = (Object.entries(lob) as [string, number][])
+      .filter(([, v]) => Number.isFinite(v) && v > 0)
+      .sort(([, a], [, b]) => b - a)[0];
+    if (top) return `${top[0].replace('_', ' ')} ${Math.round(top[1])}%`;
+  }
+  const geo = s.profile?.geography;
+  if (geo && geo.length > 0) return geo.slice(0, 2).join(', ');
+  return 'Untitled scope';
+}
+
+function relativeTime(iso: string): string {
+  const then = new Date(iso).getTime();
+  const now = Date.now();
+  const min = Math.round((now - then) / 60000);
+  if (min < 1) return 'now';
+  if (min < 60) return `${min}m`;
+  const hr = Math.round(min / 60);
+  if (hr < 24) return `${hr}h`;
+  const d = Math.round(hr / 24);
+  if (d < 30) return `${d}d`;
+  return new Date(iso).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+}
+
+export function ChatThread({
+  continueTo = '/phase2',
+  continueLabel = 'Continue to Phase 2 →',
+  showContinue = true,
+  extraBubbles = null,
+  composerHint = null,
+}: {
+  continueTo?: string | null;
+  continueLabel?: string;
+  showContinue?: boolean;
+  extraBubbles?: React.ReactNode;
+  composerHint?: React.ReactNode;
+} = {}) {
+  const nav = useNavigate();
+  const { profile, transcript, sessionId, setFullProfile, appendTurn, reset, switchSession } =
+    useScoping();
+  const [msg, setMsg] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [err, setErr] = useState<string | null>(null);
+  const scrollRef = useRef<HTMLDivElement>(null);
+
+  // History sidebar state.
+  const [historyOpen, setHistoryOpen] = useState<boolean>(() => getInitialHistoryOpen());
+  const [sessions, setSessions] = useState<SessionSummary[]>([]);
+  const [historyLoading, setHistoryLoading] = useState(false);
+
+  const reloadSessions = useCallback(async () => {
+    setHistoryLoading(true);
+    const rows = await listSessions(50);
+    setSessions(rows);
+    setHistoryLoading(false);
+  }, []);
+
+  useEffect(() => {
+    void reloadSessions();
+  }, [reloadSessions]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(HISTORY_OPEN_KEY, historyOpen ? '1' : '0');
+    } catch {
+      /* ignore */
+    }
+  }, [historyOpen]);
+
+  useEffect(() => {
+    if (scrollRef.current) {
+      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+    }
+  }, [transcript.length, loading, extraBubbles]);
+
+  const pinned = pinnedAxes(profile);
+  const conf = profile.confidence ?? {};
+
+  // Predictive suggestions: pick the first unpinned axis after the latest
+  // assistant turn, fall back to opening starters before the user has spoken.
+  const suggestions = useMemo(() => {
+    if (transcript.length === 0) return OPENING_SUGGESTIONS;
+    const nextAxis = SCOPING_AXES.find((a) => !pinned.includes(a));
+    if (!nextAxis) return [];
+    return SUGGESTIONS_BY_AXIS[nextAxis];
+  }, [transcript.length, pinned]);
+
+  // Guard against double-fire (chip double-click, React event quirks).
+  const inFlight = useRef(false);
+
+  function handleNewChat() {
+    reset();
+    void reloadSessions();
+  }
+
+  async function handleSwitch(id: string) {
+    await switchSession(id);
+    setErr(null);
+  }
+
+  async function submit(text: string) {
+    if (!text.trim() || loading || inFlight.current) return;
+    inFlight.current = true;
+    setLoading(true);
+    setErr(null);
+    const userTurn: ChatTurn = {
+      role: 'user',
+      content: text.trim(),
+      ts: new Date().toISOString(),
+    };
+    appendTurn(userTurn);
+    setMsg('');
+
+    const ctrl = new AbortController();
+    const t = setTimeout(() => ctrl.abort(), 20000);
+    try {
+      const { getCurrentUserId } = await import('../lib/supabase');
+      const r = await fetch(AGENT_API, {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({
+          message: text.trim(),
+          screen: 'scoping',
+          session_id: sessionId,
+          // Anon-auth uid so backend can stamp ownership on inserted rows.
+          // Backend uses service-role key which bypasses RLS for write.
+          user_id: getCurrentUserId(),
+          current_state: profile,
+        }),
+        signal: ctrl.signal,
+      });
+      if (!r.ok) throw new Error(`HTTP ${r.status}`);
+      const data = (await r.json()) as AgentResponse;
+
+      if (data.scoping_profile) {
+        setFullProfile(data.scoping_profile);
+      }
+      if (data.narration) {
+        appendTurn({
+          role: 'assistant',
+          content: data.narration,
+          ts: new Date().toISOString(),
+        });
+      }
+      if (data.error) setErr(data.error);
+      // Refresh history list so the current session shows up.
+      void reloadSessions();
+    } catch (e) {
+      const name = e instanceof Error ? e.name : '';
+      const m = e instanceof Error ? e.message : String(e);
+      setErr(name === 'AbortError' ? 'Timed out (20s) — server may be cold.' : m);
+    } finally {
+      clearTimeout(t);
+      setLoading(false);
+      inFlight.current = false;
+    }
+  }
+
+  function onSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    void submit(msg);
+  }
+
+  const isEmpty = transcript.length === 0 && !loading;
+  const sidebarCols = historyOpen ? 'lg:grid-cols-[260px_1fr_320px]' : 'lg:grid-cols-[40px_1fr_320px]';
+
+  return (
+    <div className={['lg:grid lg:gap-3 lg:items-start', sidebarCols].join(' ')}>
+      {/* History sidebar */}
+      <aside
+        aria-label="Chat history"
+        className={[
+          'mb-3 flex flex-col border border-rule bg-paper transition-all lg:mb-0 lg:h-[80vh]',
+          historyOpen ? 'lg:overflow-hidden' : 'lg:overflow-hidden',
+        ].join(' ')}
+      >
+        <div className="flex items-center justify-between border-b border-rule px-2 py-2.5">
+          {historyOpen ? (
+            <>
+              <Eyebrow>History</Eyebrow>
+              <div className="flex items-center gap-1">
+                <button
+                  type="button"
+                  onClick={handleNewChat}
+                  title="Start a new scoping session"
+                  className="font-mono text-[10px] uppercase tracking-eyebrow text-sea hover:text-ink"
+                >
+                  + New
+                </button>
+                <button
+                  type="button"
+                  aria-label="Hide history"
+                  onClick={() => setHistoryOpen(false)}
+                  className="px-1 font-mono text-[12px] text-muted hover:text-ink"
+                >
+                  ‹
+                </button>
+              </div>
+            </>
+          ) : (
+            <button
+              type="button"
+              aria-label="Show history"
+              onClick={() => setHistoryOpen(true)}
+              className="mx-auto px-1 font-mono text-[12px] text-muted hover:text-ink"
+            >
+              ›
+            </button>
+          )}
+        </div>
+
+        {historyOpen && (
+          <ul className="flex-1 overflow-y-auto px-1 py-1">
+            {historyLoading && sessions.length === 0 && (
+              <li className="px-2 py-2 font-mono text-[10px] uppercase tracking-eyebrow text-muted">
+                Loading…
+              </li>
+            )}
+            {!historyLoading && sessions.length === 0 && (
+              <li className="px-2 py-2 text-[11px] leading-snug text-muted">
+                No history yet. Send a message to start.
+              </li>
+            )}
+            {sessions.map((s) => {
+              const sel = s.id === sessionId;
+              return (
+                <li key={s.id}>
+                  <button
+                    type="button"
+                    onClick={() => void handleSwitch(s.id)}
+                    aria-current={sel ? 'true' : undefined}
+                    className={[
+                      'flex w-full items-baseline justify-between gap-2 border-l-2 px-2 py-1.5 text-left transition',
+                      sel
+                        ? 'border-ink bg-ink/[0.04] text-ink'
+                        : 'border-transparent text-ink hover:border-rule hover:bg-ink/[0.02]',
+                    ].join(' ')}
+                  >
+                    <span className="min-w-0 flex-1 truncate text-[12px]">{sessionLabel(s)}</span>
+                    <span className="shrink-0 font-mono text-[9px] tab-num text-muted">
+                      {relativeTime(s.created_at)}
+                    </span>
+                  </button>
+                </li>
+              );
+            })}
+          </ul>
+        )}
+      </aside>
+
+      {/* Conversation column */}
+      <div className="flex h-[80vh] flex-col border border-rule bg-paper">
+        <div className="flex items-baseline justify-between border-b border-rule px-4 py-3">
+          <Eyebrow>Consultant interview · ILMU Nano</Eyebrow>
+          <button
+            type="button"
+            onClick={handleNewChat}
+            className="font-mono text-[10px] uppercase tracking-eyebrow text-muted hover:text-rust"
+          >
+            Reset →
+          </button>
+        </div>
+
+        {/* Transcript */}
+        <div ref={scrollRef} className="flex-1 overflow-y-auto px-4 py-6">
+          {isEmpty ? (
+            <div className="flex h-full flex-col items-center justify-center text-center">
+              <p className="display text-[28px] leading-[1.05] text-ink lg:text-[40px]">
+                Hi — I'm <span className="italic">ILMU</span>.
+              </p>
+              <p className="mt-2 max-w-md font-serif text-[15px] italic leading-relaxed text-ink lg:text-[16px]">
+                Five questions, then I'll propose the risk taxonomy and the indicator panel
+                — all in this chat.
+              </p>
+              <ul className="mt-5 grid grid-cols-1 gap-1 text-left font-mono text-[10px] uppercase tracking-eyebrow text-muted">
+                <li><span className="text-sea mr-2">01</span> Line of business</li>
+                <li><span className="text-sea mr-2">02</span> Geography</li>
+                <li><span className="text-sea mr-2">03</span> Time horizon</li>
+                <li><span className="text-sea mr-2">04</span> Frameworks</li>
+                <li><span className="text-sea mr-2">05</span> Disclosures</li>
+              </ul>
+              <p className="mt-5 max-w-md text-[12px] leading-snug text-muted">
+                Pick a chip below to start, or just type. The canonical demo persona is the
+                first chip — one tap pins LOB.
+              </p>
+            </div>
+          ) : (
+            <ul className="mx-auto max-w-2xl space-y-5">
+              {transcript.map((turn, i) => (
+                <li
+                  key={i}
+                  className={[
+                    'flex',
+                    turn.role === 'user' ? 'justify-end' : 'justify-start',
+                  ].join(' ')}
+                >
+                  <div
+                    className={[
+                      'max-w-[80%] whitespace-pre-wrap leading-relaxed',
+                      turn.role === 'user'
+                        ? 'rounded-2xl rounded-br-sm bg-ink px-4 py-2 text-[13px] text-paper'
+                        : 'rounded-2xl rounded-bl-sm border border-rule bg-paper px-4 py-2 font-serif text-[14px] italic text-ink',
+                    ].join(' ')}
+                  >
+                    {turn.content}
+                  </div>
+                </li>
+              ))}
+              {loading && (
+                <li className="flex justify-start">
+                  <div className="rounded-2xl rounded-bl-sm border border-rule bg-paper px-4 py-2 font-serif text-[13px] italic text-muted">
+                    Thinking…
+                  </div>
+                </li>
+              )}
+            </ul>
+          )}
+
+          {/* Wizard / step bubbles injected by the parent screen, rendered inline
+              with the chat transcript so flow feels continuous. */}
+          {extraBubbles && (
+            <div className="mx-auto mt-5 max-w-2xl space-y-5">{extraBubbles}</div>
+          )}
+
+          {err && (
+            <p
+              role="alert"
+              className="mx-auto mt-3 max-w-2xl border border-rust bg-paper px-2 py-1.5 font-mono text-[10px] uppercase tracking-eyebrow text-rust"
+            >
+              {err}
+            </p>
+          )}
+        </div>
+
+        {/* Composer + predicted-input chips. composerHint replaces the
+            suggestion strip when the parent has taken the wheel (e.g., wizard
+            steps await user action inside a bubble). */}
+        <div className="border-t border-rule px-4 py-3">
+          {composerHint && (
+            <p className="mb-2 font-mono text-[10px] uppercase tracking-eyebrow text-sea">
+              {composerHint}
+            </p>
+          )}
+          {suggestions.length > 0 && (
+            <div className="mb-2 flex flex-wrap gap-1.5">
+              {suggestions.map((s) => (
+                <button
+                  key={s}
+                  type="button"
+                  onClick={() => void submit(s)}
+                  disabled={loading}
+                  className="rounded-full border border-rule bg-paper px-3 py-1 text-[11px] text-ink transition hover:border-ink hover:bg-ink hover:text-paper disabled:cursor-not-allowed disabled:opacity-40"
+                >
+                  {s}
+                </button>
+              ))}
+            </div>
+          )}
+
+          <form onSubmit={onSubmit}>
+            <textarea
+              value={msg}
+              onChange={(e) => setMsg(e.target.value)}
+              rows={2}
+              maxLength={2000}
+              placeholder="Reply to the consultant…"
+              aria-label="Reply to the consultant"
+              className="w-full resize-none border border-rule bg-paper px-3 py-2 text-[13px] text-ink placeholder:text-muted focus:border-ink focus:outline-none"
+              disabled={loading}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) onSubmit(e);
+                else if (e.key === 'Enter' && !e.shiftKey) {
+                  e.preventDefault();
+                  onSubmit(e);
+                }
+              }}
+            />
+            <div className="mt-2 flex items-center justify-between gap-2">
+              <span className="font-mono text-[10px] uppercase tracking-eyebrow text-muted">
+                {msg.length}/2000 · ↵ to send
+              </span>
+              <button
+                type="submit"
+                disabled={loading || !msg.trim()}
+                className="border border-ink bg-paper px-3 py-1.5 text-[12px] font-semibold text-ink transition hover:bg-ink hover:text-paper disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-paper disabled:hover:text-ink"
+              >
+                {loading ? 'Sending…' : 'Send →'}
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      {/* Sticky scoping rail */}
+      <aside
+        aria-label="Scoping profile"
+        className="mt-5 border border-rule bg-paper px-4 py-4 lg:mt-0 lg:sticky lg:top-20"
+      >
+        <div className="flex items-baseline justify-between">
+          <Eyebrow>Scoping profile</Eyebrow>
+          <span className="font-mono text-[10px] tab-num text-muted">
+            {pinned.length}/{SCOPING_AXES.length} pinned
+          </span>
+        </div>
+        <Hairline className="mt-2" />
+
+        <ul className="mt-3 space-y-3">
+          {SCOPING_AXES.map((axis) => {
+            const isPinned = pinned.includes(axis);
+            const c = conf[axis] ?? 0;
+            const value = profile[axis as keyof ScopingProfile];
+            return (
+              <li key={axis} className="flex flex-col gap-1">
+                <div className="flex items-baseline justify-between gap-2">
+                  <span className="font-mono text-[10px] uppercase tracking-eyebrow text-ink">
+                    {AXIS_LABEL[axis]}
+                  </span>
+                  <span
+                    className={[
+                      'font-mono text-[10px] tab-num',
+                      isPinned ? 'text-sea' : 'text-muted',
+                    ].join(' ')}
+                  >
+                    {c > 0 ? `${(c * 100).toFixed(0)}%` : '—'}
+                  </span>
+                </div>
+                <p
+                  className={[
+                    'text-[12px] leading-snug',
+                    isPinned ? 'text-ink' : 'text-muted',
+                  ].join(' ')}
+                >
+                  {formatAxisValue(axis, value)}
+                </p>
+              </li>
+            );
+          })}
+        </ul>
+
+        <Hairline className="mt-4" />
+
+        {showContinue && continueTo ? (
+          profile.complete ? (
+            <button
+              onClick={() => nav(continueTo)}
+              className="mt-3 w-full border border-ink bg-ink px-3 py-2 text-[12px] font-semibold text-paper transition hover:bg-paper hover:text-ink"
+            >
+              {continueLabel}
+            </button>
+          ) : (
+            <p className="mt-3 text-[11px] leading-snug text-muted">
+              All five axes pin at confidence ≥ 70 % to unlock the next step.
+            </p>
+          )
+        ) : (
+          <p className="mt-3 text-[11px] leading-snug text-muted">
+            {profile.complete
+              ? 'All axes pinned · taxonomy + indicators auto-derived below.'
+              : 'Pin the five axes to lock taxonomy + indicators below.'}
+          </p>
+        )}
+      </aside>
+    </div>
+  );
+}

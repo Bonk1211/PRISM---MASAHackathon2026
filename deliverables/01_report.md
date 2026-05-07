@@ -333,8 +333,8 @@ ARIMA: per-country auto.arima with stepwise = FALSE, approximation = FALSE; orde
 
 - **Primary pipeline**: `analysis/python/analysis.ipynb` (41 cells; Python 3.14, pandas 3.0.2, xgboost 3.2.0, statsmodels with linearmodels for two-way FE, pingouin for partial correlations). Re-execute via `jupyter nbconvert --to notebook --execute analysis/python/analysis.ipynb`. ~3 minutes on a standard laptop.
 - **Cross-check pipeline**: `analysis/R/analysis.Rmd` retained for cross-validation. Stress-test, ARIMA, and log-linear MAPE bit-exact between R and Python; XGBoost specifications drift on stochastic init (xgboost 3.x) — both within the single-digit MAPE band.
-- **Single source of truth**: `exhibits/results/key_numbers_python.json` (15 keys: mape_summary, m1/m2/m3a/m3b per country, feature_importance_m3a/m3b, stress_test_2030_aggregate, headline, stirpat, sectoral_residuals_pct, partial_correlations, two_way_fe, vn_vs_ph). Auto-imported by the PWA at build time via `cd app && npm run sync-data`.
-- **Interactive deliverables**: mobile-installable PWA at `app/` (Vite 7 + React 19 + Tailwind + vite-plugin-pwa) — six screens, six tabs of the analytical journey. Legacy R Shiny dashboard at `analysis/shiny/app.R`.
+- **Single source of truth**: `exhibits/results/key_numbers_python.json` (15 keys: mape_summary, m1/m2/m3a/m3b per country, feature_importance_m3a/m3b, stress_test_2030_aggregate, headline, stirpat, sectoral_residuals_pct, partial_correlations, two_way_fe, vn_vs_ph). Auto-imported by the PWA at build time via `cd frontend && npm run sync-data`.
+- **Interactive deliverables**: mobile-installable PWA at `frontend/` (Vite 7 + React 19 + Tailwind + vite-plugin-pwa) — six screens, six tabs of the analytical journey. Legacy R Shiny dashboard at `analysis/shiny/app.R`.
 - Random seed fixed at **2026** throughout.
 - See `README.md` for environment setup and replication steps.
 

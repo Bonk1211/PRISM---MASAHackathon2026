@@ -103,7 +103,7 @@ Each screen ends with implicit context for the next. Bottom-nav lets the viewer 
 
 ## 8. Data Model
 
-Single source of truth: `app/src/data/keyNumbers.ts` and `app/src/data/cedent.ts`. Both ported by hand from `exhibits/results/key_numbers.json` and `data/external/external_features_sea.csv`. Per CLAUDE.md numerical-consistency invariant, any analytical change triggers a re-port.
+Single source of truth: `frontend/src/data/keyNumbers.ts` and `frontend/src/data/cedent.ts`. Both ported by hand from `exhibits/results/key_numbers.json` and `data/external/external_features_sea.csv`. Per CLAUDE.md numerical-consistency invariant, any analytical change triggers a re-port.
 
 | Constant | Source | Used by |
 |----------|--------|---------|
@@ -129,7 +129,7 @@ Single source of truth: `app/src/data/keyNumbers.ts` and `app/src/data/cedent.ts
 ## 10. Architecture
 
 ```
-app/
+frontend/
 ├── public/                    icons + favicon (5 files)
 ├── src/
 │   ├── App.tsx                HashRouter w/ 6 routes
@@ -165,7 +165,7 @@ State is local-only via `useState` + `useMemo`. No global store needed — every
 
 Two demo paths:
 - **A — LAN.** `npm run dev`, scan Network URL on phone, Add to Home Screen.
-- **B — Static host.** `npm run build`, deploy `app/dist/` to GitHub Pages / Vercel / Netlify; share HTTPS URL.
+- **B — Static host.** `npm run build`, deploy `frontend/dist/` to GitHub Pages / Vercel / Netlify; share HTTPS URL.
 
 iOS requires HTTPS for full PWA features (offline). Plain LAN HTTP works for in-room demo with limited service-worker.
 

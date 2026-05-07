@@ -87,4 +87,4 @@ The methodology generalises. IDN, VN, and PH each generate a coherent and **dist
 
 ---
 
-*Cross-references: `01_report.md` §3.4, §6; `04_vietnam_vs_philippines_deep_dive.md` (parallel structure); `05_cedent_screening_framework.md` §3, §4, §7, §8; `exhibits/results/key_numbers.json` (`m3_per_country.Indonesia`, `stress_test_2030_aggregate`); `app/src/data/keyNumbers.ts` (`FORECAST_2024`, `NDGAIN_2023`, `STRESS_2030`, `PORTFOLIO`); `app/src/data/cedent.ts` (`COUNTRY_TIER.Indonesia`, `SECTOR_RESIDUAL_PCT.Indonesia`, `LOADING`); `data/external/external_features_sea.csv` (Indonesia EM-DAT 2018–2023, derived sums).*
+*Cross-references: `01_report.md` §3.4, §6; `04_vietnam_vs_philippines_deep_dive.md` (parallel structure); `05_cedent_screening_framework.md` §3, §4, §7, §8; `exhibits/results/key_numbers.json` (`m3_per_country.Indonesia`, `stress_test_2030_aggregate`); `frontend/src/data/keyNumbers.ts` (`FORECAST_2024`, `NDGAIN_2023`, `STRESS_2030`, `PORTFOLIO`); `frontend/src/data/cedent.ts` (`COUNTRY_TIER.Indonesia`, `SECTOR_RESIDUAL_PCT.Indonesia`, `LOADING`); `data/external/external_features_sea.csv` (Indonesia EM-DAT 2018–2023, derived sums).*

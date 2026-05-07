@@ -14,13 +14,13 @@
 |---|---|---|
 | 16-indicator country-year panel, 10 SEA economies × 35 years | Curated from World Bank WDI (1,486 indicators × 217 economies × 1960–2024) | `data/sea_panel_clean.csv`, `data/global_panel_clean.csv` |
 | Three-model forecasting benchmark (log-linear / ARIMA / XGBoost) | **2.43 % MAPE** on 2024 hold-out for M3a XGBoost — beats ARIMA (2.67 %) and log-linear (9.23 %) | `analysis/python/analysis.ipynb` §4, `exhibits/results/key_numbers_python.json` |
-| Two-XGBoost specification (autoregressive M3a vs structural M3b) | Separates *forecast accuracy* (M3a, 2.43 %) from *driver attribution* (M3b, 9.67 %) — the two questions a reinsurance committee always asks | `serve/models/m3a.json`, `serve/models/m3b.json`, `exhibits/results/key_numbers_python.json` |
+| Two-XGBoost specification (autoregressive M3a vs structural M3b) | Separates *forecast accuracy* (M3a, 2.43 %) from *driver attribution* (M3b, 9.67 %) — the two questions a reinsurance committee always asks | `backend/models/m3a.json`, `backend/models/m3b.json`, `exhibits/results/key_numbers_python.json` |
 | STIRPAT residual decomposition (country + 8 sectors) | Vietnam aggregate **+24 %** decomposes into Power Industry **+280 %** and Industrial Combustion **+276 %** | `exhibits/figures/fig10_stirpat_residuals.png`, `fig12_sectoral_residuals.png` |
 | Two-way fixed-effects panel regression | Three drivers survive country + year FE with cluster-robust SE: **log GDP, CO₂ intensity of GDP, urban population share** | `exhibits/results/key_numbers_python.json` (`two_way_fe`) |
 | NGFS Phase V scenario stress test → 2030 | **+11.25 percentage-point loss-ratio swing** on a USD 1.2 bn notional SEA portfolio = **USD 135 m** | `exhibits/figures/fig4_stress_test_2030.png`, `fig6_loss_ratio_impact.png` |
 | Productised consulting deliverables (00–12) | Cedent screening framework, policy crosswalk, Q&A briefing, cedent-visit scorecard, executive memo, VN cedent target list, Indonesia counterfactual, stress-refresh playbook | `deliverables/` |
-| Installable PWA (React 19 + Vite 7) | Six-phase consulting engagement workflow with Supabase-backed state, ILMU-LLM scoping consultant, live `/predict` slider, anonymous auth | `app/` |
-| FastAPI inference + agent backend | `/predict` (XGBoost M3a/M3b), `/agent` (NL parser via ILMU), Phase 1 scoping endpoints, Pydantic validation, CORS lock | `serve/` |
+| Installable PWA (React 19 + Vite 7) | Six-phase consulting engagement workflow with Supabase-backed state, ILMU-LLM scoping consultant, live `/predict` slider, anonymous auth | `frontend/` |
+| FastAPI inference + agent backend | `/predict` (XGBoost M3a/M3b), `/agent` (NL parser via ILMU), Phase 1 scoping endpoints, Pydantic validation, CORS lock | `backend/` |
 | Compliance & policy crosswalk | Explicit mapping to BNM CRST 2024, IFRS S2, NGFS Phase V, Paris Article 2.1(c), TCFD, UNFCCC NDCs, ASEAN Strategy | `deliverables/06_policy_crosswalk.md` |
 
 Headline number USD 135 m / +11.25 pp computed from three constants pinned in notebook cell 2 and propagated through `key_numbers_python.json`: **GWP USD 1.2 bn, base loss ratio 0.62, Swiss Re elasticity 0.7**.
@@ -80,16 +80,16 @@ Headline number USD 135 m / +11.25 pp computed from three constants pinned in no
 │       ├── key_numbers_python.json        ← CANONICAL JSON (single source of truth)
 │       └── key_numbers.json               ← legacy R-emitted (cross-check only)
 │
-├── app/                                   ← PWA — React 19 + Vite 7 + TypeScript
+├── frontend/                                   ← PWA — React 19 + Vite 7 + TypeScript
 │   ├── src/screens/Phase1Scoping…6Strategy.tsx   ← primary engagement workflow
 │   ├── src/screens/{Pipeline,Story,Model,…}.tsx  ← 14 chart screens at /appendix/*
 │   ├── src/components/AuthGuard.tsx              ← Supabase anonymous auth gate
 │   ├── src/lib/{pipeline,scoping,supabase}.ts    ← typed API + DB clients
 │   ├── src/data/key_numbers_python.json          ← synced from exhibits/ pre-build
-│   ├── src/data/pipeline_meta.json               ← synced from serve/models/
+│   ├── src/data/pipeline_meta.json               ← synced from backend/models/
 │   └── .env.example                              ← VITE_PIPELINE_API + VITE_SUPABASE_*
 │
-├── serve/                                 ← FastAPI backend
+├── backend/                                 ← FastAPI backend
 │   ├── main.py                            ← / · /healthz · /meta · /predict · /agent · /scoping/*
 │   ├── pipeline.py                        ← M3a/M3b loader + 5-stage trace
 │   ├── agent.py                           ← ILMU NL parser (Cedent + Stress screens)
@@ -136,11 +136,11 @@ Then open **http://localhost:5173/** for the engagement workflow, or **http://lo
 ```bash
 make smoke     # curl /healthz + 2× /predict, ASSERT expected ranges
 make test      # 19 pytest regression anchors against canon JSON
-make build     # production bundle to app/dist/ (~103 KB gzip initial route)
+make build     # production bundle to frontend/dist/ (~103 KB gzip initial route)
 make preview   # serve the build at http://localhost:4173
 ```
 
-PWA `npm run sync-data` runs automatically as `predev` / `prebuild` — copies `exhibits/results/key_numbers_python.json` and `serve/models/meta.json` into `app/src/data/` so React imports always reflect the latest pipeline run. Re-execute the notebook → JSON regenerates → next `npm run dev` picks it up. No hand-port required.
+PWA `npm run sync-data` runs automatically as `predev` / `prebuild` — copies `exhibits/results/key_numbers_python.json` and `backend/models/meta.json` into `frontend/src/data/` so React imports always reflect the latest pipeline run. Re-execute the notebook → JSON regenerates → next `npm run dev` picks it up. No hand-port required.
 
 ---
 
@@ -168,7 +168,7 @@ Cell 4 has a fallback: if the raw file is absent it loads the committed `data/gl
 
 ### Environment variables
 
-**Backend (`serve/.env`)** — copy `serve/.env.example`:
+**Backend (`backend/.env`)** — copy `backend/.env.example`:
 
 | Var | Purpose |
 |---|---|
@@ -176,7 +176,7 @@ Cell 4 has a fallback: if the raw file is absent it loads the committed `data/gl
 | `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY` | Phase 1 session / transcript / token-usage persistence. Project ref `ncpvewfibvjyppoqrcbk`. |
 | `CORS_ALLOW_ORIGINS` | Comma-separated. Default covers `localhost:5173/4173/127.0.0.1:5173`. Override for ngrok / production. |
 
-**Frontend (`app/.env.local`)** — `make install-web` seeds a default; copy from `app/.env.example` for the full set:
+**Frontend (`frontend/.env.local`)** — `make install-web` seeds a default; copy from `frontend/.env.example` for the full set:
 
 | Var | Purpose |
 |---|---|
@@ -218,10 +218,10 @@ NGFS Phase V scenario perturbation × Swiss Re elasticity 0.7 × GWP USD 1.2 bn
     Net Zero 2050      50.7 %   USD 609 m   →  USD 135 m swing, +11.25 pp
     ▼
 exhibits/results/key_numbers_python.json (single source of truth, 15 top-level keys)
-serve/models/{m3a,m3b,meta}.json         (cell 42 — FastAPI loads at boot)
+backend/models/{m3a,m3b,meta}.json         (cell 42 — FastAPI loads at boot)
     │
-    ├──→ app/src/data/key_numbers_python.json  (auto-copied by npm sync-data)
-    ├──→ app/src/data/pipeline_meta.json       (auto-copied; backend feature ranges)
+    ├──→ frontend/src/data/key_numbers_python.json  (auto-copied by npm sync-data)
+    ├──→ frontend/src/data/pipeline_meta.json       (auto-copied; backend feature ranges)
     │         ↓
     │    PWA renders the six-phase engagement + 14 appendix charts.
     │    /appendix/pipeline calls FastAPI /predict live (offline fallback to JSON).
@@ -237,7 +237,7 @@ All stochastic steps use **`random_state = 2026`**. The 2024 hold-out is reserve
 
 Two services orchestrated by the root `Makefile`.
 
-### Backend — `serve/`
+### Backend — `backend/`
 
 FastAPI app exposing five surfaces:
 
@@ -250,9 +250,9 @@ FastAPI app exposing five surfaces:
 | `POST /agent` | ILMU NL parser. Two-turn pattern: forced tool-call extraction (T=0) → JSON narration (T=0.2, ≤300 tok). Drives Cedent + Stress NL panels. |
 | `POST /scoping/*` | Phase 1 multi-turn consultant chat. Persists transcript + pinned axes to Supabase. |
 
-CORS locked to `localhost:5173/4173/127.0.0.1:5173` by default — set `CORS_ALLOW_ORIGINS` to expose elsewhere. M3a/M3b loaded once at boot from `serve/models/`. ILMU base URL `https://api.ilmu.ai/v1`, model `ilmu-nemo-nano`.
+CORS locked to `localhost:5173/4173/127.0.0.1:5173` by default — set `CORS_ALLOW_ORIGINS` to expose elsewhere. M3a/M3b loaded once at boot from `backend/models/`. ILMU base URL `https://api.ilmu.ai/v1`, model `ilmu-nemo-nano`.
 
-### Frontend — `app/`
+### Frontend — `frontend/`
 
 React 19 + Vite 7 + TypeScript + Tailwind. Hash router. **Two route tiers**:
 
@@ -299,7 +299,7 @@ jupyter nbconvert --to notebook --execute analysis/python/analysis.ipynb --outpu
 cp /tmp/exec.ipynb analysis/python/analysis.ipynb
 
 # 2. Confirm canon JSON + model artefacts regenerated
-ls -la exhibits/results/key_numbers_python.json serve/models/*.json
+ls -la exhibits/results/key_numbers_python.json backend/models/*.json
 
 # 3. Start the demo stack
 make demo
@@ -315,7 +315,7 @@ make test      # 19 regression anchors against canon JSON
 python -m venv .venv && source .venv/bin/activate
 pip install pandas numpy scipy scikit-learn statsmodels \
             linearmodels xgboost shap matplotlib seaborn jupyter
-cd serve && pip install -r requirements.txt
+cd backend && pip install -r requirements.txt
 ```
 
 For the full module-by-module Python walkthrough, see `docs/code_documentation.md`.
@@ -342,10 +342,10 @@ The R Shiny dashboard is retained for reference; the PWA supersedes it on the cr
 
 ```bash
 # Terminal 1 — backend
-uvicorn serve.main:app --host 0.0.0.0 --port 8000 --reload
+uvicorn backend.main:app --host 0.0.0.0 --port 8000 --reload
 
 # Terminal 2 — frontend
-cd app && npm run dev
+cd frontend && npm run dev
 ```
 
 Then open **http://localhost:5173/**. Sign in (anonymous, no email required), walk through Phase 1 → Phase 6, or jump straight to **`#/appendix/pipeline`** to drag feature sliders against live M3a inference at sub-millisecond latency.
@@ -383,10 +383,10 @@ The API rejects malformed input with HTTP 422 (Pydantic) so the live demo is saf
 
 ```bash
 ngrok http 8000
-# Copy the https://*.ngrok-free.app URL into app/.env.local:
+# Copy the https://*.ngrok-free.app URL into frontend/.env.local:
 #   VITE_PIPELINE_API=https://<your-tunnel>.ngrok-free.app
 # Then restart `npm run dev` so Vite picks up the new env var.
-# Also append the ngrok URL to CORS_ALLOW_ORIGINS in serve/.env.
+# Also append the ngrok URL to CORS_ALLOW_ORIGINS in backend/.env.
 ```
 
 If `VITE_PIPELINE_API` is unset or unreachable, the Pipeline screen renders a synthesised trace from `key_numbers_python.json` and shows a "Cached mode" banner — judging keeps working offline.
@@ -394,11 +394,11 @@ If `VITE_PIPELINE_API` is unset or unreachable, the Pipeline screen renders a sy
 ### Production build
 
 ```bash
-make build       # → app/dist/  · ~103 KB gzip initial route
+make build       # → frontend/dist/  · ~103 KB gzip initial route
 make preview     # serves the build at http://localhost:4173
 ```
 
-Point any static host (Vercel / Netlify / Cloudflare Pages) at `app/dist/` and host the FastAPI service on Render / Fly / equivalent. Set `CORS_ALLOW_ORIGINS` to the deployed origin.
+Point any static host (Vercel / Netlify / Cloudflare Pages) at `frontend/dist/` and host the FastAPI service on Render / Fly / equivalent. Set `CORS_ALLOW_ORIGINS` to the deployed origin.
 
 ---
 
@@ -422,9 +422,9 @@ Point any static host (Vercel / Netlify / Cloudflare Pages) at `app/dist/` and h
 Every number in `deliverables/` traces back to `exhibits/results/key_numbers_python.json` or a CSV in `data/`. When the analysis changes:
 
 1. Re-execute `analysis/python/analysis.ipynb` (raw WDI must be at `data/WB_WDI_WIDEF.csv` for full cleaning).
-2. Verify `exhibits/results/key_numbers_python.json` regenerated (timestamp in `_meta.generated`) and `serve/models/{m3a,m3b,meta}.json` regenerated (cell 42).
+2. Verify `exhibits/results/key_numbers_python.json` regenerated (timestamp in `_meta.generated`) and `backend/models/{m3a,m3b,meta}.json` regenerated (cell 42).
 3. Run `make test` — the 19 regression anchors must still pass against the new canon.
-4. Run `cd app && npm run sync-data && npm run build` — confirm the PWA picks up the new numbers.
+4. Run `cd frontend && npm run sync-data && npm run build` — confirm the PWA picks up the new numbers.
 5. Update prose in `deliverables/00_executive_one_pager.md`, `01_report.md` §3/§5/§6, `04_vietnam_vs_philippines_deep_dive.md`, `02_pitch_deck_outline.md` Slide 9, `09_hannover_re_executive_memo.md`, and `PROJECT.md` § Headline Findings.
 
 ---

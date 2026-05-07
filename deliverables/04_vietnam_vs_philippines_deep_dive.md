@@ -112,4 +112,4 @@ Allocating to a **Power-heavy book (70 % Power, 30 % Industrial-Combustion)** in
 
 ---
 
-*Cross-references: `01_report.md` §3.4 (sectoral residuals), §5 (PH vs VN), §6 (loss ratio), §7 (recommendations); `05_cedent_screening_framework.md` (tier logic); `exhibits/results/key_numbers.json` (`stress_test_2030_aggregate`); `app/src/data/keyNumbers.ts` (`EMDAT_VN_PH`, `NDGAIN_2023`, `STRESS_2030`, `HEADLINE`); `app/src/data/cedent.ts` (`COUNTRY_TIER`, `SECTOR_RESIDUAL_PCT`, `LOADING`).*
+*Cross-references: `01_report.md` §3.4 (sectoral residuals), §5 (PH vs VN), §6 (loss ratio), §7 (recommendations); `05_cedent_screening_framework.md` (tier logic); `exhibits/results/key_numbers.json` (`stress_test_2030_aggregate`); `frontend/src/data/keyNumbers.ts` (`EMDAT_VN_PH`, `NDGAIN_2023`, `STRESS_2030`, `HEADLINE`); `frontend/src/data/cedent.ts` (`COUNTRY_TIER`, `SECTOR_RESIDUAL_PCT`, `LOADING`).*
