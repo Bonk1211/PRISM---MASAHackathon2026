@@ -11,7 +11,9 @@ WORKDIR /app
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-COPY . .
+# Copy source under /app/backend/ so internal imports `from backend.X` resolve
+# when Railway Root Directory is set to `backend` (build context = backend/).
+COPY . ./backend/
 
 EXPOSE 8000
 
